@@ -1,0 +1,27 @@
+{
+  "name": "@0xsequence/contracts-library",
+  "version": "1.0.0",
+  "description": "Solidity Contract Library for 0xSequence",
+  "repository": "https://github.com/0xsequence/contract-library.git",
+  "bugs": {
+    "url": "https://github.com/0xsequence/contract-library/issues"
+  },
+  "homepage": "https://github.com/0xsequence/contract-library#README.md",
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "author": "Horizon Blockchain Games",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "forge build"
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "dependencies": {
+    "@0xsequence/erc-1155": "^4.0.1",
+    "@0xsequence/erc20-meta-token": "^4.0.1",
+    "erc721a": "^4.2.3"
+  }
+}

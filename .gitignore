@@ -1,0 +1,11 @@
+node_modules/
+out/
+
+# Ignore .DS_Store files on macOS
+.DS_Store
+
+# Yarn
+yarn-error.log
+
+# Env vars
+.env
