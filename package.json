@@ -13,7 +13,9 @@
   "author": "Horizon Blockchain Games",
   "license": "Apache-2.0",
   "scripts": {
-    "build": "forge build"
+    "build": "forge build",
+    "lint:init": "husky install",
+    "lint:sol": "forge fmt"
   },
   "files": [
     "src",
@@ -23,5 +25,12 @@
     "@0xsequence/erc-1155": "^4.0.1",
     "@0xsequence/erc20-meta-token": "^4.0.1",
     "erc721a": "^4.2.3"
+  },
+  "lint-staged": {
+    "**/*.sol": "yarn lint:sol"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.2"
   }
 }
