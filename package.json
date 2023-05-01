@@ -14,6 +14,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "forge build",
+    "test": "forge test",
     "lint:init": "husky install",
     "lint:sol": "forge fmt"
   },
@@ -22,8 +23,9 @@
     "dist"
   ],
   "dependencies": {
-    "@0xsequence/erc-1155": "^4.0.1",
+    "@0xsequence/erc-1155": "^4.0.2",
     "@0xsequence/erc20-meta-token": "^4.0.1",
+    "@openzeppelin/contracts": "^4.8.3",
     "erc721a": "^4.2.3"
   },
   "lint-staged": {
