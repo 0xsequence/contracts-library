@@ -11,6 +11,19 @@
     "@ethersproject/providers" "^5.7.2"
     ethers "^5.7.2"
 
+<<<<<<< HEAD
+"@0xsequence/erc-1155@^4.0.2":
+=======
+"@0xsequence/erc-1155@^4.0.3":
+>>>>>>> e4c96a7 (Base implementations)
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/@0xsequence/erc-1155/-/erc-1155-4.0.3.tgz#b9b890c1ced04a84f36be22dd20424b43b9e1da2"
+  integrity sha512-vDh4OEuq0bR3iIqhsxpuRpczH5GxwH/mjBWm9uP6VYKnKM36ZBLApSNUlIOCXYRCS0DYFxsdvYjAemb3w1l4ow==
+  optionalDependencies:
+    "@ethersproject/abi" "^5.7.0"
+    "@ethersproject/providers" "^5.7.2"
+    ethers "^5.7.2"
+
 "@0xsequence/erc20-meta-token@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@0xsequence/erc20-meta-token/-/erc20-meta-token-4.0.1.tgz#44fe77822af0ff3b1111466615c9958e92aca782"
@@ -385,6 +398,11 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
+"@openzeppelin/contracts@^4.8.3":
+  version "4.8.3"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.8.3.tgz#cbef3146bfc570849405f59cba18235da95a252a"
+  integrity sha512-bQHV8R9Me8IaJoJ2vPG4rXcL7seB7YVuskr4f+f5RyOStSZetwzkWtoqDMl5erkBJy0lDRUnIR2WIkPiC0GJlg==
+
 "@tsconfig/node10@^1.0.7":
   version "1.0.9"
   resolved "https://registry.yarnpkg.com/@tsconfig/node10/-/node10-1.0.9.tgz#df4907fc07a886922637b15e02d4cebc4c0021b2"
@@ -607,6 +625,11 @@ emoji-regex@^9.2.2:
   version "9.2.2"
   resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-9.2.2.tgz#840c8803b0d8047f4ff0cf963176b32d4ef3ed72"
   integrity sha512-L18DaJsXSUk2+42pv8mLs5jJT2hqFkFE4j21wOmgbUqsZ2hL72NsUU785g9RXgo3s0ZNgVl42TiHp3ZtOv/Vyg==
+
+erc721a-upgradeable@^4.2.3:
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/erc721a-upgradeable/-/erc721a-upgradeable-4.2.3.tgz#9e67a9d628f8648a0cd64d17a7a13eeba61deba1"
+  integrity sha512-EaHbOVDau9drDNpi/gWUHHaopCh35NMATa+3+9ZmdHokw9kfPiDD5RhGRlXA1aZA0ZfYvqPEbaKuSH3PaCY2Ug==
 
 erc721a@^4.2.3:
   version "4.2.3"

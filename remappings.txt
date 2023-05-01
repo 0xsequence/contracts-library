@@ -2,3 +2,6 @@ ds-test/=lib/forge-std/lib/ds-test/src/
 forge-std/=lib/forge-std/src/
 @0xsequence/erc20-meta-token/=node_modules/@0xsequence/erc20-meta-token/
 @0xsequence/erc-1155/=node_modules/@0xsequence/erc-1155/
+erc721a/=node_modules/erc721a/
+erc721a-upgradeable/=node_modules/erc721a-upgradeable/
+@openzeppelin/=node_modules/@openzeppelin/
