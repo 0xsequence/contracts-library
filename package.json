@@ -27,9 +27,9 @@
   "dependencies": {
     "@0xsequence/erc-1155": "^4.0.3",
     "@0xsequence/erc20-meta-token": "^4.0.1",
-    "@openzeppelin/contracts": "^4.8.3",
     "erc721a": "^4.2.3",
-    "erc721a-upgradeable": "^4.2.3"
+    "erc721a-upgradeable": "^4.2.3",
+    "@openzeppelin/contracts": "^4.8.3"
   },
   "lint-staged": {
     "**/*.sol": "yarn lint:sol && yarn format:sol"
