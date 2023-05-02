@@ -190,6 +190,8 @@ contract ERC1155Sale is ERC1155SaleErrors, ERC1155MintBurn, ERC1155Meta, ERC1155
 
     /**
      * Withdraws ETH or ERC20 tokens owned by this sale contract.
+     * @param _to Address to withdraw to.
+     * @param _amount Amount to withdraw.
      * @dev Withdraws ERC20 when paymentToken is set, else ETH.
      * @notice Only callable by the contract admin.
      */
