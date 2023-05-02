@@ -7,9 +7,9 @@ import {ERC1155MintBurn} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ERC1155SaleErrors} from "./ERC1155SaleErrors.sol";
+import {SaleErrors} from "../../utils/SaleErrors.sol";
 
-contract ERC1155Sale is ERC1155SaleErrors, ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981, AccessControl {
+contract ERC1155Sale is SaleErrors, ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981, AccessControl {
     bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
     bytes32 public constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
 
