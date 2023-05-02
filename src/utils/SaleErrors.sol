@@ -2,7 +2,12 @@
 pragma solidity ^0.8.17;
 
 // A contract for errors for extensibility.
-contract ERC1155SaleErrors {
+contract SaleErrors {
+    /**
+     * Sale is not active globally.
+     */
+    error GlobalSaleInactive();
+
     /**
      * Sale is not active.
      * @param tokenId Invalid Token ID.
