@@ -349,21 +349,62 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors {
     }
 
     //
+    // Withdraw
+    //
+
+    // Withdraw fails if the caller doesn't have the WITHDRAW_ROLE
+    function testWithdrawFail(address withdrawTo, uint256 amount) public {
+        token.revokeRole(token.DEFAULT_ADMIN_ROLE(), address(this));
+
+        vm.expectRevert(
+            abi.encodePacked(
+                "AccessControl: account ",
+                Strings.toHexString(address(this)),
+                " is missing role ",
+                Strings.toHexString(uint256(token.DEFAULT_ADMIN_ROLE()), 32)
+            )
+        );
+        token.withdraw(withdrawTo, amount);
+    }
+
+    // Withdraw success ETH
+    function testWithdrawETH(address withdrawTo, uint256 tokenId, uint256 amount) public {
+        // Address 9 doesnt receive ETH
+        vm.assume(withdrawTo != address(9));
+        testMintSingleSuccess(withdrawTo, tokenId, amount);
+
+        uint256 tokenBalance = address(token).balance;
+        uint256 balance = withdrawTo.balance;
+        token.withdraw(withdrawTo, tokenBalance);
+        assertEq(tokenBalance + balance, withdrawTo.balance);
+    }
+
+    // Withdraw success ERC20
+    function testWithdrawERC20(address withdrawTo, uint256 tokenId, uint256 amount) public {
+        testERC20Mint(withdrawTo, tokenId, amount);
+
+        uint256 tokenBalance = erc20.balanceOf(address(token));
+        uint256 balance = erc20.balanceOf(withdrawTo);
+        token.withdraw(withdrawTo, tokenBalance);
+        assertEq(tokenBalance + balance, erc20.balanceOf(withdrawTo));
+    }
+
+    //
     // Helpers
     //
-    modifier assumeSafe(address mintTo, uint256 tokenId, uint256 amount) {
-        vm.assume(mintTo != address(0));
-        vm.assume(mintTo.code.length == 0);
+    modifier assumeSafe(address nonContract, uint256 tokenId, uint256 amount) {
+        vm.assume(nonContract != address(0));
+        vm.assume(nonContract.code.length == 0);
         vm.assume(tokenId < 100);
         vm.assume(amount > 0 && amount < 20);
         _;
     }
 
-    // Create ERC20. Give this contract 100 ERC20 tokens. Approve token to spend 100 ERC20 tokens.
+    // Create ERC20. Give this contract 1000 ERC20 tokens. Approve token to spend 100 ERC20 tokens.
     modifier withERC20() {
         erc20 = new ERC20Mock();
-        erc20.mockMint(address(this), 100 ether);
-        erc20.approve(address(token), 100 ether);
+        erc20.mockMint(address(this), 1000 ether);
+        erc20.approve(address(token), 1000 ether);
         _;
     }
 
