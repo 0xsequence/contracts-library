@@ -239,6 +239,48 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors {
     }
 
     //
+    // Admin minting
+    //
+
+    // Admin minting denied when not admin.
+    function testMintAdminFail(address minter, address mintTo, uint256 tokenId, uint256 amount)
+        public
+        assumeSafe(mintTo, tokenId, amount)
+    {
+        vm.assume(minter != address(this));
+        vm.assume(minter != address(0));
+
+        uint256[] memory tokenIds = singleToArray(tokenId);
+        uint256[] memory amounts = singleToArray(amount);
+
+        vm.expectRevert(
+            abi.encodePacked(
+                "AccessControl: account ",
+                Strings.toHexString(minter),
+                " is missing role ",
+                Strings.toHexString(uint256(token.MINT_ADMIN_ROLE()), 32)
+            )
+        );
+        vm.prank(minter);
+        token.mintAdmin(mintTo, tokenIds, amounts, "");
+    }
+
+    // Minting as admin success.
+    function testMintAdminSuccess(address minter, address mintTo, uint256 tokenId, uint256 amount)
+        public
+        assumeSafe(mintTo, tokenId, amount)
+    {
+        token.grantRole(token.MINT_ADMIN_ROLE(), minter);
+
+        uint256[] memory tokenIds = singleToArray(tokenId);
+        uint256[] memory amounts = singleToArray(amount);
+
+        uint256 count = token.balanceOf(mintTo, tokenId);
+        token.mintAdmin(mintTo, tokenIds, amounts, "");
+        assertEq(count + amount, token.balanceOf(mintTo, tokenId));
+    }
+
+    //
     // Royalty
     //
 
