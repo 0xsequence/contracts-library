@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import {ERC1155Sale} from "src/tokens/ERC1155/ERC1155Sale.sol";
-import {ERC1155SaleErrors} from "src/tokens/ERC1155/ERC1155SaleErrors.sol";
+import {SaleErrors} from "src/utils/SaleErrors.sol";
 
 import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -14,7 +14,7 @@ import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import {IERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
-contract ERC1155SaleTest is Test, ERC1155SaleErrors {
+contract ERC1155SaleTest is Test, SaleErrors {
     // Redeclare events
     event TransferBatch(
         address indexed _operator, address indexed _from, address indexed _to, uint256[] _ids, uint256[] _amounts
