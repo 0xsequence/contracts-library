@@ -110,6 +110,21 @@ contract ERC1155Sale is ERC1155SaleErrors, ERC1155MintBurn, ERC1155Meta, ERC1155
     }
 
     /**
+     * Mint tokens as admin.
+     * @param _to Address to mint tokens to.
+     * @param _tokenIds Token IDs to mint.
+     * @param _amounts Amounts of tokens to mint.
+     * @param _data Data to pass if receiver is contract.
+     * @notice Only callable by mint admin.
+     */
+    function mintAdmin(address _to, uint256[] memory _tokenIds, uint256[] memory _amounts, bytes memory _data)
+        public
+        onlyRole(MINT_ADMIN_ROLE)
+    {
+        _batchMint(_to, _tokenIds, _amounts, _data);
+    }
+
+    /**
      * Set the global sale details.
      * @param _paymentToken The ERC20 token address to accept payment in. address(0) indicates ETH.
      * @param _amount The amount of payment tokens to accept for each token minted.
