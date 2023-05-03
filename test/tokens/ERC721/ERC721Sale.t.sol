@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import {ERC721Sale} from "src/tokens/ERC721/ERC721Sale.sol";
-import {SaleErrors} from "src/utils/SaleErrors.sol";
+import {ERC721SaleErrors} from "src/tokens/ERC721/ERC721SaleErrors.sol";
 
 import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -15,7 +15,7 @@ import {IERC721A} from "erc721a/contracts/interfaces/IERC721A.sol";
 import {IERC721AQueryable} from "erc721a/contracts/interfaces/IERC721AQueryable.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
-contract ERC721SaleTest is Test, SaleErrors {
+contract ERC721SaleTest is Test, ERC721SaleErrors {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
@@ -43,7 +43,7 @@ contract ERC721SaleTest is Test, SaleErrors {
 
     // Minting denied when no sale active.
     function testMintInactiveFail(address mintTo, uint256 amount) public assumeSafe(mintTo, amount) {
-        vm.expectRevert(abi.encodeWithSelector(GlobalSaleInactive.selector));
+        vm.expectRevert(SaleInactive.selector);
         token.mint{value: amount * perTokenCost}(mintTo, amount);
     }
 
@@ -54,9 +54,22 @@ contract ERC721SaleTest is Test, SaleErrors {
     {
         vm.assume(startTime > endTime);
         vm.assume(block.timestamp < startTime || block.timestamp >= endTime);
-        token.setSalesDetails(address(0), perTokenCost, uint64(startTime), uint64(endTime));
+        token.setSaleDetails(0, perTokenCost, address(0), uint64(startTime), uint64(endTime));
 
-        vm.expectRevert(abi.encodeWithSelector(GlobalSaleInactive.selector));
+        vm.expectRevert(SaleInactive.selector);
+        token.mint{value: amount * perTokenCost}(mintTo, amount);
+    }
+
+    // Minting denied when supply exceeded.
+    function testMintSupplyExceeded(address mintTo, uint256 amount, uint256 supplyCap)
+        public
+        assumeSafe(mintTo, amount)
+    {
+        vm.assume(supplyCap > 0);
+        vm.assume(amount > supplyCap);
+        token.setSaleDetails(supplyCap, perTokenCost, address(0), uint64(block.timestamp), uint64(block.timestamp + 1));
+
+        vm.expectRevert(abi.encodeWithSelector(InsufficientSupply.selector, 0, amount, supplyCap));
         token.mint{value: amount * perTokenCost}(mintTo, amount);
     }
 
@@ -71,7 +84,7 @@ contract ERC721SaleTest is Test, SaleErrors {
 
     // Minting allowed when sale is free.
     function testFreeMint(address mintTo, uint256 amount) public assumeSafe(mintTo, amount) {
-        token.setSalesDetails(address(0), 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
+        token.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1));
 
         uint256 count = token.balanceOf(mintTo);
         vm.expectEmit(true, true, true, true, address(token));
@@ -82,7 +95,7 @@ contract ERC721SaleTest is Test, SaleErrors {
 
     // Minting allowed when mint charged with ERC20.
     function testERC20Mint(address mintTo, uint256 amount) public assumeSafe(mintTo, amount) withERC20 {
-        token.setSalesDetails(address(erc20), perTokenCost, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
+        token.setSaleDetails(0, perTokenCost, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1));
         uint256 cost = amount * perTokenCost;
 
         uint256 balanace = erc20.balanceOf(address(this));
@@ -219,7 +232,7 @@ contract ERC721SaleTest is Test, SaleErrors {
     }
 
     modifier withSaleActive() {
-        token.setSalesDetails(address(0), perTokenCost, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
+        token.setSaleDetails(0, perTokenCost, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1));
         _;
     }
 

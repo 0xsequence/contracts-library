@@ -3,7 +3,8 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import {ERC1155Sale} from "src/tokens/ERC1155/ERC1155Sale.sol";
-import {SaleErrors} from "src/utils/SaleErrors.sol";
+import {ERC1155SaleErrors} from "src/tokens/ERC1155/ERC1155SaleErrors.sol";
+import {ERC1155SupplyErrors} from "src/tokens/ERC1155/ERC1155SupplyErrors.sol";
 
 import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -14,7 +15,7 @@ import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import {IERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
-contract ERC1155SaleTest is Test, SaleErrors {
+contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     // Redeclare events
     event TransferBatch(
         address indexed _operator, address indexed _from, address indexed _to, uint256[] _ids, uint256[] _amounts
@@ -79,7 +80,7 @@ contract ERC1155SaleTest is Test, SaleErrors {
     {
         vm.assume(startTime > endTime);
         vm.assume(block.timestamp < startTime || block.timestamp >= endTime);
-        token.setTokenSalesDetails(tokenId, perTokenCost, uint64(startTime), uint64(endTime));
+        token.setTokenSaleDetails(tokenId, perTokenCost, 0, uint64(startTime), uint64(endTime));
 
         uint256[] memory tokenIds = singleToArray(tokenId);
         uint256[] memory amounts = singleToArray(amount);
@@ -101,7 +102,7 @@ contract ERC1155SaleTest is Test, SaleErrors {
     {
         vm.assume(startTime > endTime);
         vm.assume(block.timestamp < startTime || block.timestamp >= endTime);
-        token.setGlobalSalesDetails(address(0), perTokenCost, uint64(startTime), uint64(endTime));
+        token.setGlobalSaleDetails(address(0), perTokenCost, 0, uint64(startTime), uint64(endTime));
 
         uint256[] memory tokenIds = singleToArray(tokenId);
         uint256[] memory amounts = singleToArray(amount);
@@ -125,6 +126,42 @@ contract ERC1155SaleTest is Test, SaleErrors {
 
         vm.expectRevert(abi.encodeWithSelector(SaleInactive.selector, tokenId + 1));
         token.mint{value: amount * perTokenCost * 2}(mintTo, tokenIds, amounts, "");
+    }
+
+    // Minting denied when global supply exceeded.
+    function testMintGlobalSupplyExceeded(address mintTo, uint256 tokenId, uint256 amount, uint256 supplyCap)
+        public
+        assumeSafe(mintTo, tokenId, amount)
+    {
+        vm.assume(supplyCap > 0);
+        vm.assume(amount > supplyCap);
+        token.setGlobalSaleDetails(
+            address(0), perTokenCost, supplyCap, uint64(block.timestamp), uint64(block.timestamp + 1)
+        );
+
+        uint256[] memory tokenIds = singleToArray(tokenId);
+        uint256[] memory amounts = singleToArray(amount);
+
+        vm.expectRevert(InsufficientSupply.selector);
+        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "");
+    }
+
+    // Minting denied when token supply exceeded.
+    function testMintTokenSupplyExceeded(address mintTo, uint256 tokenId, uint256 amount, uint256 supplyCap)
+        public
+        assumeSafe(mintTo, tokenId, amount)
+    {
+        vm.assume(supplyCap > 0);
+        vm.assume(amount > supplyCap);
+        token.setTokenSaleDetails(
+            tokenId, perTokenCost, supplyCap, uint64(block.timestamp), uint64(block.timestamp + 1)
+        );
+
+        uint256[] memory tokenIds = singleToArray(tokenId);
+        uint256[] memory amounts = singleToArray(amount);
+
+        vm.expectRevert(InsufficientSupply.selector);
+        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "");
     }
 
     // Minting allowed when sale is active globally.
@@ -187,7 +224,7 @@ contract ERC1155SaleTest is Test, SaleErrors {
         public
         assumeSafe(mintTo, tokenId, amount)
     {
-        token.setGlobalSalesDetails(address(0), 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
+        token.setGlobalSaleDetails(address(0), 0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
         uint256[] memory tokenIds = singleToArray(tokenId);
         uint256[] memory amounts = singleToArray(amount);
 
@@ -204,7 +241,7 @@ contract ERC1155SaleTest is Test, SaleErrors {
         assumeSafe(mintTo, tokenId, amount)
         withGlobalSaleActive
     {
-        token.setTokenSalesDetails(tokenId, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
+        token.setTokenSaleDetails(tokenId, 0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
         uint256[] memory tokenIds = singleToArray(tokenId);
         uint256[] memory amounts = singleToArray(amount);
 
@@ -221,8 +258,8 @@ contract ERC1155SaleTest is Test, SaleErrors {
         assumeSafe(mintTo, tokenId, amount)
         withERC20
     {
-        token.setGlobalSalesDetails(
-            address(erc20), perTokenCost, uint64(block.timestamp - 1), uint64(block.timestamp + 1)
+        token.setGlobalSaleDetails(
+            address(erc20), perTokenCost, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1)
         );
         uint256[] memory tokenIds = singleToArray(tokenId);
         uint256[] memory amounts = singleToArray(amount);
@@ -409,7 +446,9 @@ contract ERC1155SaleTest is Test, SaleErrors {
     }
 
     modifier withGlobalSaleActive() {
-        token.setGlobalSalesDetails(address(0), perTokenCost, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
+        token.setGlobalSaleDetails(
+            address(0), perTokenCost, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1)
+        );
         _;
     }
 
@@ -419,7 +458,7 @@ contract ERC1155SaleTest is Test, SaleErrors {
     }
 
     function setTokenSaleActive(uint256 tokenId) private {
-        token.setTokenSalesDetails(tokenId, perTokenCost, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
+        token.setTokenSaleDetails(tokenId, perTokenCost, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
     }
 
     function singleToArray(uint256 value) private pure returns (uint256[] memory) {

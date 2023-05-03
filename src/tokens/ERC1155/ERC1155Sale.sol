@@ -3,27 +3,27 @@ pragma solidity ^0.8.17;
 
 import {ERC1155, ERC1155Meta} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Meta.sol";
 import {ERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
-import {ERC1155MintBurn} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
+import {ERC1155Supply} from "./ERC1155Supply.sol";
+import {ERC1155SaleErrors} from "./ERC1155SaleErrors.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SaleErrors} from "../../utils/SaleErrors.sol";
 
-contract ERC1155Sale is SaleErrors, ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981, AccessControl {
+contract ERC1155Sale is ERC1155SaleErrors, ERC1155Supply, ERC1155Meta, ERC1155Metadata, ERC2981, AccessControl {
     bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
     bytes32 public constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
 
     bytes4 private constant ERC20_TRANSFERFROM_SELECTOR =
         bytes4(keccak256(bytes("transferFrom(address,address,uint256)")));
 
-    event GlobalSaleDetailsUpdated(uint256 amount, uint64 startTime, uint64 endTime);
-    event TokenSaleDetailsUpdated(uint256 tokenId, uint256 amount, uint64 startTime, uint64 endTime);
+    event GlobalSaleDetailsUpdated(uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime);
+    event TokenSaleDetailsUpdated(uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime);
 
     // ERC20 token address for payment. address(0) indicated payment in ETH.
     address public paymentToken;
 
     struct SaleDetails {
-        uint256 amount;
+        uint256 cost;
         uint64 startTime;
         uint64 endTime; // 0 end time indicates sale inactive
     }
@@ -54,7 +54,8 @@ contract ERC1155Sale is SaleErrors, ERC1155MintBurn, ERC1155Meta, ERC1155Metadat
      * @param _amounts Amounts of tokens to mint.
      */
     function payForActiveMint(uint256[] memory _tokenIds, uint256[] memory _amounts) private {
-        uint256 total;
+        uint256 totalAmount;
+        uint256 totalCost;
         bool globalSaleInactive = blockTimeOutOfBounds(globalSaleDetails.startTime, globalSaleDetails.endTime);
         for (uint256 i; i < _tokenIds.length; i++) {
             // Active sale test
@@ -66,25 +67,26 @@ contract ERC1155Sale is SaleErrors, ERC1155MintBurn, ERC1155Meta, ERC1155Metadat
                     // Both sales inactive
                     revert SaleInactive(_tokenIds[i]);
                 }
-                // Use global sale price
-                total += globalSaleDetails.amount * _amounts[i];
+                // Use global sale details
+                totalCost += globalSaleDetails.cost * _amounts[i];
             } else {
                 // Use token sale price
-                total += saleDetails.amount * _amounts[i];
+                totalCost += saleDetails.cost * _amounts[i];
             }
+            totalAmount += _amounts[i];
         }
 
         if (paymentToken == address(0)) {
             // Paid in ETH
-            if (msg.value != total) {
-                revert InsufficientPayment(total, msg.value);
+            if (msg.value != totalCost) {
+                revert InsufficientPayment(totalCost, msg.value);
             }
         } else {
             // Paid in ERC20
             (bool success, bytes memory data) =
-                paymentToken.call(abi.encodeWithSelector(ERC20_TRANSFERFROM_SELECTOR, msg.sender, address(this), total));
+                paymentToken.call(abi.encodeWithSelector(ERC20_TRANSFERFROM_SELECTOR, msg.sender, address(this), totalCost));
             if (!success || (data.length > 0 && !abi.decode(data, (bool)))) {
-                revert InsufficientPayment(total, 0);
+                revert InsufficientPayment(totalCost, 0);
             }
         }
     }
@@ -127,34 +129,50 @@ contract ERC1155Sale is SaleErrors, ERC1155MintBurn, ERC1155Meta, ERC1155Metadat
     /**
      * Set the global sale details.
      * @param _paymentToken The ERC20 token address to accept payment in. address(0) indicates ETH.
-     * @param _amount The amount of payment tokens to accept for each token minted.
+     * @param _cost The amount of payment tokens to accept for each token minted.
+     * @param _supplyCap The maximum number of tokens that can be minted.
      * @param _startTime The start time of the sale. Tokens cannot be minted before this time.
      * @param _endTime The end time of the sale. Tokens cannot be minted after this time.
      * @dev A zero end time indicates an inactive sale.
      */
-    function setGlobalSalesDetails(address _paymentToken, uint256 _amount, uint64 _startTime, uint64 _endTime)
+    function setGlobalSaleDetails(
+        address _paymentToken,
+        uint256 _cost,
+        uint256 _supplyCap,
+        uint64 _startTime,
+        uint64 _endTime
+    )
         public
         onlyRole(MINT_ADMIN_ROLE)
     {
         paymentToken = _paymentToken;
-        globalSaleDetails = SaleDetails(_amount, _startTime, _endTime);
-        emit GlobalSaleDetailsUpdated(_amount, _startTime, _endTime);
+        totalSupplyCap = _supplyCap;
+        globalSaleDetails = SaleDetails(_cost, _startTime, _endTime);
+        emit GlobalSaleDetailsUpdated(_cost, _supplyCap, _startTime, _endTime);
     }
 
     /**
      * Set the sale details for an individual token.
      * @param _tokenId The token ID to set the sale details for.
-     * @param _amount The amount of payment tokens to accept for each token minted.
+     * @param _cost The amount of payment tokens to accept for each token minted.
+     * @param _supplyCap The maximum number of tokens that can be minted.
      * @param _startTime The start time of the sale. Tokens cannot be minted before this time.
      * @param _endTime The end time of the sale. Tokens cannot be minted after this time.
      * @dev A zero end time indicates an inactive sale.
      */
-    function setTokenSalesDetails(uint256 _tokenId, uint256 _amount, uint64 _startTime, uint64 _endTime)
+    function setTokenSaleDetails(
+        uint256 _tokenId,
+        uint256 _cost,
+        uint256 _supplyCap,
+        uint64 _startTime,
+        uint64 _endTime
+    )
         public
         onlyRole(MINT_ADMIN_ROLE)
     {
-        tokenSaleDetails[_tokenId] = SaleDetails(_amount, _startTime, _endTime);
-        emit TokenSaleDetailsUpdated(_tokenId, _amount, _startTime, _endTime);
+        tokenSupplyCap[_tokenId] = _supplyCap;
+        tokenSaleDetails[_tokenId] = SaleDetails(_cost, _startTime, _endTime);
+        emit TokenSaleDetailsUpdated(_tokenId, _cost, _supplyCap, _startTime, _endTime);
     }
 
     //
