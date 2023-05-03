@@ -4,13 +4,13 @@ pragma solidity ^0.8.17;
 import {
     ERC721AQueryable, IERC721AQueryable, ERC721A, IERC721A
 } from "erc721a/contracts/extensions/ERC721AQueryable.sol";
+import {ERC721SaleErrors} from "./ERC721SaleErrors.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SaleErrors} from "../../utils/SaleErrors.sol";
 
-contract ERC721Sale is SaleErrors, ERC721AQueryable, ERC2981, AccessControl {
+contract ERC721Sale is ERC721AQueryable, ERC2981, AccessControl, ERC721SaleErrors {
     bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
     bytes32 public constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
 
@@ -19,10 +19,11 @@ contract ERC721Sale is SaleErrors, ERC721AQueryable, ERC2981, AccessControl {
 
     string private baseURI;
 
-    event SaleDetailsUpdated(uint256 amount, address paymentToken, uint64 startTime, uint64 endTime);
+    event SaleDetailsUpdated(uint256 supplyCap, uint256 cost, address paymentToken, uint64 startTime, uint64 endTime);
 
     struct SaleDetails {
-        uint256 amount;
+        uint256 supplyCap; // 0 supply cap indicates unlimited supply
+        uint256 cost;
         address paymentToken; // ERC20 token address for payment. address(0) indicated payment in ETH.
         uint64 startTime;
         uint64 endTime; // 0 end time indicates sale inactive
@@ -57,10 +58,10 @@ contract ERC721Sale is SaleErrors, ERC721AQueryable, ERC2981, AccessControl {
     function payForActiveMint(uint256 _amount) private {
         // Active sale test
         if (blockTimeOutOfBounds(saleDetails.startTime, saleDetails.endTime)) {
-            revert GlobalSaleInactive();
+            revert SaleInactive();
         }
 
-        uint256 total = saleDetails.amount * _amount;
+        uint256 total = saleDetails.cost * _amount;
         address paymentToken = saleDetails.paymentToken;
         if (paymentToken == address(0)) {
             // Paid in ETH
@@ -88,6 +89,11 @@ contract ERC721Sale is SaleErrors, ERC721AQueryable, ERC2981, AccessControl {
      * @notice Sale must be active for all tokens.
      */
     function mint(address _to, uint256 _amount) public payable {
+        uint256 currentSupply = ERC721A.totalSupply();
+        uint256 supplyCap = saleDetails.supplyCap;
+        if (supplyCap > 0 && currentSupply + _amount > supplyCap) {
+            revert InsufficientSupply(currentSupply, _amount, supplyCap);
+        }
         payForActiveMint(_amount);
         _mint(_to, _amount);
     }
@@ -104,18 +110,25 @@ contract ERC721Sale is SaleErrors, ERC721AQueryable, ERC2981, AccessControl {
 
     /**
      * Set the sale details.
+     * @param _supplyCap The maximum number of tokens that can be minted. 0 indicates unlimited supply.
+     * @param _cost The amount of payment tokens to accept for each token minted.
      * @param _paymentToken The ERC20 token address to accept payment in. address(0) indicates ETH.
-     * @param _amount The amount of payment tokens to accept for each token minted.
      * @param _startTime The start time of the sale. Tokens cannot be minted before this time.
      * @param _endTime The end time of the sale. Tokens cannot be minted after this time.
      * @dev A zero end time indicates an inactive sale.
      */
-    function setSalesDetails(address _paymentToken, uint256 _amount, uint64 _startTime, uint64 _endTime)
+    function setSaleDetails(
+        uint256 _supplyCap,
+        uint256 _cost,
+        address _paymentToken,
+        uint64 _startTime,
+        uint64 _endTime
+    )
         public
         onlyRole(MINT_ADMIN_ROLE)
     {
-        saleDetails = SaleDetails(_amount, _paymentToken, _startTime, _endTime);
-        emit SaleDetailsUpdated(_amount, _paymentToken, _startTime, _endTime);
+        saleDetails = SaleDetails(_supplyCap, _cost, _paymentToken, _startTime, _endTime);
+        emit SaleDetailsUpdated(_supplyCap, _cost, _paymentToken, _startTime, _endTime);
     }
 
     //
