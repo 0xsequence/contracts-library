@@ -4,13 +4,14 @@ pragma solidity ^0.8.17;
 import {
     ERC721AQueryable, IERC721AQueryable, ERC721A, IERC721A
 } from "erc721a/contracts/extensions/ERC721AQueryable.sol";
+import {IERC721Sale} from "./IERC721Sale.sol";
 import {ERC721SaleErrors} from "./ERC721SaleErrors.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract ERC721Sale is ERC721AQueryable, ERC2981, AccessControl, ERC721SaleErrors {
+contract ERC721Sale is IERC721Sale, ERC721AQueryable, ERC2981, AccessControl, ERC721SaleErrors {
     bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
     bytes32 public constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
 
@@ -19,17 +20,7 @@ contract ERC721Sale is ERC721AQueryable, ERC2981, AccessControl, ERC721SaleError
 
     string private baseURI;
 
-    event SaleDetailsUpdated(uint256 supplyCap, uint256 cost, address paymentToken, uint64 startTime, uint64 endTime);
-
-    struct SaleDetails {
-        uint256 supplyCap; // 0 supply cap indicates unlimited supply
-        uint256 cost;
-        address paymentToken; // ERC20 token address for payment. address(0) indicated payment in ETH.
-        uint64 startTime;
-        uint64 endTime; // 0 end time indicates sale inactive
-    }
-
-    SaleDetails public saleDetails;
+    SaleDetails private _saleDetails;
 
     constructor(address owner, string memory _name, string memory _symbol, string memory baseURI_)
         ERC721A(_name, _symbol)
@@ -57,12 +48,12 @@ contract ERC721Sale is ERC721AQueryable, ERC2981, AccessControl, ERC721SaleError
      */
     function payForActiveMint(uint256 _amount) private {
         // Active sale test
-        if (blockTimeOutOfBounds(saleDetails.startTime, saleDetails.endTime)) {
+        if (blockTimeOutOfBounds(_saleDetails.startTime, _saleDetails.endTime)) {
             revert SaleInactive();
         }
 
-        uint256 total = saleDetails.cost * _amount;
-        address paymentToken = saleDetails.paymentToken;
+        uint256 total = _saleDetails.cost * _amount;
+        address paymentToken = _saleDetails.paymentToken;
         if (paymentToken == address(0)) {
             // Paid in ETH
             if (msg.value != total) {
@@ -90,7 +81,7 @@ contract ERC721Sale is ERC721AQueryable, ERC2981, AccessControl, ERC721SaleError
      */
     function mint(address _to, uint256 _amount) public payable {
         uint256 currentSupply = ERC721A.totalSupply();
-        uint256 supplyCap = saleDetails.supplyCap;
+        uint256 supplyCap = _saleDetails.supplyCap;
         if (supplyCap > 0 && currentSupply + _amount > supplyCap) {
             revert InsufficientSupply(currentSupply, _amount, supplyCap);
         }
@@ -127,7 +118,7 @@ contract ERC721Sale is ERC721AQueryable, ERC2981, AccessControl, ERC721SaleError
         public
         onlyRole(MINT_ADMIN_ROLE)
     {
-        saleDetails = SaleDetails(_supplyCap, _cost, _paymentToken, _startTime, _endTime);
+        _saleDetails = SaleDetails(_supplyCap, _cost, _paymentToken, _startTime, _endTime);
         emit SaleDetailsUpdated(_supplyCap, _cost, _paymentToken, _startTime, _endTime);
     }
 
@@ -156,7 +147,7 @@ contract ERC721Sale is ERC721AQueryable, ERC2981, AccessControl, ERC721SaleError
      * @notice Only callable by the contract admin.
      */
     function withdraw(address _to, uint256 _amount) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        address paymentToken = saleDetails.paymentToken;
+        address paymentToken = _saleDetails.paymentToken;
         if (paymentToken == address(0)) {
             (bool success,) = _to.call{value: _amount}("");
             if (!success) {
@@ -173,6 +164,14 @@ contract ERC721Sale is ERC721AQueryable, ERC2981, AccessControl, ERC721SaleError
     //
     // Views
     //
+    /**
+     * Get sale details.
+     * @return Sale details.
+     */
+    function saleDetails() external view returns (SaleDetails memory) {
+        return _saleDetails;
+    }
+
     function supportsInterface(bytes4 _interfaceId)
         public
         view
