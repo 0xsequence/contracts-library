@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
+import {IERC1155Sale} from "./IERC1155Sale.sol";
 import {ERC1155, ERC1155Meta} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Meta.sol";
 import {ERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 import {ERC1155Supply} from "./ERC1155Supply.sol";
@@ -9,27 +10,26 @@ import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract ERC1155Sale is ERC1155SaleErrors, ERC1155Supply, ERC1155Meta, ERC1155Metadata, ERC2981, AccessControl {
+contract ERC1155Sale is
+    IERC1155Sale,
+    ERC1155SaleErrors,
+    ERC1155Supply,
+    ERC1155Meta,
+    ERC1155Metadata,
+    ERC2981,
+    AccessControl
+{
     bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
     bytes32 public constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
 
     bytes4 private constant ERC20_TRANSFERFROM_SELECTOR =
         bytes4(keccak256(bytes("transferFrom(address,address,uint256)")));
 
-    event GlobalSaleDetailsUpdated(uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime);
-    event TokenSaleDetailsUpdated(uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime);
-
     // ERC20 token address for payment. address(0) indicated payment in ETH.
-    address public paymentToken;
+    address private _paymentToken;
 
-    struct SaleDetails {
-        uint256 cost;
-        uint64 startTime;
-        uint64 endTime; // 0 end time indicates sale inactive
-    }
-
-    SaleDetails public globalSaleDetails;
-    mapping(uint256 => SaleDetails) public tokenSaleDetails;
+    SaleDetails private _globalSaleDetails;
+    mapping(uint256 => SaleDetails) private _tokenSaleDetails;
 
     constructor(address owner, string memory _name, string memory _baseURI) ERC1155Metadata(_name, _baseURI) {
         _setupRole(DEFAULT_ADMIN_ROLE, owner);
@@ -56,10 +56,11 @@ contract ERC1155Sale is ERC1155SaleErrors, ERC1155Supply, ERC1155Meta, ERC1155Me
     function payForActiveMint(uint256[] memory _tokenIds, uint256[] memory _amounts) private {
         uint256 totalAmount;
         uint256 totalCost;
-        bool globalSaleInactive = blockTimeOutOfBounds(globalSaleDetails.startTime, globalSaleDetails.endTime);
+        SaleDetails memory gSaleDetails = _globalSaleDetails;
+        bool globalSaleInactive = blockTimeOutOfBounds(gSaleDetails.startTime, gSaleDetails.endTime);
         for (uint256 i; i < _tokenIds.length; i++) {
             // Active sale test
-            SaleDetails memory saleDetails = tokenSaleDetails[_tokenIds[i]];
+            SaleDetails memory saleDetails = _tokenSaleDetails[_tokenIds[i]];
             bool tokenSaleInactive = blockTimeOutOfBounds(saleDetails.startTime, saleDetails.endTime);
             if (tokenSaleInactive) {
                 // Prefer token sale
@@ -68,7 +69,7 @@ contract ERC1155Sale is ERC1155SaleErrors, ERC1155Supply, ERC1155Meta, ERC1155Me
                     revert SaleInactive(_tokenIds[i]);
                 }
                 // Use global sale details
-                totalCost += globalSaleDetails.cost * _amounts[i];
+                totalCost += gSaleDetails.cost * _amounts[i];
             } else {
                 // Use token sale price
                 totalCost += saleDetails.cost * _amounts[i];
@@ -76,15 +77,16 @@ contract ERC1155Sale is ERC1155SaleErrors, ERC1155Supply, ERC1155Meta, ERC1155Me
             totalAmount += _amounts[i];
         }
 
-        if (paymentToken == address(0)) {
+        if (_paymentToken == address(0)) {
             // Paid in ETH
             if (msg.value != totalCost) {
                 revert InsufficientPayment(totalCost, msg.value);
             }
         } else {
             // Paid in ERC20
-            (bool success, bytes memory data) =
-                paymentToken.call(abi.encodeWithSelector(ERC20_TRANSFERFROM_SELECTOR, msg.sender, address(this), totalCost));
+            (bool success, bytes memory data) = _paymentToken.call(
+                abi.encodeWithSelector(ERC20_TRANSFERFROM_SELECTOR, msg.sender, address(this), totalCost)
+            );
             if (!success || (data.length > 0 && !abi.decode(data, (bool)))) {
                 revert InsufficientPayment(totalCost, 0);
             }
@@ -128,7 +130,7 @@ contract ERC1155Sale is ERC1155SaleErrors, ERC1155Supply, ERC1155Meta, ERC1155Me
 
     /**
      * Set the global sale details.
-     * @param _paymentToken The ERC20 token address to accept payment in. address(0) indicates ETH.
+     * @param _paymentTokenAddr The ERC20 token address to accept payment in. address(0) indicates ETH.
      * @param _cost The amount of payment tokens to accept for each token minted.
      * @param _supplyCap The maximum number of tokens that can be minted.
      * @param _startTime The start time of the sale. Tokens cannot be minted before this time.
@@ -136,7 +138,7 @@ contract ERC1155Sale is ERC1155SaleErrors, ERC1155Supply, ERC1155Meta, ERC1155Me
      * @dev A zero end time indicates an inactive sale.
      */
     function setGlobalSaleDetails(
-        address _paymentToken,
+        address _paymentTokenAddr,
         uint256 _cost,
         uint256 _supplyCap,
         uint64 _startTime,
@@ -145,9 +147,9 @@ contract ERC1155Sale is ERC1155SaleErrors, ERC1155Supply, ERC1155Meta, ERC1155Me
         public
         onlyRole(MINT_ADMIN_ROLE)
     {
-        paymentToken = _paymentToken;
+        _paymentToken = _paymentTokenAddr;
         totalSupplyCap = _supplyCap;
-        globalSaleDetails = SaleDetails(_cost, _startTime, _endTime);
+        _globalSaleDetails = SaleDetails(_cost, _startTime, _endTime);
         emit GlobalSaleDetailsUpdated(_cost, _supplyCap, _startTime, _endTime);
     }
 
@@ -171,7 +173,7 @@ contract ERC1155Sale is ERC1155SaleErrors, ERC1155Supply, ERC1155Meta, ERC1155Me
         onlyRole(MINT_ADMIN_ROLE)
     {
         tokenSupplyCap[_tokenId] = _supplyCap;
-        tokenSaleDetails[_tokenId] = SaleDetails(_cost, _startTime, _endTime);
+        _tokenSaleDetails[_tokenId] = SaleDetails(_cost, _startTime, _endTime);
         emit TokenSaleDetailsUpdated(_tokenId, _cost, _supplyCap, _startTime, _endTime);
     }
 
@@ -214,13 +216,13 @@ contract ERC1155Sale is ERC1155SaleErrors, ERC1155Supply, ERC1155Meta, ERC1155Me
      * @notice Only callable by the contract admin.
      */
     function withdraw(address _to, uint256 _amount) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        if (paymentToken == address(0)) {
+        if (_paymentToken == address(0)) {
             (bool success,) = _to.call{value: _amount}("");
             if (!success) {
                 revert WithdrawFailed();
             }
         } else {
-            (bool success) = IERC20(paymentToken).transfer(_to, _amount);
+            (bool success) = IERC20(_paymentToken).transfer(_to, _amount);
             if (!success) {
                 revert WithdrawFailed();
             }
@@ -230,6 +232,36 @@ contract ERC1155Sale is ERC1155SaleErrors, ERC1155Supply, ERC1155Meta, ERC1155Me
     //
     // Views
     //
+
+    /**
+     * Get global sales details.
+     * @return Sale details.
+     * @notice Global sales details apply to all tokens.
+     * @notice Global sales details are overriden when token sale is active.
+     */
+    function globalSaleDetails() external view returns (SaleDetails memory) {
+        return _globalSaleDetails;
+    }
+
+    /**
+     * Get token sale details.
+     * @param _tokenId Token ID to get sale details for.
+     * @return Sale details.
+     * @notice Token sale details override global sale details.
+     */
+    function tokenSaleDetails(uint256 _tokenId) external view returns (SaleDetails memory) {
+        return _tokenSaleDetails[_tokenId];
+    }
+
+    /**
+     * Get payment token.
+     * @return Payment token address.
+     * @notice address(0) indicates payment in ETH.
+     */
+    function paymentToken() external view returns (address) {
+        return _paymentToken;
+    }
+
     function supportsInterface(bytes4 _interfaceId)
         public
         view
