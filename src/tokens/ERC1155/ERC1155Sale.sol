@@ -25,16 +25,37 @@ contract ERC1155Sale is
     bytes4 private constant ERC20_TRANSFERFROM_SELECTOR =
         bytes4(keccak256(bytes("transferFrom(address,address,uint256)")));
 
+    bool private _initialized;
+
     // ERC20 token address for payment. address(0) indicated payment in ETH.
     address private _paymentToken;
 
     SaleDetails private _globalSaleDetails;
     mapping(uint256 => SaleDetails) private _tokenSaleDetails;
 
-    constructor(address owner, string memory _name, string memory _baseURI) ERC1155Metadata(_name, _baseURI) {
-        _setupRole(DEFAULT_ADMIN_ROLE, owner);
-        _setupRole(MINT_ADMIN_ROLE, owner);
-        _setupRole(ROYALTY_ADMIN_ROLE, owner);
+    /**
+     * Initialize with empty values.
+     * @dev These are overridden by initialize().
+     */
+    constructor() ERC1155Metadata("", "") {}
+
+    /**
+     * Initialize the contract.
+     * @param _owner Owner address.
+     * @param _name Token name.
+     * @param _baseURI Base URI for token metadata.
+     * @dev This should be called immediately after deployment.
+     */
+    function initialize(address _owner, string memory _name, string memory _baseURI) public {
+        if (_initialized) {
+            revert InvalidInitialization();
+        }
+        _initialized = true;
+        name = _name;
+        baseURI = _baseURI;
+        _setupRole(DEFAULT_ADMIN_ROLE, _owner);
+        _setupRole(MINT_ADMIN_ROLE, _owner);
+        _setupRole(ROYALTY_ADMIN_ROLE, _owner);
     }
 
     /**
