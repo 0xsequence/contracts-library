@@ -3,6 +3,7 @@ pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
 import {ERC1155Sale} from "src/tokens/ERC1155/ERC1155Sale.sol";
+import {ERC1155SaleFactory} from "src/tokens/ERC1155/ERC1155SaleFactory.sol";
 import {ERC1155SaleErrors} from "src/tokens/ERC1155/ERC1155SaleErrors.sol";
 import {ERC1155SupplyErrors} from "src/tokens/ERC1155/ERC1155SupplyErrors.sol";
 
@@ -26,9 +27,15 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     uint256 private perTokenCost = 0.02 ether;
 
     function setUp() public {
-        token = new ERC1155Sale(address(this), "test", "ipfs://");
+        token = new ERC1155Sale();
+        token.initialize(address(this), "test", "ipfs://");
 
         vm.deal(address(this), 100 ether);
+    }
+
+    function setUpFromFactory() public {
+        ERC1155SaleFactory factory = new ERC1155SaleFactory();
+        token = ERC1155Sale(factory.deployERC1155Sale(address(this), "test", "ipfs://", ""));
     }
 
     function testSupportsInterface() public {
@@ -43,9 +50,10 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     //
 
     // Minting denied when no sale active.
-    function testMintInactiveFail(address mintTo, uint256 tokenId, uint256 amount)
+    function testMintInactiveFail(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
     {
         uint256[] memory tokenIds = singleToArray(tokenId);
         uint256[] memory amounts = singleToArray(amount);
@@ -55,9 +63,10 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     // Minting denied when sale is active but not for the token.
-    function testMintInactiveSingleFail(address mintTo, uint256 tokenId, uint256 amount)
+    function testMintInactiveSingleFail(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
         withTokenSaleActive(tokenId + 1)
     {
         uint256[] memory tokenIds = singleToArray(tokenId);
@@ -69,6 +78,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
 
     // Minting denied when token sale is expired.
     function testMintExpiredSingleFail(
+        bool useFactory,
         address mintTo,
         uint256 tokenId,
         uint256 amount,
@@ -77,6 +87,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     )
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
     {
         vm.assume(startTime > endTime);
         vm.assume(block.timestamp < startTime || block.timestamp >= endTime);
@@ -91,6 +102,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
 
     // Minting denied when global sale is expired.
     function testMintExpiredGlobalFail(
+        bool useFactory,
         address mintTo,
         uint256 tokenId,
         uint256 amount,
@@ -99,6 +111,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     )
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
     {
         vm.assume(startTime > endTime);
         vm.assume(block.timestamp < startTime || block.timestamp >= endTime);
@@ -112,9 +125,10 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     // Minting denied when sale is active but not for all tokens in the group.
-    function testMintInactiveInGroupFail(address mintTo, uint256 tokenId, uint256 amount)
+    function testMintInactiveInGroupFail(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
         withTokenSaleActive(tokenId)
     {
         uint256[] memory tokenIds = new uint256[](2);
@@ -129,9 +143,16 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     // Minting denied when global supply exceeded.
-    function testMintGlobalSupplyExceeded(address mintTo, uint256 tokenId, uint256 amount, uint256 supplyCap)
+    function testMintGlobalSupplyExceeded(
+        bool useFactory,
+        address mintTo,
+        uint256 tokenId,
+        uint256 amount,
+        uint256 supplyCap
+    )
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
     {
         vm.assume(supplyCap > 0);
         vm.assume(amount > supplyCap);
@@ -147,9 +168,16 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     // Minting denied when token supply exceeded.
-    function testMintTokenSupplyExceeded(address mintTo, uint256 tokenId, uint256 amount, uint256 supplyCap)
+    function testMintTokenSupplyExceeded(
+        bool useFactory,
+        address mintTo,
+        uint256 tokenId,
+        uint256 amount,
+        uint256 supplyCap
+    )
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
     {
         vm.assume(supplyCap > 0);
         vm.assume(amount > supplyCap);
@@ -165,9 +193,10 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     // Minting allowed when sale is active globally.
-    function testMintGlobalSuccess(address mintTo, uint256 tokenId, uint256 amount)
+    function testMintGlobalSuccess(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
         withGlobalSaleActive
     {
         uint256[] memory tokenIds = singleToArray(tokenId);
@@ -181,9 +210,10 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     // Minting allowed when sale is active for the token.
-    function testMintSingleSuccess(address mintTo, uint256 tokenId, uint256 amount)
+    function testMintSingleSuccess(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
         withTokenSaleActive(tokenId)
     {
         uint256[] memory tokenIds = singleToArray(tokenId);
@@ -197,9 +227,10 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     // Minting allowed when sale is active for both tokens individually.
-    function testMintGroupSuccess(address mintTo, uint256 tokenId, uint256 amount)
+    function testMintGroupSuccess(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
     {
         setTokenSaleActive(tokenId);
         setTokenSaleActive(tokenId + 1);
@@ -220,9 +251,10 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     // Minting allowed when global sale is free.
-    function testFreeGlobalMint(address mintTo, uint256 tokenId, uint256 amount)
+    function testFreeGlobalMint(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
     {
         token.setGlobalSaleDetails(address(0), 0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
         uint256[] memory tokenIds = singleToArray(tokenId);
@@ -236,9 +268,10 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     // Minting allowed when token sale is free and global is not.
-    function testFreeTokenMint(address mintTo, uint256 tokenId, uint256 amount)
+    function testFreeTokenMint(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
         withGlobalSaleActive
     {
         token.setTokenSaleDetails(tokenId, 0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
@@ -253,9 +286,10 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     // Minting allowed when mint charged with ERC20.
-    function testERC20Mint(address mintTo, uint256 tokenId, uint256 amount)
+    function testERC20Mint(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
         withERC20
     {
         token.setGlobalSaleDetails(
@@ -280,9 +314,10 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     //
 
     // Admin minting denied when not admin.
-    function testMintAdminFail(address minter, address mintTo, uint256 tokenId, uint256 amount)
+    function testMintAdminFail(bool useFactory, address minter, address mintTo, uint256 tokenId, uint256 amount)
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
     {
         vm.assume(minter != address(this));
         vm.assume(minter != address(0));
@@ -303,9 +338,10 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     // Minting as admin success.
-    function testMintAdminSuccess(address minter, address mintTo, uint256 tokenId, uint256 amount)
+    function testMintAdminSuccess(bool useFactory, address minter, address mintTo, uint256 tokenId, uint256 amount)
         public
         assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
     {
         token.grantRole(token.MINT_ADMIN_ROLE(), minter);
 
@@ -390,7 +426,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     //
 
     // Withdraw fails if the caller doesn't have the WITHDRAW_ROLE
-    function testWithdrawFail(address withdrawTo, uint256 amount) public {
+    function testWithdrawFail(bool useFactory, address withdrawTo, uint256 amount) public withFactory(useFactory) {
         token.revokeRole(token.DEFAULT_ADMIN_ROLE(), address(this));
 
         vm.expectRevert(
@@ -405,10 +441,13 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     // Withdraw success ETH
-    function testWithdrawETH(address withdrawTo, uint256 tokenId, uint256 amount) public {
+    function testWithdrawETH(bool useFactory, address withdrawTo, uint256 tokenId, uint256 amount)
+        public
+        withFactory(useFactory)
+    {
         // Address 9 doesnt receive ETH
         vm.assume(withdrawTo != address(9));
-        testMintSingleSuccess(withdrawTo, tokenId, amount);
+        testMintSingleSuccess(false, withdrawTo, tokenId, amount);
 
         uint256 tokenBalance = address(token).balance;
         uint256 balance = withdrawTo.balance;
@@ -417,8 +456,11 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     // Withdraw success ERC20
-    function testWithdrawERC20(address withdrawTo, uint256 tokenId, uint256 amount) public {
-        testERC20Mint(withdrawTo, tokenId, amount);
+    function testWithdrawERC20(bool useFactory, address withdrawTo, uint256 tokenId, uint256 amount)
+        public
+        withFactory(useFactory)
+    {
+        testERC20Mint(false, withdrawTo, tokenId, amount);
 
         uint256 tokenBalance = erc20.balanceOf(address(token));
         uint256 balance = erc20.balanceOf(withdrawTo);
@@ -429,6 +471,13 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     //
     // Helpers
     //
+    modifier withFactory(bool useFactory) {
+        if (useFactory) {
+            setUpFromFactory();
+        }
+        _;
+    }
+
     modifier assumeSafe(address nonContract, uint256 tokenId, uint256 amount) {
         vm.assume(nonContract != address(0));
         vm.assume(nonContract.code.length == 0);
