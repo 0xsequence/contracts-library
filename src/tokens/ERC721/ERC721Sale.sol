@@ -18,17 +18,38 @@ contract ERC721Sale is IERC721Sale, ERC721AQueryable, ERC2981, AccessControl, ER
     bytes4 private constant ERC20_TRANSFERFROM_SELECTOR =
         bytes4(keccak256(bytes("transferFrom(address,address,uint256)")));
 
+    bool private _initialized;
+    string private _name;
+    string private _symbol;
     string private baseURI;
 
     SaleDetails private _saleDetails;
 
-    constructor(address owner, string memory _name, string memory _symbol, string memory baseURI_)
-        ERC721A(_name, _symbol)
-    {
+    /**
+     * Initialize with empty values.
+     * @dev These are overridden by initialize().
+     */
+    constructor() ERC721A("", "") {}
+
+    /**
+     * Initialize the contract.
+     * @param _owner Owner address.
+     * @param name_ Token name.
+     * @param symbol_ Token symbol.
+     * @param baseURI_ Base URI for token metadata.
+     * @dev This should be called immediately after deployment.
+     */
+    function initialize(address _owner, string memory name_, string memory symbol_, string memory baseURI_) public {
+        if (_initialized) {
+            revert InvalidInitialization();
+        }
+        _initialized = true;
+        _name = name_;
+        _symbol = symbol_;
         baseURI = baseURI_;
-        _setupRole(DEFAULT_ADMIN_ROLE, owner);
-        _setupRole(MINT_ADMIN_ROLE, owner);
-        _setupRole(ROYALTY_ADMIN_ROLE, owner);
+        _setupRole(DEFAULT_ADMIN_ROLE, _owner);
+        _setupRole(MINT_ADMIN_ROLE, _owner);
+        _setupRole(ROYALTY_ADMIN_ROLE, _owner);
     }
 
     /**
@@ -182,10 +203,28 @@ contract ERC721Sale is IERC721Sale, ERC721AQueryable, ERC2981, AccessControl, ER
             || ERC721A.supportsInterface(_interfaceId) || super.supportsInterface(_interfaceId);
     }
 
+    //
+    // ERC721A Overrides
+    //
+
     /**
      * Override the ERC721A baseURI function.
      */
     function _baseURI() internal view override returns (string memory) {
         return baseURI;
+    }
+
+    /**
+     * @dev Returns the token collection name.
+     */
+    function name() public view virtual override (ERC721A, IERC721A) returns (string memory) {
+        return _name;
+    }
+
+    /**
+     * @dev Returns the token collection symbol.
+     */
+    function symbol() public view virtual override (ERC721A, IERC721A) returns (string memory) {
+        return _symbol;
     }
 }
