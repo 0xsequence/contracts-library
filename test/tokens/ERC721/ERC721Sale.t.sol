@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
 import {ERC721Sale} from "src/tokens/ERC721/ERC721Sale.sol";
 import {ERC721SaleErrors} from "src/tokens/ERC721/ERC721SaleErrors.sol";
+import {ERC721SaleFactory} from "src/tokens/ERC721/ERC721SaleFactory.sol";
 
 import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -24,9 +25,15 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
     uint256 private perTokenCost = 0.02 ether;
 
     function setUp() public {
-        token = new ERC721Sale(address(this), "test", "test", "ipfs://");
+        token = new ERC721Sale();
+        token.initialize(address(this), "test", "test", "ipfs://");
 
         vm.deal(address(this), 100 ether);
+    }
+
+    function setUpFromFactory() public {
+        ERC721SaleFactory factory = new ERC721SaleFactory();
+        token = ERC721Sale(factory.deployERC721Sale(address(this), "test", "test", "ipfs://", ""));
     }
 
     function testSupportsInterface() public {
@@ -42,15 +49,20 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
     //
 
     // Minting denied when no sale active.
-    function testMintInactiveFail(address mintTo, uint256 amount) public assumeSafe(mintTo, amount) {
+    function testMintInactiveFail(bool useFactory, address mintTo, uint256 amount)
+        public
+        assumeSafe(mintTo, amount)
+        withFactory(useFactory)
+    {
         vm.expectRevert(SaleInactive.selector);
         token.mint{value: amount * perTokenCost}(mintTo, amount);
     }
 
     // Minting denied when sale is expired.
-    function testMintExpiredFail(address mintTo, uint256 amount, uint256 startTime, uint256 endTime)
+    function testMintExpiredFail(bool useFactory, address mintTo, uint256 amount, uint256 startTime, uint256 endTime)
         public
         assumeSafe(mintTo, amount)
+        withFactory(useFactory)
     {
         vm.assume(startTime > endTime);
         vm.assume(block.timestamp < startTime || block.timestamp >= endTime);
@@ -61,9 +73,10 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
     }
 
     // Minting denied when supply exceeded.
-    function testMintSupplyExceeded(address mintTo, uint256 amount, uint256 supplyCap)
+    function testMintSupplyExceeded(bool useFactory, address mintTo, uint256 amount, uint256 supplyCap)
         public
         assumeSafe(mintTo, amount)
+        withFactory(useFactory)
     {
         vm.assume(supplyCap > 0);
         vm.assume(amount > supplyCap);
@@ -74,7 +87,12 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
     }
 
     // Minting allowed when sale is active.
-    function testMintSuccess(address mintTo, uint256 amount) public assumeSafe(mintTo, amount) withSaleActive {
+    function testMintSuccess(bool useFactory, address mintTo, uint256 amount)
+        public
+        assumeSafe(mintTo, amount)
+        withFactory(useFactory)
+        withSaleActive
+    {
         uint256 count = token.balanceOf(mintTo);
         vm.expectEmit(true, true, true, true, address(token));
         emit Transfer(address(0), mintTo, 0);
@@ -83,7 +101,11 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
     }
 
     // Minting allowed when sale is free.
-    function testFreeMint(address mintTo, uint256 amount) public assumeSafe(mintTo, amount) {
+    function testFreeMint(bool useFactory, address mintTo, uint256 amount)
+        public
+        assumeSafe(mintTo, amount)
+        withFactory(useFactory)
+    {
         token.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1));
 
         uint256 count = token.balanceOf(mintTo);
@@ -94,7 +116,12 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
     }
 
     // Minting allowed when mint charged with ERC20.
-    function testERC20Mint(address mintTo, uint256 amount) public assumeSafe(mintTo, amount) withERC20 {
+    function testERC20Mint(bool useFactory, address mintTo, uint256 amount)
+        public
+        assumeSafe(mintTo, amount)
+        withFactory(useFactory)
+        withERC20
+    {
         token.setSaleDetails(0, perTokenCost, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1));
         uint256 cost = amount * perTokenCost;
 
@@ -192,10 +219,10 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
     }
 
     // Withdraw success ETH
-    function testWithdrawETH(address withdrawTo, uint256 amount) public {
+    function testWithdrawETH(bool useFactory, address withdrawTo, uint256 amount) public withFactory(useFactory) {
         // Address 9 doesnt receive ETH
         vm.assume(withdrawTo != address(9));
-        testMintSuccess(withdrawTo, amount);
+        testMintSuccess(false, withdrawTo, amount);
 
         uint256 tokenBalance = address(token).balance;
         uint256 balance = withdrawTo.balance;
@@ -204,8 +231,8 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
     }
 
     // Withdraw success ERC20
-    function testWithdrawERC20(address withdrawTo, uint256 amount) public {
-        testERC20Mint(withdrawTo, amount);
+    function testWithdrawERC20(bool useFactory, address withdrawTo, uint256 amount) public withFactory(useFactory) {
+        testERC20Mint(false, withdrawTo, amount);
 
         uint256 tokenBalance = erc20.balanceOf(address(token));
         uint256 balance = erc20.balanceOf(withdrawTo);
@@ -216,8 +243,16 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
     //
     // Helpers
     //
+    modifier withFactory(bool useFactory) {
+        if (useFactory) {
+            setUpFromFactory();
+        }
+        _;
+    }
+
     modifier assumeSafe(address nonContract, uint256 amount) {
         vm.assume(nonContract != address(0));
+        vm.assume(uint160(nonContract) > 16);
         vm.assume(nonContract.code.length == 0);
         vm.assume(amount > 0 && amount < 20);
         _;
