@@ -4,6 +4,11 @@ pragma solidity ^0.8.17;
 // A contract for errors for extensibility.
 abstract contract ERC1155SaleErrors {
     /**
+     * Contract already initialized.
+     */
+    error InvalidInitialization();
+
+    /**
      * Sale is not active globally.
      */
     error GlobalSaleInactive();
