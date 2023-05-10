@@ -13,7 +13,8 @@
   "author": "Horizon Blockchain Games",
   "license": "Apache-2.0",
   "scripts": {
-    "build": "forge build",
+    "build": "ts-node scripts/build.ts",
+    "test": "forge test",
     "lint:init": "husky install",
     "lint:sol": "forge fmt"
   },
@@ -30,7 +31,10 @@
     "**/*.sol": "yarn lint:sol"
   },
   "devDependencies": {
+    "@types/node": "^20.1.0",
     "husky": "^8.0.3",
-    "lint-staged": "^13.2.2"
+    "lint-staged": "^13.2.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
   }
 }
