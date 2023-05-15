@@ -17,7 +17,7 @@ contract ERC1155SaleFactory is IERC1155SaleFactory, ProxyDeployer {
     }
 
     /**
-     * Creates an ERC-1155 Floor Wrapper for given token contract
+     * Creates an ERC-1155 Sale proxy contract
      * @param _owner The owner of the ERC-1155 Sale
      * @param _name The name of the ERC-1155 Sale token
      * @param _baseURI The base URI of the ERC-1155 Sale token
