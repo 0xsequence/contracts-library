@@ -251,7 +251,6 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
     }
 
     modifier assumeSafe(address nonContract, uint256 amount) {
-        vm.assume(nonContract != address(0));
         vm.assume(uint160(nonContract) > 16);
         vm.assume(nonContract.code.length == 0);
         vm.assume(amount > 0 && amount < 20);

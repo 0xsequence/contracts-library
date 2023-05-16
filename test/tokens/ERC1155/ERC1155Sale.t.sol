@@ -479,7 +479,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     modifier assumeSafe(address nonContract, uint256 tokenId, uint256 amount) {
-        vm.assume(nonContract != address(0));
+        vm.assume(uint160(nonContract) > 16);
         vm.assume(nonContract.code.length == 0);
         vm.assume(tokenId < 100);
         vm.assume(amount > 0 && amount < 20);
