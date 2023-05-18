@@ -1,230 +1,297 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-import {
-    ERC721AQueryable, IERC721AQueryable, ERC721A, IERC721A
-} from "erc721a/contracts/extensions/ERC721AQueryable.sol";
-import {IERC721Sale} from "./IERC721Sale.sol";
-import {ERC721SaleErrors} from "./ERC721SaleErrors.sol";
-import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
+/// @author Michael Standen
+/// @notice Based on contracts by thirdweb
 
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 
-contract ERC721Sale is IERC721Sale, ERC721AQueryable, ERC2981, AccessControl, ERC721SaleErrors {
-    bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
-    bytes32 public constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
+import "@thirdweb-dev/contracts/eip/ERC721AVirtualApproveUpgradeable.sol";
 
-    bytes4 private constant ERC20_TRANSFERFROM_SELECTOR =
-        bytes4(keccak256(bytes("transferFrom(address,address,uint256)")));
+import "@thirdweb-dev/contracts/openzeppelin-presets/metatx/ERC2771ContextUpgradeable.sol";
+import "@thirdweb-dev/contracts/lib/CurrencyTransferLib.sol";
 
-    bool private _initialized;
-    string private _name;
-    string private _symbol;
+//  ==========  Features    ==========
+
+import "@thirdweb-dev/contracts/extension/Royalty.sol";
+import "@thirdweb-dev/contracts/extension/PrimarySale.sol";
+import "@thirdweb-dev/contracts/extension/Permissions.sol";
+import "@thirdweb-dev/contracts/extension/Drop.sol";
+
+contract ERC721Sale is
+    Initializable,
+    Royalty,
+    PrimarySale,
+    Permissions,
+    Drop,
+    ERC2771ContextUpgradeable,
+    MulticallUpgradeable,
+    ERC721AUpgradeable
+{
+    using StringsUpgradeable for uint256;
+
+    /// @dev Only MINTER_ROLE holders can sign off on `MintRequest`s and lazy mint tokens.
+    bytes32 private minterRole;
+
+    /// @dev Max bps in the thirdweb system.
+    uint256 private constant MAX_BPS = 10_000;
+
+    /// @dev Global max total supply of NFTs.
+    uint256 public maxTotalSupply;
+
+    /// @dev Emitted when the global max supply of tokens is updated.
+    event MaxTotalSupplyUpdated(uint256 maxTotalSupply);
+
+    /// @dev Base URI for all tokens.
     string private baseURI;
 
-    SaleDetails private _saleDetails;
-
-    /**
-     * Initialize with empty values.
-     * @dev These are overridden by initialize().
-     */
-    constructor() ERC721A("", "") {}
+    //
+    // Initialisation
+    //
+    constructor() initializer {}
 
     /**
      * Initialize the contract.
-     * @param _owner Owner address.
-     * @param name_ Token name.
-     * @param symbol_ Token symbol.
-     * @param baseURI_ Base URI for token metadata.
-     * @dev This should be called immediately after deployment.
+     * @param _defaultAdmin The default admin role for the contract.
+     * @param _name The name of the collection.
+     * @param _symbol The symbol of the collection.
+     * @param _trustedForwarders The trusted forwarders for the contract. See ERC-2771.
+     * @param _saleRecipient The address to receive sale proceeds.
+     * @param _royaltyRecipient The address to receive royalty payments.
+     * @param _royaltyBps The royalty basis points.
+     * @dev This function should be called right after the contract is deployed.
      */
-    function initialize(address _owner, string memory name_, string memory symbol_, string memory baseURI_) public {
-        if (_initialized) {
-            revert InvalidInitialization();
-        }
-        _initialized = true;
-        _name = name_;
-        _symbol = symbol_;
-        baseURI = baseURI_;
-        _setupRole(DEFAULT_ADMIN_ROLE, _owner);
-        _setupRole(MINT_ADMIN_ROLE, _owner);
-        _setupRole(ROYALTY_ADMIN_ROLE, _owner);
-    }
-
-    /**
-     * Checks if the current block.timestamp is out of the give timestamp range.
-     * @param startTime Earliest acceptable timestamp (inclusive).
-     * @param endTime Latest acceptable timestamp (exclusive).
-     * @dev A zero endTime value is always considered out of bounds.
-     */
-    function blockTimeOutOfBounds(uint256 startTime, uint256 endTime) private view returns (bool) {
-        // 0 end time indicates inactive sale.
-        return endTime == 0 || block.timestamp < startTime || block.timestamp >= endTime;
-    }
-
-    /**
-     * Checks the sale is active and takes payment.
-     * @param _amount Amount of tokens to mint.
-     */
-    function payForActiveMint(uint256 _amount) private {
-        // Active sale test
-        if (blockTimeOutOfBounds(_saleDetails.startTime, _saleDetails.endTime)) {
-            revert SaleInactive();
-        }
-
-        uint256 total = _saleDetails.cost * _amount;
-        address paymentToken = _saleDetails.paymentToken;
-        if (paymentToken == address(0)) {
-            // Paid in ETH
-            if (msg.value != total) {
-                revert InsufficientPayment(total, msg.value);
-            }
-        } else {
-            // Paid in ERC20
-            (bool success, bytes memory data) =
-                paymentToken.call(abi.encodeWithSelector(ERC20_TRANSFERFROM_SELECTOR, msg.sender, address(this), total));
-            if (!success || (data.length > 0 && !abi.decode(data, (bool)))) {
-                revert InsufficientPayment(total, 0);
-            }
-        }
-    }
-
-    //
-    // Minting
-    //
-
-    /**
-     * Mint tokens.
-     * @param _to Address to mint tokens to.
-     * @param _amount Amount of tokens to mint.
-     * @notice Sale must be active for all tokens.
-     */
-    function mint(address _to, uint256 _amount) public payable {
-        uint256 currentSupply = ERC721A.totalSupply();
-        uint256 supplyCap = _saleDetails.supplyCap;
-        if (supplyCap > 0 && currentSupply + _amount > supplyCap) {
-            revert InsufficientSupply(currentSupply, _amount, supplyCap);
-        }
-        payForActiveMint(_amount);
-        _mint(_to, _amount);
-    }
-
-    /**
-     * Mint tokens as admin.
-     * @param _to Address to mint tokens to.
-     * @param _amount Amount of tokens to mint.
-     * @notice Only callable by mint admin.
-     */
-    function mintAdmin(address _to, uint256 _amount) public onlyRole(MINT_ADMIN_ROLE) {
-        _mint(_to, _amount);
-    }
-
-    /**
-     * Set the sale details.
-     * @param _supplyCap The maximum number of tokens that can be minted. 0 indicates unlimited supply.
-     * @param _cost The amount of payment tokens to accept for each token minted.
-     * @param _paymentToken The ERC20 token address to accept payment in. address(0) indicates ETH.
-     * @param _startTime The start time of the sale. Tokens cannot be minted before this time.
-     * @param _endTime The end time of the sale. Tokens cannot be minted after this time.
-     * @dev A zero end time indicates an inactive sale.
-     */
-    function setSaleDetails(
-        uint256 _supplyCap,
-        uint256 _cost,
-        address _paymentToken,
-        uint64 _startTime,
-        uint64 _endTime
+    function initialize(
+        address _defaultAdmin,
+        string memory _name,
+        string memory _symbol,
+        address[] memory _trustedForwarders,
+        address _saleRecipient,
+        address _royaltyRecipient,
+        uint128 _royaltyBps
     )
-        public
-        onlyRole(MINT_ADMIN_ROLE)
+        external
+        initializer
     {
-        _saleDetails = SaleDetails(_supplyCap, _cost, _paymentToken, _startTime, _endTime);
-        emit SaleDetailsUpdated(_supplyCap, _cost, _paymentToken, _startTime, _endTime);
+        bytes32 _minterRole = keccak256("MINTER_ROLE");
+
+        __ERC2771Context_init(_trustedForwarders);
+        __ERC721A_init(_name, _symbol);
+
+        _setupRole(DEFAULT_ADMIN_ROLE, _defaultAdmin);
+        _setupRole(_minterRole, _defaultAdmin);
+
+        _setupDefaultRoyaltyInfo(_royaltyRecipient, _royaltyBps);
+        _setupPrimarySaleRecipient(_saleRecipient);
+
+        minterRole = _minterRole;
     }
 
     //
-    // Royalty
+    // Sale Logic
     //
 
     /**
-     * Sets the royalty information that all ids in this contract will default to.
-     * @param _receiver Address of who should be sent the royalty payment
-     * @param _feeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
+     * Set the global max total supply of tokens.
+     * @param _maxTotalSupply The new max total supply.
+     * @notice This function can only be called by the contract admin.
      */
-    function setDefaultRoyalty(address _receiver, uint96 _feeNumerator) public onlyRole(ROYALTY_ADMIN_ROLE) {
-        _setDefaultRoyalty(_receiver, _feeNumerator);
+    function setMaxTotalSupply(uint256 _maxTotalSupply) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        maxTotalSupply = _maxTotalSupply;
+        emit MaxTotalSupplyUpdated(_maxTotalSupply);
     }
 
-    //
-    // Withdraw
-    //
-
     /**
-     * Withdraws ETH or ERC20 tokens owned by this sale contract.
-     * @param _to Address to withdraw to.
-     * @param _amount Amount to withdraw.
-     * @dev Withdraws ERC20 when paymentToken is set, else ETH.
-     * @notice Only callable by the contract admin.
+     * Admin can mint tokens.
+     * @param _receiver The address to receive the tokens.
+     * @param _quantity The quantity of tokens to mint.
+     * @notice This function can only be called by the contract admin.
      */
-    function withdraw(address _to, uint256 _amount) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        address paymentToken = _saleDetails.paymentToken;
-        if (paymentToken == address(0)) {
-            (bool success,) = _to.call{value: _amount}("");
-            if (!success) {
-                revert WithdrawFailed();
-            }
-        } else {
-            (bool success) = IERC20(paymentToken).transfer(_to, _amount);
-            if (!success) {
-                revert WithdrawFailed();
-            }
-        }
+    function adminClaim(address _receiver, uint256 _quantity) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _withinSupply(_quantity);
+        _transferTokensOnClaim(_receiver, _quantity);
     }
 
     //
-    // Views
+    // Metadata
     //
+
     /**
-     * Get sale details.
-     * @return Sale details.
+     * Set the base URI for all tokens.
+     * @param newBaseURI The new base URI.
+     * @notice This function can only be called by the contract admin.
      */
-    function saleDetails() external view returns (SaleDetails memory) {
-        return _saleDetails;
+    function setBaseURI(string memory newBaseURI) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        baseURI = newBaseURI;
     }
-
-    function supportsInterface(bytes4 _interfaceId)
-        public
-        view
-        override (ERC721A, IERC721A, ERC2981, AccessControl)
-        returns (bool)
-    {
-        return _interfaceId == type(IERC721A).interfaceId || _interfaceId == type(IERC721AQueryable).interfaceId
-            || ERC721A.supportsInterface(_interfaceId) || super.supportsInterface(_interfaceId);
-    }
-
-    //
-    // ERC721A Overrides
-    //
 
     /**
-     * Override the ERC721A baseURI function.
+     * Base URI for computing {tokenURI}.
+     * @dev The resulting URI for each token will be the concatenation of the `baseURI` and the `tokenId`.
      */
     function _baseURI() internal view override returns (string memory) {
         return baseURI;
     }
 
+    //
+    // Internal hooks
+    //
+
     /**
-     * @dev Returns the token collection name.
+     * Tests whether the given quantity of tokens can be minted.
+     * @param _quantity The quantity of tokens to mint.
+     * @dev Reverts if the quantity exceeds the max total supply.
      */
-    function name() public view virtual override (ERC721A, IERC721A) returns (string memory) {
-        return _name;
+    function _withinSupply(uint256 _quantity) internal view {
+        require(maxTotalSupply == 0 || _currentIndex + _quantity <= maxTotalSupply, "exceed max total supply.");
     }
 
     /**
-     * @dev Returns the token collection symbol.
+     * Hook that is called before tokens are minted.
+     * @param _quantity The quantity of tokens to mint.
      */
-    function symbol() public view virtual override (ERC721A, IERC721A) returns (string memory) {
-        return _symbol;
+    function _beforeClaim(address, uint256 _quantity, address, uint256, AllowlistProof calldata, bytes memory)
+        internal
+        view
+        override
+    {
+        _withinSupply(_quantity);
+    }
+
+    /**
+     * Collects and distributes the primary sale value of NFTs being claimed.
+     * @param _primarySaleRecipient The address to receive the primary sale value.
+     * @param _quantityToClaim The quantity of tokens to mint.
+     * @param _currency The currency to use for the primary sale.
+     * @param _pricePerToken The price per token for the primary sale.
+     * @dev Reverts if the price cannot be collected.
+     * @notice Sends the price directly to the `_primarySaleRecipient`.
+     */
+    function _collectPriceOnClaim(
+        address _primarySaleRecipient,
+        uint256 _quantityToClaim,
+        address _currency,
+        uint256 _pricePerToken
+    )
+        internal
+        override
+    {
+        if (_pricePerToken == 0) {
+            return;
+        }
+
+        address saleRecipient = _primarySaleRecipient == address(0) ? primarySaleRecipient() : _primarySaleRecipient;
+        uint256 totalPrice = _quantityToClaim * _pricePerToken;
+
+        if (_currency == CurrencyTransferLib.NATIVE_TOKEN) {
+            if (msg.value != totalPrice) {
+                revert("!Price");
+            }
+        }
+
+        CurrencyTransferLib.transferCurrency(_currency, _msgSender(), saleRecipient, totalPrice);
+    }
+
+    /**
+     * Transfers tokens to the given address.
+     * @param _to The address to receive the tokens.
+     * @param _quantityBeingClaimed The quantity of tokens to mint.
+     */
+    function _transferTokensOnClaim(address _to, uint256 _quantityBeingClaimed)
+        internal
+        override
+        returns (uint256 startTokenId)
+    {
+        startTokenId = _currentIndex;
+        _safeMint(_to, _quantityBeingClaimed);
+    }
+
+    //
+    // Internal overrides
+    //
+
+    /**
+     * Checks whether primary sale recipient can be set in the given execution context.
+     */
+    function _canSetPrimarySaleRecipient() internal view override returns (bool) {
+        return hasRole(DEFAULT_ADMIN_ROLE, _msgSender());
+    }
+
+    /**
+     * Checks whether royalty info can be set in the given execution context.
+     */
+    function _canSetRoyaltyInfo() internal view override returns (bool) {
+        return hasRole(DEFAULT_ADMIN_ROLE, _msgSender());
+    }
+
+    /**
+     * Checks whether platform fee info can be set in the given execution context.
+     */
+    function _canSetClaimConditions() internal view override returns (bool) {
+        return hasRole(DEFAULT_ADMIN_ROLE, _msgSender());
+    }
+
+    //
+    // Burn
+    //
+
+    /**
+     * Burns `tokenId`.
+     * @param tokenId The token to burn.
+     * @notice Only callable by an approved operator.
+     * @dev Reverts if the caller is not approved for the token.
+     */
+    function burn(uint256 tokenId) external virtual {
+        // ERC721AUpgradeable's `_burn(uint256,bool)` internally checks for token approvals.
+        _burn(tokenId, true);
+    }
+
+    //
+    // Context
+    //
+
+    /**
+     * Returns the msg sender within the given context.
+     * @return The msg sender.
+     */
+    function _msgSender()
+        internal
+        view
+        virtual
+        override (ContextUpgradeable, ERC2771ContextUpgradeable)
+        returns (address)
+    {
+        return ERC2771ContextUpgradeable._msgSender();
+    }
+
+    /**
+     * Returns the msg data within the given context.
+     * @return The msg data.
+     */
+    function _msgData()
+        internal
+        view
+        virtual
+        override (ContextUpgradeable, ERC2771ContextUpgradeable)
+        returns (bytes calldata)
+    {
+        return ERC2771ContextUpgradeable._msgData();
+    }
+
+    //
+    // Views
+    //
+
+    /// @inheritdoc IERC165Upgradeable
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override (ERC721AUpgradeable, IERC165)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId) || type(IERC2981Upgradeable).interfaceId == interfaceId;
     }
 }
