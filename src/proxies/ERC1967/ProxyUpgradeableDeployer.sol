@@ -2,16 +2,17 @@
 pragma solidity ^0.8.4;
 
 import {ProxyDeployerErrors} from "./ProxyDeployerErrors.sol";
-import {Proxy} from "./Proxy.sol";
+import {ProxyUpgradeable} from "./ProxyUpgradeable.sol";
 
-abstract contract ProxyDeployer is ProxyDeployerErrors {
+abstract contract ProxyUpgradeableDeployer is ProxyDeployerErrors {
     /**
-     * Creates a proxy contract for a given implementation
+     * Creates an upgradeable proxy contract for a given implementation
      * @param implAddr The address of the proxy implementation
      * @param salt The deployment salt
+     * @param admin The proxy admin address
      * @return proxyAddr The address of the deployed proxy
      */
-    function deployProxy(address implAddr, bytes32 salt) internal returns (address proxyAddr) {
+    function deployProxy(address implAddr, bytes32 salt, address admin) internal returns (address proxyAddr) {
         bytes memory code = getProxyCode(implAddr);
 
         // Deploy it
@@ -48,16 +49,17 @@ abstract contract ProxyDeployer is ProxyDeployerErrors {
     }
 
     /**
-     * Returns the code of the proxy contract for a given implementation
+     * Returns the code of the upgradeable proxy contract for a given implementation
      * @param implAddr The address of the proxy implementation
+     * @param adminAddr The address of the proxy admin
      * @return code The code of the proxy contract
      */
-    function getProxyCode(address implAddr) private pure returns (bytes memory code) {
-        return abi.encodePacked(type(Proxy).creationCode, abi.encode(implAddr));
+    function getProxyCode(address implAddr, address adminAddr) private pure returns (bytes memory code) {
+        return abi.encodePacked(type(ProxyUpgradeable).creationCode, abi.encode(implAddr, adminAddr));
     }
 
     /**
-     * Checks if an address is a contract
+     * Checks if an address is a contract.
      * @param addr The address to check
      * @return result True if the address is a contract
      */

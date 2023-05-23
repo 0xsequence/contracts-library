@@ -3,9 +3,9 @@ pragma solidity ^0.8.4;
 
 import {ERC721Sale} from "./ERC721Sale.sol";
 import {IERC721SaleFactory} from "./IERC721SaleFactory.sol";
-import {ProxyDeployer} from "../../proxies/ERC1967/ProxyDeployer.sol";
+import {ProxyUpgradeableDeployer} from "../../proxies/ERC1967/ProxyUpgradeableDeployer.sol";
 
-contract ERC721SaleFactory is IERC721SaleFactory, ProxyDeployer {
+contract ERC721SaleFactory is IERC721SaleFactory, ProxyUpgradeableDeployer {
     address private immutable _implAddr;
 
     /**
@@ -33,7 +33,7 @@ contract ERC721SaleFactory is IERC721SaleFactory, ProxyDeployer {
         external
         returns (address proxyAddr)
     {
-        proxyAddr = deployProxy(_implAddr, _salt);
+        proxyAddr = deployProxy(_implAddr, _salt, _defaultAdmin);
         ERC721Sale(proxyAddr).initialize(
             _defaultAdmin, _name, _symbol, _trustedForwarders, _saleRecipient, _royaltyRecipient, _royaltyBps
         );

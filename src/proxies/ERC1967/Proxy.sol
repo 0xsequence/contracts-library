@@ -5,13 +5,13 @@ import {IERC1967} from "./IERC1967.sol";
 import {StorageSlot} from "../../utils/StorageSlot.sol";
 
 contract Proxy is IERC1967 {
-    bytes32 private constant _IMPLEMENTATION_SLOT = bytes32(uint256(keccak256("eip1967.proxy.implementation")) - 1);
+    bytes32 internal constant _IMPLEMENTATION_SLOT = bytes32(uint256(keccak256("eip1967.proxy.implementation")) - 1);
 
     /**
      * Initializes the contract, setting proxy implementation address.
      */
     constructor(address _implementation) {
-        StorageSlot.getAddressSlot(_IMPLEMENTATION_SLOT).value = _implementation;
+        _setImplementation(_implementation);
         emit Upgraded(_implementation);
     }
 
@@ -33,7 +33,7 @@ contract Proxy is IERC1967 {
      * Forward calls to the proxy implementation contract.
      */
     function proxy() private {
-        address target = StorageSlot.getAddressSlot(_IMPLEMENTATION_SLOT).value;
+        address target = _getImplementation();
         assembly {
             let ptr := mload(0x40)
             calldatacopy(ptr, 0, calldatasize())
@@ -44,5 +44,19 @@ contract Proxy is IERC1967 {
             case 0 { revert(ptr, size) }
             default { return(ptr, size) }
         }
+    }
+
+    /**
+     * Set the implementation address.
+     */
+    function _setImplementation(address _implementation) internal {
+        StorageSlot.getAddressSlot(_IMPLEMENTATION_SLOT).value = _implementation;
+    }
+
+    /**
+     * Returns the address of the current implementation.
+     */
+    function _getImplementation() internal view returns (address) {
+        return StorageSlot.getAddressSlot(_IMPLEMENTATION_SLOT).value;
     }
 }
