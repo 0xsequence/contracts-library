@@ -28,7 +28,7 @@ contract ERC1155SaleFactory is IERC1155SaleFactory, ProxyDeployer {
         external
         returns (address proxyAddr)
     {
-        proxyAddr = deployProxy(_implAddr, _salt);
+        proxyAddr = _deployProxy(_implAddr, _salt);
         ERC1155Sale(proxyAddr).initialize(_owner, _name, _baseURI);
         emit ERC1155SaleDeployed(proxyAddr);
         return proxyAddr;

@@ -33,7 +33,7 @@ contract ERC721SaleFactory is IERC721SaleFactory, ProxyUpgradeableDeployer {
         external
         returns (address proxyAddr)
     {
-        proxyAddr = deployProxy(_implAddr, _salt, _defaultAdmin);
+        proxyAddr = _deployProxy(_implAddr, _salt, _defaultAdmin);
         ERC721Sale(proxyAddr).initialize(
             _defaultAdmin, _name, _symbol, _trustedForwarders, _saleRecipient, _royaltyRecipient, _royaltyBps
         );
