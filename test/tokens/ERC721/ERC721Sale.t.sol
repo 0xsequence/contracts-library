@@ -47,7 +47,7 @@ contract ERC721SaleTest is Test {
         vm.assume(amount > 1);
         vm.assume(amount < type(uint128).max - 1);
         token.setMaxTotalSupply(amount - 1);
-        vm.expectRevert("exceed max total supply.");
+        vm.expectRevert("exceed max total supply");
         token.adminClaim(receiver, amount);
     }
 

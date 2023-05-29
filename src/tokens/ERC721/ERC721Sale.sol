@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 /// @author Michael Standen
-/// @notice Based on contracts by thirdweb
+/// @notice Based on the DropERC721 contract by thirdweb
 
 import "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
@@ -12,8 +12,6 @@ import "@thirdweb-dev/contracts/eip/ERC721AVirtualApproveUpgradeable.sol";
 
 import "@thirdweb-dev/contracts/openzeppelin-presets/metatx/ERC2771ContextUpgradeable.sol";
 import "@thirdweb-dev/contracts/lib/CurrencyTransferLib.sol";
-
-//  ==========  Features    ==========
 
 import "@thirdweb-dev/contracts/extension/Royalty.sol";
 import "@thirdweb-dev/contracts/extension/PrimarySale.sol";
@@ -32,12 +30,6 @@ contract ERC721Sale is
 {
     using StringsUpgradeable for uint256;
 
-    /// @dev Only MINTER_ROLE holders can sign off on `MintRequest`s and lazy mint tokens.
-    bytes32 private minterRole;
-
-    /// @dev Max bps in the thirdweb system.
-    uint256 private constant MAX_BPS = 10_000;
-
     /// @dev Global max total supply of NFTs.
     uint256 public maxTotalSupply;
 
@@ -48,7 +40,7 @@ contract ERC721Sale is
     string private baseURI;
 
     //
-    // Initialisation
+    // Initialization
     //
     constructor() initializer {}
 
@@ -58,7 +50,7 @@ contract ERC721Sale is
      * @param _name The name of the collection.
      * @param _symbol The symbol of the collection.
      * @param _trustedForwarders The trusted forwarders for the contract. See ERC-2771.
-     * @param _saleRecipient The address to receive sale proceeds.
+     * @param _primarySaleRecipient The address to receive sale proceeds.
      * @param _royaltyRecipient The address to receive royalty payments.
      * @param _royaltyBps The royalty basis points.
      * @dev This function should be called right after the contract is deployed.
@@ -68,25 +60,20 @@ contract ERC721Sale is
         string memory _name,
         string memory _symbol,
         address[] memory _trustedForwarders,
-        address _saleRecipient,
+        address _primarySaleRecipient,
         address _royaltyRecipient,
         uint128 _royaltyBps
     )
         external
         initializer
     {
-        bytes32 _minterRole = keccak256("MINTER_ROLE");
-
         __ERC2771Context_init(_trustedForwarders);
         __ERC721A_init(_name, _symbol);
 
         _setupRole(DEFAULT_ADMIN_ROLE, _defaultAdmin);
-        _setupRole(_minterRole, _defaultAdmin);
 
         _setupDefaultRoyaltyInfo(_royaltyRecipient, _royaltyBps);
-        _setupPrimarySaleRecipient(_saleRecipient);
-
-        minterRole = _minterRole;
+        _setupPrimarySaleRecipient(_primarySaleRecipient);
     }
 
     //
@@ -145,7 +132,7 @@ contract ERC721Sale is
      * @dev Reverts if the quantity exceeds the max total supply.
      */
     function _withinSupply(uint256 _quantity) internal view {
-        require(maxTotalSupply == 0 || _currentIndex + _quantity <= maxTotalSupply, "exceed max total supply.");
+        require(maxTotalSupply == 0 || _currentIndex + _quantity <= maxTotalSupply, "exceed max total supply");
     }
 
     /**
@@ -182,15 +169,12 @@ contract ERC721Sale is
             return;
         }
 
-        address saleRecipient = _primarySaleRecipient == address(0) ? primarySaleRecipient() : _primarySaleRecipient;
         uint256 totalPrice = _quantityToClaim * _pricePerToken;
-
-        if (_currency == CurrencyTransferLib.NATIVE_TOKEN) {
-            if (msg.value != totalPrice) {
-                revert("!Price");
-            }
+        if (_currency == CurrencyTransferLib.NATIVE_TOKEN && msg.value != totalPrice) {
+            revert("!Price");
         }
 
+        address saleRecipient = _primarySaleRecipient == address(0) ? primarySaleRecipient() : _primarySaleRecipient;
         CurrencyTransferLib.transferCurrency(_currency, _msgSender(), saleRecipient, totalPrice);
     }
 

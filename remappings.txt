@@ -1,7 +1,7 @@
 ds-test/=lib/forge-std/lib/ds-test/src/
 forge-std/=lib/forge-std/src/
 @0xsequence/erc20-meta-token/=node_modules/@0xsequence/erc20-meta-token/
-@0xsequence/erc-1155/=node_modules/@0xsequence/erc-1155/
+@0xsequence/erc-1155/=lib/erc-1155/src/
 @thirdweb-dev/contracts/=lib/thirdweb-contracts/contracts/
 erc721a/=lib/thirdweb-contracts/lib/ERC721A/
 erc721a-upgradeable/=lib/thirdweb-contracts/lib/ERC721A-Upgradeable/
