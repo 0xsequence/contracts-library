@@ -13,6 +13,8 @@ import {ERC1155MetaUpgradeable} from
 import {ERC1155MetadataUpgradeable} from
     "@0xsequence/erc-1155/contracts/tokens/ERC1155Upgradeable/ERC1155MetadataUpgradeable.sol";
 
+import "@0xsequence/erc-1155/contracts/utils/StorageSlot.sol";
+
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 
@@ -34,11 +36,11 @@ contract ERC1155Sale is
 {
     using StringsUpgradeable for uint256;
 
-    /// @dev Mapping from token ID => total circulating supply of tokens with that ID.
-    mapping(uint256 => uint256) public totalSupply;
+    // Token total supply
+    bytes32 private constant _TOTALSUPPLY_SLOT_KEY = keccak256("0xsequence.ERC1155Sale.totalSupply");
 
-    /// @dev Mapping from token ID => maximum possible total circulating supply of tokens with that ID.
-    mapping(uint256 => uint256) public maxTotalSupply;
+    // Token's maximum possible total circulating supply
+    bytes32 private constant _MAXTOTALSUPPLY_SLOT_KEY = keccak256("0xsequence.ERC1155Sale.maxTotalSupply");
 
     /// @dev Emitted when the global max supply of a token is updated.
     event MaxTotalSupplyUpdated(uint256 tokenId, uint256 maxTotalSupply);
@@ -88,7 +90,7 @@ contract ERC1155Sale is
      * @notice This function can only be called by the contract admin.
      */
     function setMaxTotalSupply(uint256 _tokenId, uint256 _maxTotalSupply) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        maxTotalSupply[_tokenId] = _maxTotalSupply;
+        _setMaxTotalSupply(_tokenId, _maxTotalSupply);
         emit MaxTotalSupplyUpdated(_tokenId, _maxTotalSupply);
     }
 
@@ -115,10 +117,8 @@ contract ERC1155Sale is
      * @dev Reverts if the quantity exceeds the max total supply.
      */
     function _withinSupply(uint256 _tokenId, uint256 _quantity) internal view {
-        require(
-            maxTotalSupply[_tokenId] == 0 || totalSupply[_tokenId] + _quantity <= maxTotalSupply[_tokenId],
-            "exceed max total supply"
-        );
+        uint256 max = _getMaxTotalSupply(_tokenId);
+        require(max == 0 || _getTotalSupply(_tokenId) + _quantity <= max, "exceed max total supply");
     }
 
     /// @dev Runs before every `claim` function call.
@@ -230,32 +230,69 @@ contract ERC1155Sale is
     //
 
     /**
-     * Update the balance of `_owner` by adding `_amount` tokens to `_id`.
-     * @dev Also updates the total supply of the `_id` token by `_amount`.
+     * Update the balance of `_owner` by adding `_amount` tokens to `_tokenId`.
+     * @dev Also updates the total supply of the `_tokenId` token by `_amount`.
      */
-    function _updateBalance(address _owner, uint256 _id, uint256 _diff, Operations _operation)
+    function _updateBalance(address _owner, uint256 _tokenId, uint256 _diff, ERC1155Upgradeable.Operations _operation)
         internal
         virtual
         override
     {
-        super._updateBalance(_owner, _id, _diff, _operation);
-        if (_operation == Operations.Add) {
-            totalSupply[_id] += _diff;
-        } else if (_operation == Operations.Sub) {
-            totalSupply[_id] -= _diff;
-        } else {
-            // Unreachable. Will throw in ERC1155Upgradeable
-            // revert("ERC1155Sale#_updateBalance: INVALID_OPERATION");
-        }
+        super._updateBalance(_owner, _tokenId, _diff, _operation);
+        _updateTotalSupply(_tokenId, _diff, _operation);
     }
 
     //
-    // Initializer overrides
+    // Storage
     //
+    function _getTotalSupply(uint256 _tokenId) internal view virtual returns (uint256) {
+        return StorageSlot.getUint256Slot(keccak256(abi.encodePacked(_TOTALSUPPLY_SLOT_KEY, _tokenId))).value;
+    }
+
+    function _updateTotalSupply(uint256 _tokenId, uint256 _diff, ERC1155Upgradeable.Operations _operation)
+        internal
+        virtual
+    {
+        StorageSlot.Uint256Slot storage slot =
+            StorageSlot.getUint256Slot(keccak256(abi.encodePacked(_TOTALSUPPLY_SLOT_KEY, _tokenId)));
+        if (_operation == Operations.Add) {
+            slot.value += _diff;
+        } else if (_operation == Operations.Sub) {
+            slot.value -= _diff;
+        } else {
+            revert("ERC1155Sale#_updateTotalSupply: INVALID_OPERATION");
+        }
+    }
+
+    function _getMaxTotalSupply(uint256 _tokenId) internal view virtual returns (uint256) {
+        return StorageSlot.getUint256Slot(keccak256(abi.encodePacked(_MAXTOTALSUPPLY_SLOT_KEY, _tokenId))).value;
+    }
+
+    function _setMaxTotalSupply(uint256 _tokenId, uint256 _value) internal virtual {
+        StorageSlot.getUint256Slot(keccak256(abi.encodePacked(_MAXTOTALSUPPLY_SLOT_KEY, _tokenId))).value = _value;
+    }
 
     //
     // Views
     //
+
+    /**
+     * Get the total supply of the given token.
+     * @param _tokenId The token id to query.
+     * @return The total supply of the token.
+     */
+    function totalSupply(uint256 _tokenId) external view returns (uint256) {
+        return _getTotalSupply(_tokenId);
+    }
+
+    /**
+     * Get the maximum total supply of the given token.
+     * @param _tokenId The token id to query.
+     * @return The maximum total supply of the token.
+     */
+    function maxTotalSupply(uint256 _tokenId) external view returns (uint256) {
+        return _getMaxTotalSupply(_tokenId);
+    }
 
     /// @dev See ERC 165
     function supportsInterface(bytes4 interfaceId)

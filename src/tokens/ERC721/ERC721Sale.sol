@@ -18,6 +18,8 @@ import "@thirdweb-dev/contracts/extension/PrimarySale.sol";
 import "@thirdweb-dev/contracts/extension/Permissions.sol";
 import "@thirdweb-dev/contracts/extension/Drop.sol";
 
+import "@0xsequence/erc-1155/contracts/utils/StorageSlot.sol";
+
 contract ERC721Sale is
     Initializable,
     Royalty,
@@ -30,14 +32,14 @@ contract ERC721Sale is
 {
     using StringsUpgradeable for uint256;
 
-    /// @dev Global max total supply of NFTs.
-    uint256 public maxTotalSupply;
+    // Global max total supply of NFTs.
+    bytes32 private constant _MAXTOTALSUPPLY_SLOT = keccak256("0xsequence.ERC721Sale.maxTotalSupply");
 
-    /// @dev Emitted when the global max supply of tokens is updated.
+    // Emitted when the global max supply of tokens is updated.
     event MaxTotalSupplyUpdated(uint256 maxTotalSupply);
 
-    /// @dev Base URI for all tokens.
-    string private baseURI;
+    // Base URI for all tokens.
+    bytes32 private constant _BASEURI_SLOT = keccak256("0xsequence.ERC721Sale.baseURI");
 
     //
     // Initialization
@@ -86,7 +88,7 @@ contract ERC721Sale is
      * @notice This function can only be called by the contract admin.
      */
     function setMaxTotalSupply(uint256 _maxTotalSupply) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        maxTotalSupply = _maxTotalSupply;
+        _setMaxTotalSupply(_maxTotalSupply);
         emit MaxTotalSupplyUpdated(_maxTotalSupply);
     }
 
@@ -107,11 +109,11 @@ contract ERC721Sale is
 
     /**
      * Set the base URI for all tokens.
-     * @param newBaseURI The new base URI.
+     * @param _baseURI The new base URI.
      * @notice This function can only be called by the contract admin.
      */
-    function setBaseURI(string memory newBaseURI) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        baseURI = newBaseURI;
+    function setBaseURI(string memory _baseURI) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setBaseURI(_baseURI);
     }
 
     /**
@@ -119,7 +121,7 @@ contract ERC721Sale is
      * @dev The resulting URI for each token will be the concatenation of the `baseURI` and the `tokenId`.
      */
     function _baseURI() internal view override returns (string memory) {
-        return baseURI;
+        return _getBaseURI();
     }
 
     //
@@ -132,7 +134,8 @@ contract ERC721Sale is
      * @dev Reverts if the quantity exceeds the max total supply.
      */
     function _withinSupply(uint256 _quantity) internal view {
-        require(maxTotalSupply == 0 || _currentIndex + _quantity <= maxTotalSupply, "exceed max total supply");
+        uint256 max = _getMaxTotalSupply();
+        require(max == 0 || _currentIndex + _quantity <= max, "exceed max total supply");
     }
 
     /**
@@ -265,8 +268,50 @@ contract ERC721Sale is
     }
 
     //
+    // Storage
+    //
+
+    /**
+     * Gets the max total supply
+     */
+    function _getMaxTotalSupply() internal view returns (uint256) {
+        return StorageSlot.getUint256Slot(_BASEURI_SLOT).value;
+    }
+
+    /**
+     * Update the max total supply
+     * @param _value The new max total supply
+     */
+    function _setMaxTotalSupply(uint256 _value) internal {
+        StorageSlot.getUint256Slot(_BASEURI_SLOT).value = _value;
+    }
+
+    /**
+     * Get the base URI
+     */
+    function _getBaseURI() internal view returns (string memory) {
+        return StorageSlot.getStringSlot(_BASEURI_SLOT).value;
+    }
+
+    /**
+     * Update the base URI
+     * @param _baseURI New base URI
+     */
+    function _setBaseURI(string memory _baseURI) internal {
+        StorageSlot.getStringSlot(_BASEURI_SLOT).value = _baseURI;
+    }
+
+    //
     // Views
     //
+
+    function maxTotalSupply() public view virtual returns (uint256) {
+        return _getMaxTotalSupply();
+    }
+
+    function baseURI() public view virtual returns (string memory) {
+        return _getBaseURI();
+    }
 
     /// @inheritdoc IERC165Upgradeable
     function supportsInterface(bytes4 interfaceId)
