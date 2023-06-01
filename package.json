@@ -32,7 +32,9 @@
   "devDependencies": {
     "@types/node": "^20.1.0",
     "husky": "^8.0.3",
+    "keccak256": "^1.0.6",
     "lint-staged": "^13.2.2",
+    "merkletreejs": "^0.2.31",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
   }

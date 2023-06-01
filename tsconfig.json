@@ -1,0 +1,26 @@
+{
+  "include": ["typechain", "./test"],
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "ES6",
+    "lib": ["esnext"],
+    "importHelpers": true,
+    "declaration": true,
+    "rootDir": "./",
+    "baseUrl": "./",
+    "strict": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true
+  },
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
+  }
+}
