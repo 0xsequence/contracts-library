@@ -23,12 +23,15 @@ contract ERC1155PackedToken is
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
+    address private immutable _initializer;
     bool private _initialized;
 
     /**
      * Initialize contract.
      */
-    constructor() ERC1155Metadata("", "") {} // solhint-disable-line no-empty-blocks
+    constructor() ERC1155Metadata("", "") {
+        _initializer = msg.sender;
+    }
 
     /**
      * Initialize the contract.
@@ -38,10 +41,11 @@ contract ERC1155PackedToken is
      * @dev This should be called immediately after deployment.
      */
     function initialize(address _owner, string memory _name, string memory _baseURI) public {
-        if (_initialized) {
+        if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }
         _initialized = true;
+
         name = _name;
         baseURI = _baseURI;
 
