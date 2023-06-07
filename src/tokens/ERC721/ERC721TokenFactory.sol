@@ -24,12 +24,13 @@ contract ERC721TokenFactory is IERC721TokenFactory, ProxyDeployer {
      * @param _baseURI The base URI of the ERC-721 Token proxy
      * @param _salt The deployment salt
      * @return proxyAddr The address of the ERC-721 Token Proxy
+     * @dev The provided `_salt` is hashed with the caller address for security.
      */
     function deploy(address _owner, string memory _name, string memory _symbol, string memory _baseURI, bytes32 _salt)
         external
         returns (address proxyAddr)
     {
-        proxyAddr = _deployProxy(_implAddr, _salt);
+        proxyAddr = _deployProxy(_implAddr, keccak256(abi.encode(msg.sender, _salt)));
         ERC721Token(proxyAddr).initialize(_owner, _name, _symbol, _baseURI);
         emit ERC721TokenDeployed(proxyAddr);
         return proxyAddr;
