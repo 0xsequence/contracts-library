@@ -4,18 +4,16 @@ pragma solidity ^0.8.17;
 import {ERC1155, ERC1155MintBurn} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
 import {ERC1155Meta} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Meta.sol";
 import {ERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
-import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {ERC2981Controlled} from "../common/ERC2981Controlled.sol";
 
 error InvalidInitialization();
 
 /**
  * A ready made implementation of ERC-1155.
  */
-contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981, AccessControl {
+contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981Controlled {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
 
     address private immutable _initializer;
     bool private _initialized;
@@ -79,33 +77,6 @@ contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981,
     }
 
     //
-    // Royalty
-    //
-
-    /**
-     * Sets the royalty information that all ids in this contract will default to.
-     * @param _receiver Address of who should be sent the royalty payment
-     * @param _feeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
-     */
-    function setDefaultRoyalty(address _receiver, uint96 _feeNumerator) external onlyRole(ROYALTY_ADMIN_ROLE) {
-        _setDefaultRoyalty(_receiver, _feeNumerator);
-    }
-
-    /**
-     * Sets the royalty information that a given token id in this contract will use.
-     * @param _tokenId The token id to set the royalty information for
-     * @param _receiver Address of who should be sent the royalty payment
-     * @param _feeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
-     * @notice This overrides the default royalty information for this token id
-     */
-    function setTokenRoyalty(uint256 _tokenId, address _receiver, uint96 _feeNumerator)
-        external
-        onlyRole(ROYALTY_ADMIN_ROLE)
-    {
-        _setTokenRoyalty(_tokenId, _receiver, _feeNumerator);
-    }
-
-    //
     // Metadata
     //
 
@@ -137,11 +108,11 @@ contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981,
     function supportsInterface(bytes4 _interfaceId)
         public
         view
-        override (ERC1155, ERC1155Metadata, ERC2981, AccessControl)
+        override (ERC1155, ERC1155Metadata, ERC2981Controlled)
         returns (bool)
     {
         return ERC1155.supportsInterface(_interfaceId) || ERC1155Metadata.supportsInterface(_interfaceId)
-            || ERC2981.supportsInterface(_interfaceId) || AccessControl.supportsInterface(_interfaceId)
+            || ERC2981Controlled.supportsInterface(_interfaceId)
             || super.supportsInterface(_interfaceId);
     }
 }
