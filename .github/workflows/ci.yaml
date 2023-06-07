@@ -42,7 +42,14 @@ jobs:
             node_modules
             */*/node_modules
           key: ${{ runner.os }}-lerna-${{ hashFiles('**/package.json', '**/yarn.lock') }}
-      - run: yarn lint:sol
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run linting
+        run: yarn lint:sol
 
   foundry-tests:
     name: Foundry tests

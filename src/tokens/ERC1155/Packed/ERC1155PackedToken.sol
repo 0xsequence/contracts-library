@@ -32,7 +32,7 @@ contract ERC1155PackedToken is
     /**
      * Initialize contract.
      */
-    constructor() ERC1155Metadata("", "") {}
+    constructor() ERC1155Metadata("", "") {} // solhint-disable-line no-empty-blocks
 
     /**
      * Initialize the contract.
