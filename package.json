@@ -16,7 +16,8 @@
     "build": "ts-node scripts/build.ts",
     "test": "forge test",
     "lint:init": "husky install",
-    "lint:sol": "forge fmt"
+    "lint:sol": "solhint \"./src/**/*.sol\" \"./tests/**/*.sol\"",
+    "format:sol": "forge fmt"
   },
   "files": [
     "src",
@@ -30,12 +31,13 @@
     "erc721a-upgradeable": "^4.2.3"
   },
   "lint-staged": {
-    "**/*.sol": "yarn lint:sol"
+    "**/*.sol": "yarn lint:sol && yarn format:sol"
   },
   "devDependencies": {
     "@types/node": "^20.1.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
+    "solhint": "^3.4.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
   }

@@ -34,7 +34,7 @@ contract Proxy is IERC1967 {
      */
     function proxy() private {
         address target = _getImplementation();
-        assembly {
+        assembly { // solhint-disable-line no-inline-assembly
             let ptr := mload(0x40)
             calldatacopy(ptr, 0, calldatasize())
             let result := delegatecall(gas(), target, ptr, calldatasize(), 0, 0)

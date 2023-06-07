@@ -15,7 +15,7 @@ abstract contract ProxyDeployer is ProxyDeployerErrors {
         bytes memory code = _getProxyCode(implAddr);
 
         // Deploy it
-        assembly {
+        assembly { // solhint-disable-line no-inline-assembly
             proxyAddr := create2(0, add(code, 32), mload(code), salt)
         }
         if (proxyAddr == address(0)) {
