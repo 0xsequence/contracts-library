@@ -146,7 +146,7 @@ contract ERC721Token is ERC721AQueryable, ERC2981, AccessControl {
     }
 
     /**
-     * Override the ERC721A name function.
+     * Override the ERC721A symbol function.
      */
     function symbol() public view override (ERC721A, IERC721A) returns (string memory) {
         return _symbol;
