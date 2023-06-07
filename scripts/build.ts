@@ -7,7 +7,11 @@ const exec = util.promisify(execNonPromise)
 
 const main = async () => {
   // Clean
-  await rmdir(BUILD_DIR, { recursive: true })
+  try {
+    await rmdir(BUILD_DIR, { recursive: true })
+  } catch (err) {
+    // Dir not found, ignore
+  }
 
   // Build with forge
   console.log('Building contracts')
