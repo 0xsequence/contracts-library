@@ -6,31 +6,31 @@ import {IERC1155PackedTokenFactory} from "./IERC1155PackedTokenFactory.sol";
 import {ProxyDeployer} from "../../../proxies/ERC1967/ProxyDeployer.sol";
 
 contract ERC1155PackedTokenFactory is IERC1155PackedTokenFactory, ProxyDeployer {
-    address private immutable _implAddr;
+    address private immutable implAddr;
 
     /**
      * Creates an ERC-1155 Token Factory.
      */
     constructor() {
         ERC1155PackedToken proxyImpl = new ERC1155PackedToken();
-        _implAddr = address(proxyImpl);
+        implAddr = address(proxyImpl);
     }
 
     /**
      * Creates an ERC-1155 Packed Token proxy.
-     * @param _owner The owner of the ERC-1155 Packed Token proxy
-     * @param _name The name of the ERC-1155 Packed Token proxy
-     * @param _baseURI The base URI of the ERC-1155 Packed Token proxy
-     * @param _salt The deployment salt
+     * @param owner The owner of the ERC-1155 Packed Token proxy
+     * @param name The name of the ERC-1155 Packed Token proxy
+     * @param baseURI The base URI of the ERC-1155 Packed Token proxy
+     * @param salt The deployment salt
      * @return proxyAddr The address of the ERC-1155 Packed Token Proxy
-     * @dev The provided `_salt` is hashed with the caller address for security.
+     * @dev The provided `salt` is hashed with the caller address for security.
      */
-    function deploy(address _owner, string memory _name, string memory _baseURI, bytes32 _salt)
+    function deploy(address owner, string memory name, string memory baseURI, bytes32 salt)
         external
         returns (address proxyAddr)
     {
-        proxyAddr = _deployProxy(_implAddr, keccak256(abi.encode(msg.sender, _salt)));
-        ERC1155PackedToken(proxyAddr).initialize(_owner, _name, _baseURI);
+        proxyAddr = _deployProxy(implAddr, keccak256(abi.encode(msg.sender, salt)));
+        ERC1155PackedToken(proxyAddr).initialize(owner, name, baseURI);
         emit ERC1155PackedTokenDeployed(proxyAddr);
         return proxyAddr;
     }

@@ -23,36 +23,36 @@ contract ERC1155PackedToken is
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
-    address private immutable _initializer;
-    bool private _initialized;
+    address private immutable initializer;
+    bool private initialized;
 
     /**
      * Initialize contract.
      */
     constructor() ERC1155Metadata("", "") {
-        _initializer = msg.sender;
+        initializer = msg.sender;
     }
 
     /**
      * Initialize the contract.
-     * @param _owner Owner address.
-     * @param _name Token name.
-     * @param _baseURI Base URI for token metadata.
+     * @param owner Owner address.
+     * @param name_ Token name.
+     * @param baseURI_ Base URI for token metadata.
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address _owner, string memory _name, string memory _baseURI) public {
-        if (msg.sender != _initializer || _initialized) {
+    function initialize(address owner, string memory name_, string memory baseURI_) public {
+        if (msg.sender != initializer || initialized) {
             revert InvalidInitialization();
         }
-        _initialized = true;
+        initialized = true;
 
-        name = _name;
-        baseURI = _baseURI;
+        name = name_;
+        baseURI = baseURI_;
 
-        _setupRole(DEFAULT_ADMIN_ROLE, _owner);
-        _setupRole(MINTER_ROLE, _owner);
-        _setupRole(ROYALTY_ADMIN_ROLE, _owner);
-        _setupRole(METADATA_ADMIN_ROLE, _owner);
+        _setupRole(DEFAULT_ADMIN_ROLE, owner);
+        _setupRole(MINTER_ROLE, owner);
+        _setupRole(ROYALTY_ADMIN_ROLE, owner);
+        _setupRole(METADATA_ADMIN_ROLE, owner);
     }
 
     //
@@ -61,27 +61,27 @@ contract ERC1155PackedToken is
 
     /**
      * Mint tokens.
-     * @param _to Address to mint tokens to.
-     * @param _tokenId Token ID to mint.
-     * @param _amount Amount of tokens to mint.
-     * @param _data Data to pass if receiver is contract.
+     * @param to Address to mint tokens to.
+     * @param tokenId Token ID to mint.
+     * @param amount Amount of tokens to mint.
+     * @param data Data to pass if receiver is contract.
      */
-    function mint(address _to, uint256 _tokenId, uint256 _amount, bytes memory _data) external onlyRole(MINTER_ROLE) {
-        _mint(_to, _tokenId, _amount, _data);
+    function mint(address to, uint256 tokenId, uint256 amount, bytes memory data) external onlyRole(MINTER_ROLE) {
+        _mint(to, tokenId, amount, data);
     }
 
     /**
      * Mint tokens.
-     * @param _to Address to mint tokens to.
-     * @param _tokenIds Token IDs to mint.
-     * @param _amounts Amounts of tokens to mint.
-     * @param _data Data to pass if receiver is contract.
+     * @param to Address to mint tokens to.
+     * @param tokenIds Token IDs to mint.
+     * @param amounts Amounts of tokens to mint.
+     * @param data Data to pass if receiver is contract.
      */
-    function batchMint(address _to, uint256[] memory _tokenIds, uint256[] memory _amounts, bytes memory _data)
+    function batchMint(address to, uint256[] memory tokenIds, uint256[] memory amounts, bytes memory data)
         external
         onlyRole(MINTER_ROLE)
     {
-        _batchMint(_to, _tokenIds, _amounts, _data);
+        _batchMint(to, tokenIds, amounts, data);
     }
 
     //
@@ -90,18 +90,18 @@ contract ERC1155PackedToken is
 
     /**
      * Update the base URL of token's URI.
-     * @param _baseMetadataURI New base URL of token's URI
+     * @param baseURI_ New base URL of token's URI
      */
-    function setBaseMetadataURI(string memory _baseMetadataURI) external onlyRole(METADATA_ADMIN_ROLE) {
-        _setBaseMetadataURI(_baseMetadataURI);
+    function setBaseMetadataURI(string memory baseURI_) external onlyRole(METADATA_ADMIN_ROLE) {
+        _setBaseMetadataURI(baseURI_);
     }
 
     /**
      * Update the name of the contract.
-     * @param _name New contract name
+     * @param name_ New contract name
      */
-    function setContractName(string memory _name) external onlyRole(METADATA_ADMIN_ROLE) {
-        _setContractName(_name);
+    function setContractName(string memory name_) external onlyRole(METADATA_ADMIN_ROLE) {
+        _setContractName(name_);
     }
 
     //
@@ -110,17 +110,17 @@ contract ERC1155PackedToken is
 
     /**
      * Check interface support.
-     * @param _interfaceId Interface id
+     * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 _interfaceId)
+    function supportsInterface(bytes4 interfaceId)
         public
         view
         override (ERC1155PackedBalance, ERC1155Metadata, ERC2981Controlled)
         returns (bool)
     {
-        return ERC1155PackedBalance.supportsInterface(_interfaceId) || ERC1155Metadata.supportsInterface(_interfaceId)
-            || ERC2981Controlled.supportsInterface(_interfaceId)
-            || super.supportsInterface(_interfaceId);
+        return ERC1155PackedBalance.supportsInterface(interfaceId) || ERC1155Metadata.supportsInterface(interfaceId)
+            || ERC2981Controlled.supportsInterface(interfaceId)
+            || super.supportsInterface(interfaceId);
     }
 }
