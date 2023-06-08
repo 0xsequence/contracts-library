@@ -23,6 +23,14 @@ This repository provides a set of smart contracts to facilitate the creation and
 
 ### Deployment
 
+Copy `.env.example` to `.env` and set your wallet configuration.
+
+```sh
+cp .env.example .env
+```
+
+Then run the deployment script.
+
 ```sh
 yarn deploy
 ```

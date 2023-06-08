@@ -14,6 +14,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "ts-node scripts/build.ts",
+    "deploy": "ts-node scripts/deploy.ts",
     "test": "forge test",
     "lint:init": "husky install",
     "lint:sol": "solhint \"./src/**/*.sol\" \"./tests/**/*.sol\"",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.1.0",
+    "dotenv": "^16.1.4",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
     "solhint": "^3.4.1",
