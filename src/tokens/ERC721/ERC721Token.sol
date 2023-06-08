@@ -15,42 +15,42 @@ contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    string private baseURI; // Missing _ due to _baseURI() function in ERC721A
-    string private _name;
-    string private _symbol;
+    string private baseURI;
+    string private tokenName;
+    string private tokenSymbol;
 
-    address private immutable _initializer;
-    bool private _initialized;
+    address private immutable initializer;
+    bool private initialized;
 
     /**
      * Deploy contract.
      */
     constructor() ERC721A("", "") {
-        _initializer = msg.sender;
+        initializer = msg.sender;
     }
 
     /**
      * Initialize contract.
-     * @param owner_ The owner of the contract
-     * @param name_ Name of the token
-     * @param symbol_ Symbol of the token
+     * @param owner The owner of the contract
+     * @param tokenName_ Name of the token
+     * @param tokenSymbol_ Symbol of the token
      * @param baseURI_ Base URI of the token
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner_, string memory name_, string memory symbol_, string memory baseURI_) external {
-        if (msg.sender != _initializer || _initialized) {
+    function initialize(address owner, string memory tokenName_, string memory tokenSymbol_, string memory baseURI_) external {
+        if (msg.sender != initializer || initialized) {
             revert InvalidInitialization();
         }
-        _initialized = true;
+        initialized = true;
 
-        _name = name_;
-        _symbol = symbol_;
+        tokenName = tokenName_;
+        tokenSymbol = tokenSymbol_;
         baseURI = baseURI_;
 
-        _setupRole(DEFAULT_ADMIN_ROLE, owner_);
-        _setupRole(METADATA_ADMIN_ROLE, owner_);
-        _setupRole(MINTER_ROLE, owner_);
-        _setupRole(ROYALTY_ADMIN_ROLE, owner_);
+        _setupRole(DEFAULT_ADMIN_ROLE, owner);
+        _setupRole(METADATA_ADMIN_ROLE, owner);
+        _setupRole(MINTER_ROLE, owner);
+        _setupRole(ROYALTY_ADMIN_ROLE, owner);
     }
 
     //
@@ -59,11 +59,11 @@ contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
 
     /**
      * Mint tokens.
-     * @param _to Address to mint tokens to.
-     * @param _amount Amount of tokens to mint.
+     * @param to Address to mint tokens to.
+     * @param amount Amount of tokens to mint.
      */
-    function mint(address _to, uint256 _amount) external onlyRole(MINTER_ROLE) {
-        _mint(_to, _amount);
+    function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
+        _mint(to, amount);
     }
 
     //
@@ -72,10 +72,10 @@ contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
 
     /**
      * Update the base URL of token's URI.
-     * @param _baseMetadataURI New base URL of token's URI
+     * @param baseURI_ New base URL of token's URI
      */
-    function setBaseMetadataURI(string memory _baseMetadataURI) external onlyRole(METADATA_ADMIN_ROLE) {
-        baseURI = _baseMetadataURI;
+    function setBaseMetadataURI(string memory baseURI_) external onlyRole(METADATA_ADMIN_ROLE) {
+        baseURI = baseURI_;
     }
 
     //
@@ -84,18 +84,18 @@ contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
 
     /**
      * Check interface support.
-     * @param _interfaceId Interface id
+     * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 _interfaceId)
+    function supportsInterface(bytes4 interfaceId)
         public
         view
         override (ERC721A, IERC721A, ERC2981Controlled)
         returns (bool)
     {
-        return _interfaceId == type(IERC721A).interfaceId || _interfaceId == type(IERC721AQueryable).interfaceId
-            || ERC721A.supportsInterface(_interfaceId) || ERC2981Controlled.supportsInterface(_interfaceId)
-            || super.supportsInterface(_interfaceId);
+        return interfaceId == type(IERC721A).interfaceId || interfaceId == type(IERC721AQueryable).interfaceId
+            || ERC721A.supportsInterface(interfaceId) || ERC2981Controlled.supportsInterface(interfaceId)
+            || super.supportsInterface(interfaceId);
     }
 
     //
@@ -113,13 +113,13 @@ contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
      * Override the ERC721A name function.
      */
     function name() public view override (ERC721A, IERC721A) returns (string memory) {
-        return _name;
+        return tokenName;
     }
 
     /**
      * Override the ERC721A symbol function.
      */
     function symbol() public view override (ERC721A, IERC721A) returns (string memory) {
-        return _symbol;
+        return tokenSymbol;
     }
 }

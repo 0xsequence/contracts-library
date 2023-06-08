@@ -19,25 +19,25 @@ abstract contract ERC2981Controlled is
 
     /**
      * Sets the royalty information that all ids in this contract will default to.
-     * @param _receiver Address of who should be sent the royalty payment
-     * @param _feeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
+     * @param receiver Address of who should be sent the royalty payment
+     * @param feeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      */
-    function setDefaultRoyalty(address _receiver, uint96 _feeNumerator) external onlyRole(ROYALTY_ADMIN_ROLE) {
-        _setDefaultRoyalty(_receiver, _feeNumerator);
+    function setDefaultRoyalty(address receiver, uint96 feeNumerator) external onlyRole(ROYALTY_ADMIN_ROLE) {
+        _setDefaultRoyalty(receiver, feeNumerator);
     }
 
     /**
      * Sets the royalty information that a given token id in this contract will use.
-     * @param _tokenId The token id to set the royalty information for
-     * @param _receiver Address of who should be sent the royalty payment
-     * @param _feeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
+     * @param tokenId The token id to set the royalty information for
+     * @param receiver Address of who should be sent the royalty payment
+     * @param feeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @notice This overrides the default royalty information for this token id
      */
-    function setTokenRoyalty(uint256 _tokenId, address _receiver, uint96 _feeNumerator)
+    function setTokenRoyalty(uint256 tokenId, address receiver, uint96 feeNumerator)
         external
         onlyRole(ROYALTY_ADMIN_ROLE)
     {
-        _setTokenRoyalty(_tokenId, _receiver, _feeNumerator);
+        _setTokenRoyalty(tokenId, receiver, feeNumerator);
     }
 
     //
@@ -46,17 +46,17 @@ abstract contract ERC2981Controlled is
 
     /**
      * Check interface support.
-     * @param _interfaceId Interface id
+     * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 _interfaceId)
+    function supportsInterface(bytes4 interfaceId)
         public
         view
         virtual
         override (ERC2981, AccessControl)
         returns (bool)
     {
-        return ERC2981.supportsInterface(_interfaceId) || AccessControl.supportsInterface(_interfaceId)
-            || super.supportsInterface(_interfaceId);
+        return ERC2981.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId)
+            || super.supportsInterface(interfaceId);
     }
 }

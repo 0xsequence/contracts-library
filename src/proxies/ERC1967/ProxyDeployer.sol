@@ -43,8 +43,8 @@ abstract contract ProxyDeployer is ProxyDeployerErrors {
      */
     function _predictProxyAddress(bytes memory code, bytes32 salt) private view returns (address proxyAddr) {
         address deployer = address(this);
-        bytes32 _data = keccak256(abi.encodePacked(bytes1(0xff), deployer, salt, keccak256(code)));
-        return address(uint160(uint256(_data)));
+        bytes32 data = keccak256(abi.encodePacked(bytes1(0xff), deployer, salt, keccak256(code)));
+        return address(uint160(uint256(data)));
     }
 
     /**
