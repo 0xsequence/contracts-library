@@ -2,25 +2,16 @@
 pragma solidity ^0.8.17;
 
 import {IERC1155Sale} from "./IERC1155Sale.sol";
-import {ERC1155, ERC1155Meta} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Meta.sol";
-import {ERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
-import {ERC1155Supply} from "./ERC1155Supply.sol";
+import {ERC1155Supply, ERC1155Token} from "./ERC1155Supply.sol";
 import {ERC1155SaleErrors} from "./ERC1155SaleErrors.sol";
-import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract ERC1155Sale is
     IERC1155Sale,
     ERC1155SaleErrors,
-    ERC1155Supply,
-    ERC1155Meta,
-    ERC1155Metadata,
-    ERC2981,
-    AccessControl
+    ERC1155Supply
 {
     bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
-    bytes32 public constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
 
     bytes4 private constant ERC20_TRANSFERFROM_SELECTOR =
         bytes4(keccak256(bytes("transferFrom(address,address,uint256)")));
@@ -34,12 +25,6 @@ contract ERC1155Sale is
     mapping(uint256 => SaleDetails) private _tokenSaleDetails;
 
     /**
-     * Initialize with empty values.
-     * @dev These are overridden by initialize().
-     */
-    constructor() ERC1155Metadata("", "") {}
-
-    /**
      * Initialize the contract.
      * @param _owner Owner address.
      * @param _name Token name.
@@ -50,12 +35,13 @@ contract ERC1155Sale is
         if (_initialized) {
             revert InvalidInitialization();
         }
-        _initialized = true;
+        ERC1155Token._initialize(_owner, _name, _baseURI);
+
         name = _name;
         baseURI = _baseURI;
         _setupRole(DEFAULT_ADMIN_ROLE, _owner);
         _setupRole(MINT_ADMIN_ROLE, _owner);
-        _setupRole(ROYALTY_ADMIN_ROLE, _owner);
+        _initialized = true;
     }
 
     /**
@@ -66,7 +52,7 @@ contract ERC1155Sale is
      */
     function blockTimeOutOfBounds(uint256 startTime, uint256 endTime) private view returns (bool) {
         // 0 end time indicates inactive sale.
-        return endTime == 0 || block.timestamp < startTime || block.timestamp >= endTime;
+        return endTime == 0 || block.timestamp < startTime || block.timestamp >= endTime; // solhint-disable-line not-rely-on-time
     }
 
     /**
@@ -75,27 +61,38 @@ contract ERC1155Sale is
      * @param _amounts Amounts of tokens to mint.
      */
     function payForActiveMint(uint256[] memory _tokenIds, uint256[] memory _amounts) private {
-        uint256 totalAmount;
+        uint256 lastTokenId;
         uint256 totalCost;
+        uint256 totalAmount;
+
         SaleDetails memory gSaleDetails = _globalSaleDetails;
         bool globalSaleInactive = blockTimeOutOfBounds(gSaleDetails.startTime, gSaleDetails.endTime);
         for (uint256 i; i < _tokenIds.length; i++) {
+            uint256 tokenId = _tokenIds[i];
+            // Test tokenIds ordering
+            if (i != 0 && lastTokenId >= tokenId) {
+                revert InvalidTokenIds();
+            }
+            lastTokenId = tokenId;
+
+            uint256 amount = _amounts[i];
+
             // Active sale test
-            SaleDetails memory saleDetails = _tokenSaleDetails[_tokenIds[i]];
+            SaleDetails memory saleDetails = _tokenSaleDetails[tokenId];
             bool tokenSaleInactive = blockTimeOutOfBounds(saleDetails.startTime, saleDetails.endTime);
             if (tokenSaleInactive) {
                 // Prefer token sale
                 if (globalSaleInactive) {
                     // Both sales inactive
-                    revert SaleInactive(_tokenIds[i]);
+                    revert SaleInactive(tokenId);
                 }
                 // Use global sale details
-                totalCost += gSaleDetails.cost * _amounts[i];
+                totalCost += gSaleDetails.cost * amount;
             } else {
                 // Use token sale price
-                totalCost += saleDetails.cost * _amounts[i];
+                totalCost += saleDetails.cost * amount;
             }
-            totalAmount += _amounts[i];
+            totalAmount += amount;
         }
 
         if (_paymentToken == address(0)) {
@@ -125,6 +122,7 @@ contract ERC1155Sale is
      * @param _amounts Amounts of tokens to mint.
      * @param _data Data to pass if receiver is contract.
      * @notice Sale must be active for all tokens.
+     * @dev tokenIds must be sorted ascending without duplicates.
      */
     function mint(address _to, uint256[] memory _tokenIds, uint256[] memory _amounts, bytes memory _data)
         public
@@ -169,8 +167,8 @@ contract ERC1155Sale is
         onlyRole(MINT_ADMIN_ROLE)
     {
         _paymentToken = _paymentTokenAddr;
-        totalSupplyCap = _supplyCap;
         _globalSaleDetails = SaleDetails(_cost, _startTime, _endTime);
+        totalSupplyCap = _supplyCap;
         emit GlobalSaleDetailsUpdated(_cost, _supplyCap, _startTime, _endTime);
     }
 
@@ -193,36 +191,9 @@ contract ERC1155Sale is
         public
         onlyRole(MINT_ADMIN_ROLE)
     {
-        tokenSupplyCap[_tokenId] = _supplyCap;
         _tokenSaleDetails[_tokenId] = SaleDetails(_cost, _startTime, _endTime);
+        tokenSupplyCap[_tokenId] = _supplyCap;
         emit TokenSaleDetailsUpdated(_tokenId, _cost, _supplyCap, _startTime, _endTime);
-    }
-
-    //
-    // Royalty
-    //
-
-    /**
-     * Sets the royalty information that all ids in this contract will default to.
-     * @param _receiver Address of who should be sent the royalty payment
-     * @param _feeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
-     */
-    function setDefaultRoyalty(address _receiver, uint96 _feeNumerator) public onlyRole(ROYALTY_ADMIN_ROLE) {
-        _setDefaultRoyalty(_receiver, _feeNumerator);
-    }
-
-    /**
-     * Sets the royalty information that a given token id in this contract will use.
-     * @param _tokenId The token id to set the royalty information for
-     * @param _receiver Address of who should be sent the royalty payment
-     * @param _feeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
-     * @notice This overrides the default royalty information for this token id
-     */
-    function setTokenRoyalty(uint256 _tokenId, address _receiver, uint96 _feeNumerator)
-        public
-        onlyRole(ROYALTY_ADMIN_ROLE)
-    {
-        _setTokenRoyalty(_tokenId, _receiver, _feeNumerator);
     }
 
     //
@@ -281,16 +252,5 @@ contract ERC1155Sale is
      */
     function paymentToken() external view returns (address) {
         return _paymentToken;
-    }
-
-    function supportsInterface(bytes4 _interfaceId)
-        public
-        view
-        override (ERC1155, ERC1155Metadata, ERC2981, AccessControl)
-        returns (bool)
-    {
-        // FIXME Fix inheritance issues
-        return ERC1155.supportsInterface(_interfaceId) || ERC1155Metadata.supportsInterface(_interfaceId)
-            || super.supportsInterface(_interfaceId);
     }
 }

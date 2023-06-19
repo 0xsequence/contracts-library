@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.17;
 
 import {ERC1155Sale} from "./ERC1155Sale.sol";
 import {IERC1155SaleFactory} from "./IERC1155SaleFactory.sol";
@@ -28,7 +28,7 @@ contract ERC1155SaleFactory is IERC1155SaleFactory, ProxyDeployer {
         external
         returns (address proxyAddr)
     {
-        proxyAddr = deployProxy(_implAddr, _salt);
+        proxyAddr = _deployProxy(_implAddr, _salt);
         ERC1155Sale(proxyAddr).initialize(_owner, _name, _baseURI);
         emit ERC1155SaleDeployed(proxyAddr);
         return proxyAddr;

@@ -27,6 +27,11 @@ abstract contract ERC1155SaleErrors {
     error InsufficientPayment(uint256 expected, uint256 actual);
 
     /**
+     * Invalid token IDs.
+     */
+    error InvalidTokenIds();
+
+    /**
      * Withdraw failed.
      */
     error WithdrawFailed();
