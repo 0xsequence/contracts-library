@@ -2,8 +2,8 @@
 pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
-import {ERC1155Token, InvalidInitialization} from "src/tokens/ERC1155/ERC1155Token.sol";
-import {ERC1155TokenFactory} from "src/tokens/ERC1155/ERC1155TokenFactory.sol";
+import {ERC1155TokenMinter, InvalidInitialization} from "src/tokens/ERC1155/ERC1155TokenMinter.sol";
+import {ERC1155TokenMinterFactory} from "src/tokens/ERC1155/ERC1155TokenMinterFactory.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -12,7 +12,7 @@ import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import {IERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 
-contract ERC1155TokenTest is Test {
+contract ERC1155TokenMinterTest is Test {
     // Redeclare events
     event TransferSingle(
         address indexed _operator, address indexed _from, address indexed _to, uint256 _id, uint256 _amount
@@ -21,9 +21,9 @@ contract ERC1155TokenTest is Test {
         address indexed _operator, address indexed _from, address indexed _to, uint256[] _ids, uint256[] _amounts
     );
 
-    ERC1155Token private token;
+    ERC1155TokenMinter private token;
 
-    address owner;
+    address private owner;
 
     function setUp() public {
         owner = makeAddr("owner");
@@ -31,8 +31,8 @@ contract ERC1155TokenTest is Test {
         vm.deal(address(this), 100 ether);
         vm.deal(owner, 100 ether);
 
-        ERC1155TokenFactory factory = new ERC1155TokenFactory();
-        token = ERC1155Token(factory.deploy(owner, "name", "baseURI", 0x0));
+        ERC1155TokenMinterFactory factory = new ERC1155TokenMinterFactory();
+        token = ERC1155TokenMinter(factory.deploy(owner, "name", "baseURI", 0x0));
     }
 
     function testReinitializeFails() public {

@@ -11,9 +11,8 @@ error InvalidInitialization();
 /**
  * A ready made implementation of ERC-1155.
  */
-contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981Controlled {
+abstract contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981Controlled {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address private immutable initializer;
     bool private initialized;
@@ -31,49 +30,21 @@ contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981C
      * @param name_ Token name.
      * @param baseURI_ Base URI for token metadata.
      * @dev This should be called immediately after deployment.
+     
      */
-    function initialize(address owner, string memory name_, string memory baseURI_) public {
+    function _initialize(address owner, string memory name_, string memory baseURI_) internal virtual {
         if (msg.sender != initializer || initialized) {
             revert InvalidInitialization();
         }
-        initialized = true;
 
         name = name_;
         baseURI = baseURI_;
 
         _setupRole(DEFAULT_ADMIN_ROLE, owner);
-        _setupRole(MINTER_ROLE, owner);
         _setupRole(ROYALTY_ADMIN_ROLE, owner);
         _setupRole(METADATA_ADMIN_ROLE, owner);
-    }
 
-    //
-    // Minting
-    //
-
-    /**
-     * Mint tokens.
-     * @param to Address to mint tokens to.
-     * @param tokenId Token ID to mint.
-     * @param amount Amount of tokens to mint.
-     * @param data Data to pass if receiver is contract.
-     */
-    function mint(address to, uint256 tokenId, uint256 amount, bytes memory data) external onlyRole(MINTER_ROLE) {
-        _mint(to, tokenId, amount, data);
-    }
-
-    /**
-     * Mint tokens.
-     * @param to Address to mint tokens to.
-     * @param tokenIds Token IDs to mint.
-     * @param amounts Amounts of tokens to mint.
-     * @param data Data to pass if receiver is contract.
-     */
-    function batchMint(address to, uint256[] memory tokenIds, uint256[] memory amounts, bytes memory data)
-        external
-        onlyRole(MINTER_ROLE)
-    {
-        _batchMint(to, tokenIds, amounts, data);
+        initialized = true;
     }
 
     //
@@ -108,6 +79,7 @@ contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981C
     function supportsInterface(bytes4 interfaceId)
         public
         view
+        virtual
         override (ERC1155, ERC1155Metadata, ERC2981Controlled)
         returns (bool)
     {
