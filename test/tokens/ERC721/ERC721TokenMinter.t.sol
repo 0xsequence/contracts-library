@@ -2,8 +2,8 @@
 pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
-import {ERC721Token, InvalidInitialization} from "src/tokens/ERC721/ERC721Token.sol";
-import {ERC721TokenFactory} from "src/tokens/ERC721/ERC721TokenFactory.sol";
+import {ERC721TokenMinter, InvalidInitialization} from "src/tokens/ERC721/ERC721TokenMinter.sol";
+import {ERC721TokenMinterFactory} from "src/tokens/ERC721/ERC721TokenMinterFactory.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -12,11 +12,11 @@ import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC721A} from "erc721a/contracts/interfaces/IERC721A.sol";
 import {IERC721AQueryable} from "erc721a/contracts/extensions/IERC721AQueryable.sol";
 
-contract ERC721TokenTest is Test {
+contract ERC721TokenMinterTest is Test {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
-    ERC721Token private token;
+    ERC721TokenMinter private token;
 
     address owner;
 
@@ -26,8 +26,8 @@ contract ERC721TokenTest is Test {
         vm.deal(address(this), 100 ether);
         vm.deal(owner, 100 ether);
 
-        ERC721TokenFactory factory = new ERC721TokenFactory();
-        token = ERC721Token(factory.deploy(owner, "name", "symbol", "baseURI", 0x0));
+        ERC721TokenMinterFactory factory = new ERC721TokenMinterFactory();
+        token = ERC721TokenMinter(factory.deploy(owner, "name", "symbol", "baseURI", 0x0));
     }
 
     function testReinitializeFails() public {
