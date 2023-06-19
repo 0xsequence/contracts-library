@@ -11,9 +11,8 @@ error InvalidInitialization();
 /**
  * A ready made implementation of ERC-721.
  */
-contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
+abstract contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     string private _tokenBaseURI;
     string private _tokenName;
@@ -37,11 +36,10 @@ contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
      * @param tokenBaseURI Base URI of the token
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, string memory tokenName, string memory tokenSymbol, string memory tokenBaseURI) external {
+    function initialize(address owner, string memory tokenName, string memory tokenSymbol, string memory tokenBaseURI) public virtual {
         if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }
-        _initialized = true;
 
         _tokenName = tokenName;
         _tokenSymbol = tokenSymbol;
@@ -49,21 +47,9 @@ contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
 
         _setupRole(DEFAULT_ADMIN_ROLE, owner);
         _setupRole(METADATA_ADMIN_ROLE, owner);
-        _setupRole(MINTER_ROLE, owner);
         _setupRole(ROYALTY_ADMIN_ROLE, owner);
-    }
 
-    //
-    // Minting
-    //
-
-    /**
-     * Mint tokens.
-     * @param to Address to mint tokens to.
-     * @param amount Amount of tokens to mint.
-     */
-    function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
-        _mint(to, amount);
+        _initialized = true;
     }
 
     //
@@ -90,6 +76,7 @@ contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
     function supportsInterface(bytes4 interfaceId)
         public
         view
+        virtual
         override (ERC721A, IERC721A, ERC2981Controlled)
         returns (bool)
     {
