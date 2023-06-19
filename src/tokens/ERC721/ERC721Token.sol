@@ -15,37 +15,37 @@ contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    string private baseURI;
-    string private tokenName;
-    string private tokenSymbol;
+    string private _tokenBaseURI;
+    string private _tokenName;
+    string private _tokenSymbol;
 
-    address private immutable initializer;
-    bool private initialized;
+    address private immutable _initializer;
+    bool private _initialized;
 
     /**
      * Deploy contract.
      */
     constructor() ERC721A("", "") {
-        initializer = msg.sender;
+        _initializer = msg.sender;
     }
 
     /**
      * Initialize contract.
      * @param owner The owner of the contract
-     * @param tokenName_ Name of the token
-     * @param tokenSymbol_ Symbol of the token
-     * @param baseURI_ Base URI of the token
+     * @param tokenName Name of the token
+     * @param tokenSymbol Symbol of the token
+     * @param tokenBaseURI Base URI of the token
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, string memory tokenName_, string memory tokenSymbol_, string memory baseURI_) external {
-        if (msg.sender != initializer || initialized) {
+    function initialize(address owner, string memory tokenName, string memory tokenSymbol, string memory tokenBaseURI) external {
+        if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }
-        initialized = true;
+        _initialized = true;
 
-        tokenName = tokenName_;
-        tokenSymbol = tokenSymbol_;
-        baseURI = baseURI_;
+        _tokenName = tokenName;
+        _tokenSymbol = tokenSymbol;
+        _tokenBaseURI = tokenBaseURI;
 
         _setupRole(DEFAULT_ADMIN_ROLE, owner);
         _setupRole(METADATA_ADMIN_ROLE, owner);
@@ -72,10 +72,10 @@ contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
 
     /**
      * Update the base URL of token's URI.
-     * @param baseURI_ New base URL of token's URI
+     * @param tokenBaseURI New base URL of token's URI
      */
-    function setBaseMetadataURI(string memory baseURI_) external onlyRole(METADATA_ADMIN_ROLE) {
-        baseURI = baseURI_;
+    function setBaseMetadataURI(string memory tokenBaseURI) external onlyRole(METADATA_ADMIN_ROLE) {
+        _tokenBaseURI = tokenBaseURI;
     }
 
     //
@@ -106,20 +106,20 @@ contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
      * Override the ERC721A baseURI function.
      */
     function _baseURI() internal view override returns (string memory) {
-        return baseURI;
+        return _tokenBaseURI;
     }
 
     /**
      * Override the ERC721A name function.
      */
     function name() public view override (ERC721A, IERC721A) returns (string memory) {
-        return tokenName;
+        return _tokenName;
     }
 
     /**
      * Override the ERC721A symbol function.
      */
     function symbol() public view override (ERC721A, IERC721A) returns (string memory) {
-        return tokenSymbol;
+        return _tokenSymbol;
     }
 }
