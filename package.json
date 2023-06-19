@@ -1,0 +1,46 @@
+{
+  "name": "@0xsequence/contracts-library",
+  "version": "1.0.0",
+  "description": "Solidity Contract Library for 0xSequence",
+  "repository": "https://github.com/0xsequence/contract-library.git",
+  "bugs": {
+    "url": "https://github.com/0xsequence/contract-library/issues"
+  },
+  "homepage": "https://github.com/0xsequence/contract-library#README.md",
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "author": "Horizon Blockchain Games",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "ts-node scripts/build.ts",
+    "deploy": "ts-node scripts/deploy.ts",
+    "test": "forge test",
+    "lint:init": "husky install",
+    "lint:sol": "solhint \"./src/**/*.sol\" \"./tests/**/*.sol\"",
+    "format:sol": "forge fmt"
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "dependencies": {
+    "@0xsequence/erc-1155": "^4.0.3",
+    "@0xsequence/erc20-meta-token": "^4.0.1",
+    "@openzeppelin/contracts": "^4.8.3",
+    "erc721a": "^4.2.3",
+    "erc721a-upgradeable": "^4.2.3"
+  },
+  "lint-staged": {
+    "**/*.sol": "yarn lint:sol && yarn format:sol"
+  },
+  "devDependencies": {
+    "@types/node": "^20.1.0",
+    "dotenv": "^16.1.4",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.2",
+    "solhint": "^3.4.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  }
+}
