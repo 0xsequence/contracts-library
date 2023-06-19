@@ -154,16 +154,16 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
     {
-        vm.assume(supplyCap > 0);
+        vm.assume(supplyCap > 1);
         vm.assume(amount > supplyCap);
         token.setGlobalSaleDetails(
-            address(0), perTokenCost, supplyCap, uint64(block.timestamp), uint64(block.timestamp + 1)
+            address(0), perTokenCost, supplyCap - 1, uint64(block.timestamp), uint64(block.timestamp + 1)
         );
 
         uint256[] memory tokenIds = singleToArray(tokenId);
         uint256[] memory amounts = singleToArray(amount);
 
-        vm.expectRevert(InsufficientSupply.selector);
+        vm.expectRevert(abi.encodeWithSelector(InsufficientSupply.selector, 0, amount, supplyCap - 1));
         token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "");
     }
 
@@ -179,16 +179,16 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
     {
-        vm.assume(supplyCap > 0);
+        vm.assume(supplyCap > 1);
         vm.assume(amount > supplyCap);
         token.setTokenSaleDetails(
-            tokenId, perTokenCost, supplyCap, uint64(block.timestamp), uint64(block.timestamp + 1)
+            tokenId, perTokenCost, supplyCap - 1, uint64(block.timestamp), uint64(block.timestamp + 1)
         );
 
         uint256[] memory tokenIds = singleToArray(tokenId);
         uint256[] memory amounts = singleToArray(amount);
 
-        vm.expectRevert(InsufficientSupply.selector);
+        vm.expectRevert(abi.encodeWithSelector(InsufficientSupply.selector, 0, amount, supplyCap - 1));
         token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "");
     }
 
