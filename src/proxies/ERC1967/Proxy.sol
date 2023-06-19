@@ -19,20 +19,20 @@ contract Proxy is IERC1967 {
      * Forward calls to the proxy implementation contract.
      */
     receive() external payable {
-        proxy();
+        _proxy();
     }
 
     /**
      * Forward calls to the proxy implementation contract.
      */
     fallback() external payable {
-        proxy();
+        _proxy();
     }
 
     /**
      * Forward calls to the proxy implementation contract.
      */
-    function proxy() private {
+    function _proxy() private {
         address target = _getImplementation();
         assembly { // solhint-disable-line no-inline-assembly
             let ptr := mload(0x40)
@@ -48,15 +48,16 @@ contract Proxy is IERC1967 {
 
     /**
      * Set the implementation address.
+     * @param _implementation The address of the implementation contract.
      */
-    function _setImplementation(address implementation) internal {
-        StorageSlot.getAddressSlot(IMPLEMENTATION_SLOT).value = implementation;
+    function _setImplementation(address _implementation) internal {
+        StorageSlot._getAddressSlot(IMPLEMENTATION_SLOT).value = _implementation;
     }
 
     /**
      * Returns the address of the current implementation.
      */
     function _getImplementation() internal view returns (address) {
-        return StorageSlot.getAddressSlot(IMPLEMENTATION_SLOT).value;
+        return StorageSlot._getAddressSlot(IMPLEMENTATION_SLOT).value;
     }
 }

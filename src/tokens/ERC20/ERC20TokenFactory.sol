@@ -6,14 +6,14 @@ import {IERC20TokenFactory} from "./IERC20TokenFactory.sol";
 import {ProxyDeployer} from "../../proxies/ERC1967/ProxyDeployer.sol";
 
 contract ERC20TokenFactory is IERC20TokenFactory, ProxyDeployer {
-    address private immutable implAddr;
+    address private immutable _implAddr;
 
     /**
      * Creates an ERC-20 Token Factory.
      */
     constructor() {
         ERC20Token proxyImpl = new ERC20Token();
-        implAddr = address(proxyImpl);
+        _implAddr = address(proxyImpl);
     }
 
     /**
@@ -30,7 +30,7 @@ contract ERC20TokenFactory is IERC20TokenFactory, ProxyDeployer {
         external
         returns (address proxyAddr)
     {
-        proxyAddr = _deployProxy(implAddr, keccak256(abi.encode(msg.sender, salt)));
+        proxyAddr = _deployProxy(_implAddr, keccak256(abi.encode(msg.sender, salt)));
         ERC20Token(proxyAddr).initialize(owner, name, symbol, decimals);
         emit ERC20TokenDeployed(proxyAddr);
         return proxyAddr;

@@ -15,31 +15,31 @@ contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981C
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    address private immutable initializer;
-    bool private initialized;
+    address private immutable _initializer;
+    bool private _initialized;
 
     /**
      * Initialize contract.
      */
     constructor() ERC1155Metadata("", "") {
-        initializer = msg.sender;
+        _initializer = msg.sender;
     }
 
     /**
      * Initialize the contract.
      * @param owner Owner address.
-     * @param name_ Token name.
-     * @param baseURI_ Base URI for token metadata.
+     * @param tokenName Token name.
+     * @param tokenBaseURI Base URI for token metadata.
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, string memory name_, string memory baseURI_) public {
-        if (msg.sender != initializer || initialized) {
+    function initialize(address owner, string memory tokenName, string memory tokenBaseURI) public {
+        if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }
-        initialized = true;
+        _initialized = true;
 
-        name = name_;
-        baseURI = baseURI_;
+        name = tokenName;
+        baseURI = tokenBaseURI;
 
         _setupRole(DEFAULT_ADMIN_ROLE, owner);
         _setupRole(MINTER_ROLE, owner);
@@ -82,18 +82,18 @@ contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981C
 
     /**
      * Update the base URL of token's URI.
-     * @param baseURI_ New base URL of token's URI
+     * @param tokenBaseURI New base URL of token's URI
      */
-    function setBaseMetadataURI(string memory baseURI_) external onlyRole(METADATA_ADMIN_ROLE) {
-        _setBaseMetadataURI(baseURI_);
+    function setBaseMetadataURI(string memory tokenBaseURI) external onlyRole(METADATA_ADMIN_ROLE) {
+        _setBaseMetadataURI(tokenBaseURI);
     }
 
     /**
      * Update the name of the contract.
-     * @param name_ New contract name
+     * @param tokenName New contract name
      */
-    function setContractName(string memory name_) external onlyRole(METADATA_ADMIN_ROLE) {
-        _setContractName(name_);
+    function setContractName(string memory tokenName) external onlyRole(METADATA_ADMIN_ROLE) {
+        _setContractName(tokenName);
     }
 
     //

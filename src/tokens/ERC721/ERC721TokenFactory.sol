@@ -6,14 +6,14 @@ import {IERC721TokenFactory} from "./IERC721TokenFactory.sol";
 import {ProxyDeployer} from "../../proxies/ERC1967/ProxyDeployer.sol";
 
 contract ERC721TokenFactory is IERC721TokenFactory, ProxyDeployer {
-    address private immutable implAddr;
+    address private immutable _implAddr;
 
     /**
      * Creates an ERC-721 Token Factory.
      */
     constructor() {
         ERC721Token proxyImpl = new ERC721Token();
-        implAddr = address(proxyImpl);
+        _implAddr = address(proxyImpl);
     }
 
     /**
@@ -30,7 +30,7 @@ contract ERC721TokenFactory is IERC721TokenFactory, ProxyDeployer {
         external
         returns (address proxyAddr)
     {
-        proxyAddr = _deployProxy(implAddr, keccak256(abi.encode(msg.sender, salt)));
+        proxyAddr = _deployProxy(_implAddr, keccak256(abi.encode(msg.sender, salt)));
         ERC721Token(proxyAddr).initialize(owner, name, symbol, baseURI);
         emit ERC721TokenDeployed(proxyAddr);
         return proxyAddr;

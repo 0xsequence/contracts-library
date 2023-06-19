@@ -14,37 +14,37 @@ error InvalidInitialization();
 contract ERC20Token is ERC20, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    string private tokenName;
-    string private tokenSymbol;
-    uint8 private tokenDecimals;
+    string private _tokenName;
+    string private _tokenSymbol;
+    uint8 private _tokenDecimals;
 
-    address private immutable initializer;
-    bool private initialized;
+    address private immutable _initializer;
+    bool private _initialized;
 
     /**
      * Deploy contract.
      */
     constructor() ERC20("", "") {
-        initializer = msg.sender;
+        _initializer = msg.sender;
     }
 
     /**
      * Initialize contract.
      * @param owner The owner of the contract
-     * @param tokenName_ Name of the token
-     * @param tokenSymbol_ Symbol of the token
-     * @param tokenDecimals_ Number of decimals
+     * @param tokenName Name of the token
+     * @param tokenSymbol Symbol of the token
+     * @param tokenDecimals Number of decimals
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, string memory tokenName_, string memory tokenSymbol_, uint8 tokenDecimals_) external {
-        if (msg.sender != initializer || initialized) {
+    function initialize(address owner, string memory tokenName, string memory tokenSymbol, uint8 tokenDecimals) external {
+        if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }
-        initialized = true;
+        _initialized = true;
 
-        tokenName = tokenName_;
-        tokenSymbol = tokenSymbol_;
-        tokenDecimals = tokenDecimals_;
+        _tokenName = tokenName;
+        _tokenSymbol = tokenSymbol;
+        _tokenDecimals = tokenDecimals;
 
         _setupRole(DEFAULT_ADMIN_ROLE, owner);
         _setupRole(MINTER_ROLE, owner);
@@ -85,20 +85,20 @@ contract ERC20Token is ERC20, AccessControl {
      * Override the ERC20 name function.
      */
     function name() public view override returns (string memory) {
-        return tokenName;
+        return _tokenName;
     }
 
     /**
      * Override the ERC20 symbol function.
      */
     function symbol() public view override returns (string memory) {
-        return tokenSymbol;
+        return _tokenSymbol;
     }
 
     /**
      * Override the ERC20 decimals function.
      */
     function decimals() public view override returns (uint8) {
-        return tokenDecimals;
+        return _tokenDecimals;
     }
 }

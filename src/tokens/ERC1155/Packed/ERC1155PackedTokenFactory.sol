@@ -6,14 +6,14 @@ import {IERC1155PackedTokenFactory} from "./IERC1155PackedTokenFactory.sol";
 import {ProxyDeployer} from "../../../proxies/ERC1967/ProxyDeployer.sol";
 
 contract ERC1155PackedTokenFactory is IERC1155PackedTokenFactory, ProxyDeployer {
-    address private immutable implAddr;
+    address private immutable _implAddr;
 
     /**
      * Creates an ERC-1155 Token Factory.
      */
     constructor() {
         ERC1155PackedToken proxyImpl = new ERC1155PackedToken();
-        implAddr = address(proxyImpl);
+        _implAddr = address(proxyImpl);
     }
 
     /**
@@ -29,7 +29,7 @@ contract ERC1155PackedTokenFactory is IERC1155PackedTokenFactory, ProxyDeployer 
         external
         returns (address proxyAddr)
     {
-        proxyAddr = _deployProxy(implAddr, keccak256(abi.encode(msg.sender, salt)));
+        proxyAddr = _deployProxy(_implAddr, keccak256(abi.encode(msg.sender, salt)));
         ERC1155PackedToken(proxyAddr).initialize(owner, name, baseURI);
         emit ERC1155PackedTokenDeployed(proxyAddr);
         return proxyAddr;
