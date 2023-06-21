@@ -44,13 +44,13 @@ contract ERC721Sale is IERC721Sale, ERC721Token, ERC721SaleErrors {
 
     /**
      * Checks if the current block.timestamp is out of the give timestamp range.
-     * @param startTime Earliest acceptable timestamp (inclusive).
-     * @param endTime Latest acceptable timestamp (exclusive).
+     * @param _startTime Earliest acceptable timestamp (inclusive).
+     * @param _endTime Latest acceptable timestamp (exclusive).
      * @dev A zero endTime value is always considered out of bounds.
      */
-    function blockTimeOutOfBounds(uint256 startTime, uint256 endTime) private view returns (bool) {
+    function blockTimeOutOfBounds(uint256 _startTime, uint256 _endTime) private view returns (bool) {
         // 0 end time indicates inactive sale.
-        return endTime == 0 || block.timestamp < startTime || block.timestamp >= endTime; // solhint-disable-line not-rely-on-time
+        return _endTime == 0 || block.timestamp < _startTime || block.timestamp >= _endTime; // solhint-disable-line not-rely-on-time
     }
 
     /**

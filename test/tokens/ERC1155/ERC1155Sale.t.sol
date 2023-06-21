@@ -458,6 +458,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     // Withdraw success ERC20
     function testWithdrawERC20(bool useFactory, address withdrawTo, uint256 tokenId, uint256 amount)
         public
+        assumeSafe(withdrawTo, tokenId, amount)
         withFactory(useFactory)
     {
         testERC20Mint(false, withdrawTo, tokenId, amount);
