@@ -5,7 +5,7 @@ import {IERC1967} from "./IERC1967.sol";
 import {StorageSlot} from "../../utils/StorageSlot.sol";
 
 contract Proxy is IERC1967 {
-    bytes32 internal constant IMPLEMENTATION_SLOT = bytes32(uint256(keccak256("eip1967.proxy.implementation")) - 1);
+    bytes32 internal constant _IMPLEMENTATION_SLOT = bytes32(uint256(keccak256("eip1967.proxy.implementation")) - 1);
 
     /**
      * Initializes the contract, setting proxy implementation address.
@@ -51,13 +51,13 @@ contract Proxy is IERC1967 {
      * @param _implementation The address of the implementation contract.
      */
     function _setImplementation(address _implementation) internal {
-        StorageSlot._getAddressSlot(IMPLEMENTATION_SLOT).value = _implementation;
+        StorageSlot._getAddressSlot(_IMPLEMENTATION_SLOT).value = _implementation;
     }
 
     /**
      * Returns the address of the current implementation.
      */
     function _getImplementation() internal view returns (address) {
-        return StorageSlot._getAddressSlot(IMPLEMENTATION_SLOT).value;
+        return StorageSlot._getAddressSlot(_IMPLEMENTATION_SLOT).value;
     }
 }

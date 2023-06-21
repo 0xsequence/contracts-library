@@ -23,16 +23,16 @@ contract ERC1155TokenMinter is ERC1155MintBurn, ERC1155Token {
     /**
      * Initialize the contract.
      * @param owner Owner address.
-     * @param name_ Token name.
-     * @param baseURI_ Base URI for token metadata.
+     * @param tokenName Token name.
+     * @param tokenBaseURI Base URI for token metadata.
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, string memory name_, string memory baseURI_) public virtual {
+    function initialize(address owner, string memory tokenName, string memory tokenBaseURI) public virtual override {
         if (msg.sender != initializer || initialized) {
             revert InvalidInitialization();
         }
 
-        ERC1155Token._initialize(owner, name_, baseURI_);
+        ERC1155Token.initialize(owner, tokenName, tokenBaseURI);
 
         _setupRole(MINTER_ROLE, owner);
 

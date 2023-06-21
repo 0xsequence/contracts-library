@@ -32,7 +32,7 @@ abstract contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata,
      * @dev This should be called immediately after deployment.
      
      */
-    function initialize(address owner, string memory tokenName, string memory tokenBaseURI) public {
+    function initialize(address owner, string memory tokenName, string memory tokenBaseURI) public virtual {
         if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }
