@@ -16,6 +16,8 @@ import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import {IERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
+// solhint-disable no-rely-on-time
+
 contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     // Redeclare events
     event TransferBatch(
@@ -427,17 +429,27 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
 
     // Withdraw fails if the caller doesn't have the WITHDRAW_ROLE
     function testWithdrawFail(bool useFactory, address withdrawTo, uint256 amount) public withFactory(useFactory) {
-        token.revokeRole(token.DEFAULT_ADMIN_ROLE(), address(this));
+        token.revokeRole(token.WITHDRAW_ROLE(), address(this));
 
         vm.expectRevert(
             abi.encodePacked(
                 "AccessControl: account ",
                 Strings.toHexString(address(this)),
                 " is missing role ",
-                Strings.toHexString(uint256(token.DEFAULT_ADMIN_ROLE()), 32)
+                Strings.toHexString(uint256(token.WITHDRAW_ROLE()), 32)
             )
         );
-        token.withdraw(withdrawTo, amount);
+        token.withdrawETH(withdrawTo, amount);
+
+        vm.expectRevert(
+            abi.encodePacked(
+                "AccessControl: account ",
+                Strings.toHexString(address(this)),
+                " is missing role ",
+                Strings.toHexString(uint256(token.WITHDRAW_ROLE()), 32)
+            )
+        );
+        token.withdrawERC20(address(erc20), withdrawTo, amount);
     }
 
     // Withdraw success ETH
@@ -451,7 +463,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
 
         uint256 tokenBalance = address(token).balance;
         uint256 balance = withdrawTo.balance;
-        token.withdraw(withdrawTo, tokenBalance);
+        token.withdrawETH(withdrawTo, tokenBalance);
         assertEq(tokenBalance + balance, withdrawTo.balance);
     }
 
@@ -465,7 +477,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
 
         uint256 tokenBalance = erc20.balanceOf(address(token));
         uint256 balance = erc20.balanceOf(withdrawTo);
-        token.withdraw(withdrawTo, tokenBalance);
+        token.withdrawERC20(address(erc20), withdrawTo, tokenBalance);
         assertEq(tokenBalance + balance, erc20.balanceOf(withdrawTo));
     }
 

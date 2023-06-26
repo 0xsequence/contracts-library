@@ -16,6 +16,8 @@ import {IERC721A} from "erc721a/contracts/interfaces/IERC721A.sol";
 import {IERC721AQueryable} from "erc721a/contracts/interfaces/IERC721AQueryable.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
+// solhint-disable no-rely-on-time
+
 contract ERC721SaleTest is Test, ERC721SaleErrors {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
@@ -205,17 +207,27 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
 
     // Withdraw fails if the caller doesn't have the WITHDRAW_ROLE
     function testWithdrawFail(address withdrawTo, uint256 amount) public {
-        token.revokeRole(token.DEFAULT_ADMIN_ROLE(), address(this));
+        token.revokeRole(token.WITHDRAW_ROLE(), address(this));
 
         vm.expectRevert(
             abi.encodePacked(
                 "AccessControl: account ",
                 Strings.toHexString(address(this)),
                 " is missing role ",
-                Strings.toHexString(uint256(token.DEFAULT_ADMIN_ROLE()), 32)
+                Strings.toHexString(uint256(token.WITHDRAW_ROLE()), 32)
             )
         );
-        token.withdraw(withdrawTo, amount);
+        token.withdrawETH(withdrawTo, amount);
+
+        vm.expectRevert(
+            abi.encodePacked(
+                "AccessControl: account ",
+                Strings.toHexString(address(this)),
+                " is missing role ",
+                Strings.toHexString(uint256(token.WITHDRAW_ROLE()), 32)
+            )
+        );
+        token.withdrawERC20(address(erc20), withdrawTo, amount);
     }
 
     // Withdraw success ETH
@@ -226,7 +238,7 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
 
         uint256 tokenBalance = address(token).balance;
         uint256 balance = withdrawTo.balance;
-        token.withdraw(withdrawTo, tokenBalance);
+        token.withdrawETH(withdrawTo, tokenBalance);
         assertEq(tokenBalance + balance, withdrawTo.balance);
     }
 
@@ -236,7 +248,7 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
 
         uint256 tokenBalance = erc20.balanceOf(address(token));
         uint256 balance = erc20.balanceOf(withdrawTo);
-        token.withdraw(withdrawTo, tokenBalance);
+        token.withdrawERC20(address(erc20), withdrawTo, tokenBalance);
         assertEq(tokenBalance + balance, erc20.balanceOf(withdrawTo));
     }
 
