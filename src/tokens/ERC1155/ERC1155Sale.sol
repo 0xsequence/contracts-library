@@ -4,12 +4,13 @@ pragma solidity ^0.8.17;
 import {IERC1155Sale} from "./IERC1155Sale.sol";
 import {ERC1155Supply, ERC1155Token} from "./ERC1155Supply.sol";
 import {ERC1155SaleErrors} from "./ERC1155SaleErrors.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {WithdrawControlled, AccessControl, SafeERC20, IERC20} from "../common/WithdrawControlled.sol";
 
 contract ERC1155Sale is
     IERC1155Sale,
     ERC1155SaleErrors,
-    ERC1155Supply
+    ERC1155Supply,
+    WithdrawControlled
 {
     bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
@@ -41,6 +42,7 @@ contract ERC1155Sale is
         baseURI = tokenBaseURI;
         _setupRole(DEFAULT_ADMIN_ROLE, owner);
         _setupRole(MINT_ADMIN_ROLE, owner);
+        _setupRole(WITHDRAW_ROLE, owner);
 
         _initialized = true;
     }
@@ -103,12 +105,7 @@ contract ERC1155Sale is
             }
         } else {
             // Paid in ERC20
-            (bool success, bytes memory data) = _paymentToken.call(
-                abi.encodeWithSelector(_ERC20_TRANSFERFROM_SELECTOR, msg.sender, address(this), totalCost)
-            );
-            if (!success || (data.length > 0 && !abi.decode(data, (bool)))) {
-                revert InsufficientPayment(totalCost, 0);
-            }
+            SafeERC20.safeTransferFrom(IERC20(_paymentToken), msg.sender, address(this), totalCost);
         }
     }
 
@@ -198,31 +195,6 @@ contract ERC1155Sale is
     }
 
     //
-    // Withdraw
-    //
-
-    /**
-     * Withdraws ETH or ERC20 tokens owned by this sale contract.
-     * @param to Address to withdraw to.
-     * @param amount Amount to withdraw.
-     * @dev Withdraws ERC20 when paymentToken is set, else ETH.
-     * @notice Only callable by the contract admin.
-     */
-    function withdraw(address to, uint256 amount) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        if (_paymentToken == address(0)) {
-            (bool success,) = to.call{value: amount}("");
-            if (!success) {
-                revert WithdrawFailed();
-            }
-        } else {
-            (bool success) = IERC20(_paymentToken).transfer(to, amount);
-            if (!success) {
-                revert WithdrawFailed();
-            }
-        }
-    }
-
-    //
     // Views
     //
 
@@ -253,5 +225,20 @@ contract ERC1155Sale is
      */
     function paymentToken() external view returns (address) {
         return _paymentToken;
+    }
+
+    /**
+     * Check interface support.
+     * @param interfaceId Interface id
+     * @return True if supported
+     */
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override (ERC1155Token, AccessControl)
+        returns (bool)
+    {
+        return interfaceId == type(IERC1155Sale).interfaceId || super.supportsInterface(interfaceId);
     }
 }

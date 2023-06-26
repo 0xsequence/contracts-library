@@ -4,12 +4,9 @@ pragma solidity ^0.8.17;
 import {IERC721Sale} from "./IERC721Sale.sol";
 import {ERC721Token} from "./ERC721Token.sol";
 import {ERC721SaleErrors} from "./ERC721SaleErrors.sol";
-import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
+import {WithdrawControlled, AccessControl, SafeERC20, IERC20} from "../common/WithdrawControlled.sol";
 
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
-contract ERC721Sale is IERC721Sale, ERC721Token, ERC721SaleErrors {
+contract ERC721Sale is IERC721Sale, ERC721Token, ERC721SaleErrors, WithdrawControlled {
     bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
     bytes4 private constant _ERC20_TRANSFERFROM_SELECTOR =
@@ -38,6 +35,7 @@ contract ERC721Sale is IERC721Sale, ERC721Token, ERC721SaleErrors {
 
         ERC721Token.initialize(owner, tokenName, tokenSymbol, tokenBaseURI);
         _setupRole(MINT_ADMIN_ROLE, owner);
+        _setupRole(WITHDRAW_ROLE, owner);
 
         _initialized = true;
     }
@@ -72,11 +70,7 @@ contract ERC721Sale is IERC721Sale, ERC721Token, ERC721SaleErrors {
             }
         } else {
             // Paid in ERC20
-            (bool success, bytes memory data) =
-                paymentToken.call(abi.encodeWithSelector(_ERC20_TRANSFERFROM_SELECTOR, msg.sender, address(this), total));
-            if (!success || (data.length > 0 && !abi.decode(data, (bool)))) {
-                revert InsufficientPayment(total, 0);
-            }
+            SafeERC20.safeTransferFrom(IERC20(paymentToken), msg.sender, address(this), total);
         }
     }
 
@@ -134,32 +128,6 @@ contract ERC721Sale is IERC721Sale, ERC721Token, ERC721SaleErrors {
     }
 
     //
-    // Withdraw
-    //
-
-    /**
-     * Withdraws ETH or ERC20 tokens owned by this sale contract.
-     * @param to Address to withdraw to.
-     * @param amount Amount to withdraw.
-     * @dev Withdraws ERC20 when paymentToken is set, else ETH.
-     * @notice Only callable by the contract admin.
-     */
-    function withdraw(address to, uint256 amount) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        address paymentToken = _saleDetails.paymentToken;
-        if (paymentToken == address(0)) {
-            (bool success,) = to.call{value: amount}("");
-            if (!success) {
-                revert WithdrawFailed();
-            }
-        } else {
-            (bool success) = IERC20(paymentToken).transfer(to, amount);
-            if (!success) {
-                revert WithdrawFailed();
-            }
-        }
-    }
-
-    //
     // Views
     //
 
@@ -171,11 +139,16 @@ contract ERC721Sale is IERC721Sale, ERC721Token, ERC721SaleErrors {
         return _saleDetails;
     }
 
+    /**
+     * Check interface support.
+     * @param interfaceId Interface id
+     * @return True if supported
+     */
     function supportsInterface(bytes4 interfaceId)
         public
         view
         virtual
-        override
+        override (ERC721Token, AccessControl)
         returns (bool)
     {
         return interfaceId == type(IERC721Sale).interfaceId || super.supportsInterface(interfaceId);
