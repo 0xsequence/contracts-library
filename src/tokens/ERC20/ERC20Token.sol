@@ -11,8 +11,7 @@ error InvalidInitialization();
 /**
  * A ready made implementation of ERC-20.
  */
-contract ERC20Token is ERC20, AccessControl {
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+abstract contract ERC20Token is ERC20, AccessControl {
 
     string private _tokenName;
     string private _tokenSymbol;
@@ -21,9 +20,6 @@ contract ERC20Token is ERC20, AccessControl {
     address private immutable _initializer;
     bool private _initialized;
 
-    /**
-     * Deploy contract.
-     */
     constructor() ERC20("", "") {
         _initializer = msg.sender;
     }
@@ -36,31 +32,18 @@ contract ERC20Token is ERC20, AccessControl {
      * @param tokenDecimals Number of decimals
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, string memory tokenName, string memory tokenSymbol, uint8 tokenDecimals) external {
+    function initialize(address owner, string memory tokenName, string memory tokenSymbol, uint8 tokenDecimals) public virtual {
         if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }
-        _initialized = true;
 
         _tokenName = tokenName;
         _tokenSymbol = tokenSymbol;
         _tokenDecimals = tokenDecimals;
 
         _setupRole(DEFAULT_ADMIN_ROLE, owner);
-        _setupRole(MINTER_ROLE, owner);
-    }
 
-    //
-    // Minting
-    //
-
-    /**
-     * Mint tokens.
-     * @param to Address to mint tokens to.
-     * @param amount Amount of tokens to mint.
-     */
-    function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
-        _mint(to, amount);
+        _initialized = true;
     }
 
     //
@@ -72,7 +55,7 @@ contract ERC20Token is ERC20, AccessControl {
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return interfaceId == type(IERC20).interfaceId || interfaceId == type(IERC20Metadata).interfaceId
             || AccessControl.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
     }

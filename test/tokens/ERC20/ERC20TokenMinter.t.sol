@@ -2,8 +2,8 @@
 pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
-import {ERC20Token, InvalidInitialization} from "src/tokens/ERC20/ERC20Token.sol";
-import {ERC20TokenFactory} from "src/tokens/ERC20/ERC20TokenFactory.sol";
+import {ERC20TokenMinter, InvalidInitialization} from "src/tokens/ERC20/ERC20TokenMinter.sol";
+import {ERC20TokenMinterFactory} from "src/tokens/ERC20/ERC20TokenMinterFactory.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -12,11 +12,11 @@ import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-contract ERC20TokenTest is Test {
+contract ERC20TokenMinterTest is Test {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 value);
 
-    ERC20Token private token;
+    ERC20TokenMinter private token;
 
     uint8 private constant DECIMALS = 18;
 
@@ -28,8 +28,8 @@ contract ERC20TokenTest is Test {
         vm.deal(address(this), 100 ether);
         vm.deal(owner, 100 ether);
 
-        ERC20TokenFactory factory = new ERC20TokenFactory();
-        token = ERC20Token(factory.deploy(owner, "name", "symbol", DECIMALS, 0x0));
+        ERC20TokenMinterFactory factory = new ERC20TokenMinterFactory();
+        token = ERC20TokenMinter(factory.deploy(owner, "name", "symbol", DECIMALS, 0x0));
     }
 
     function testReinitializeFails() public {
