@@ -147,17 +147,17 @@ contract ERC1155Sale is
 
     /**
      * Set the global sale details.
-     * @param paymentTokenAddr The ERC20 token address to accept payment in. address(0) indicates ETH.
      * @param cost The amount of payment tokens to accept for each token minted.
      * @param supplyCap The maximum number of tokens that can be minted.
+     * @param paymentTokenAddr The ERC20 token address to accept payment in. address(0) indicates ETH.
      * @param startTime The start time of the sale. Tokens cannot be minted before this time.
      * @param endTime The end time of the sale. Tokens cannot be minted after this time.
      * @dev A zero end time indicates an inactive sale.
      */
     function setGlobalSaleDetails(
-        address paymentTokenAddr,
         uint256 cost,
         uint256 supplyCap,
+        address paymentTokenAddr,
         uint64 startTime,
         uint64 endTime
     )
@@ -178,6 +178,7 @@ contract ERC1155Sale is
      * @param startTime The start time of the sale. Tokens cannot be minted before this time.
      * @param endTime The end time of the sale. Tokens cannot be minted after this time.
      * @dev A zero end time indicates an inactive sale.
+     * @notice The payment token is set globally.
      */
     function setTokenSaleDetails(
         uint256 tokenId,
