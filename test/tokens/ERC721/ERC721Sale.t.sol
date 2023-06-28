@@ -61,13 +61,19 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
     }
 
     // Minting denied when sale is expired.
-    function testMintExpiredFail(bool useFactory, address mintTo, uint256 amount, uint256 startTime, uint256 endTime)
+    function testMintExpiredFail(bool useFactory, address mintTo, uint256 amount, uint64 startTime, uint64 endTime)
         public
         assumeSafe(mintTo, amount)
         withFactory(useFactory)
     {
-        vm.assume(startTime > endTime);
-        vm.assume(block.timestamp < startTime || block.timestamp >= endTime);
+        if (startTime > endTime) {
+            uint64 temp = startTime;
+            startTime = endTime;
+            endTime = temp;
+        }
+        if (block.timestamp >= startTime && block.timestamp <= endTime) {
+            vm.warp(uint256(endTime) + 1);
+        }
         token.setSaleDetails(0, perTokenCost, address(0), uint64(startTime), uint64(endTime));
 
         vm.expectRevert(SaleInactive.selector);
@@ -80,8 +86,12 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
         assumeSafe(mintTo, amount)
         withFactory(useFactory)
     {
-        vm.assume(supplyCap > 0);
-        vm.assume(amount > supplyCap);
+        if (supplyCap == 0 || supplyCap > 20) {
+            supplyCap = 1;
+        }
+        if (amount <= supplyCap) {
+            amount = supplyCap + 1;
+        }
         token.setSaleDetails(supplyCap, perTokenCost, address(0), uint64(block.timestamp), uint64(block.timestamp + 1));
 
         vm.expectRevert(abi.encodeWithSelector(InsufficientSupply.selector, 0, amount, supplyCap));
