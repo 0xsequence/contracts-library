@@ -129,7 +129,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         if (block.timestamp >= startTime && block.timestamp <= endTime) {
             vm.warp(uint256(endTime) + 1);
         }
-        token.setGlobalSaleDetails(address(0), perTokenCost, 0, startTime, endTime);
+        token.setGlobalSaleDetails(perTokenCost, 0, address(0), startTime, endTime);
 
         uint256[] memory tokenIds = singleToArray(tokenId);
         uint256[] memory amounts = singleToArray(amount);
@@ -175,7 +175,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
             amount = supplyCap + 1;
         }
         token.setGlobalSaleDetails(
-            address(0), perTokenCost, supplyCap, uint64(block.timestamp), uint64(block.timestamp + 1)
+            perTokenCost, supplyCap, address(0), uint64(block.timestamp), uint64(block.timestamp + 1)
         );
 
         uint256[] memory tokenIds = singleToArray(tokenId);
@@ -278,7 +278,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
     {
-        token.setGlobalSaleDetails(address(0), 0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
+        token.setGlobalSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1));
         uint256[] memory tokenIds = singleToArray(tokenId);
         uint256[] memory amounts = singleToArray(amount);
 
@@ -315,7 +315,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         withERC20
     {
         token.setGlobalSaleDetails(
-            address(erc20), perTokenCost, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1)
+            perTokenCost, 0, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1)
         );
         uint256[] memory tokenIds = singleToArray(tokenId);
         uint256[] memory amounts = singleToArray(amount);
@@ -529,7 +529,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
 
     modifier withGlobalSaleActive() {
         token.setGlobalSaleDetails(
-            address(0), perTokenCost, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1)
+            perTokenCost, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1)
         );
         _;
     }
