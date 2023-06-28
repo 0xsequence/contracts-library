@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import {
     ERC721AQueryable, IERC721AQueryable, ERC721A, IERC721A
 } from "erc721a/contracts/extensions/ERC721AQueryable.sol";
-import {ERC2981Controlled} from "../common/ERC2981Controlled.sol";
+import {ERC2981Controlled} from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
 
 error InvalidInitialization();
 

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-import {ERC721Sale} from "./ERC721Sale.sol";
-import {IERC721SaleFactory} from "./IERC721SaleFactory.sol";
-import {ProxyDeployer} from "../../proxies/ERC1967/ProxyDeployer.sol";
+import {ERC721Sale} from "@0xsequence/contracts-library/tokens/ERC721/presets/sale/ERC721Sale.sol";
+import {IERC721SaleFactory} from "@0xsequence/contracts-library/tokens/ERC721/presets/sale/IERC721SaleFactory.sol";
+import {ProxyDeployer} from "@0xsequence/contracts-library/proxies/ERC1967/ProxyDeployer.sol";
 
 contract ERC721SaleFactory is IERC721SaleFactory, ProxyDeployer {
     address private immutable _implAddr;

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-import {ERC20TokenMinter} from "./ERC20TokenMinter.sol";
-import {IERC20TokenMinterFactory} from "./IERC20TokenMinterFactory.sol";
-import {ProxyDeployer} from "../../proxies/ERC1967/ProxyDeployer.sol";
+import {ERC20TokenMinter} from "@0xsequence/contracts-library/tokens/ERC20/presets/minter/ERC20TokenMinter.sol";
+import {IERC20TokenMinterFactory} from "@0xsequence/contracts-library/tokens/ERC20/presets/minter/IERC20TokenMinterFactory.sol";
+import {ProxyDeployer} from "@0xsequence/contracts-library/proxies/ERC1967/ProxyDeployer.sol";
 
 contract ERC20TokenMinterFactory is IERC20TokenMinterFactory, ProxyDeployer {
     address private immutable _implAddr;

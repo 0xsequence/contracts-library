@@ -2,23 +2,29 @@
 pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
-import {ERC721TokenMinter, InvalidInitialization} from "src/tokens/ERC721/ERC721TokenMinter.sol";
-import {ERC721TokenMinterFactory} from "src/tokens/ERC721/ERC721TokenMinterFactory.sol";
+import {ERC1155TokenMinter} from "src/tokens/ERC1155/presets/minter/ERC1155TokenMinter.sol";
+import {ERC1155TokenMinterErrors} from "src/tokens/ERC1155/presets/minter/ERC1155TokenMinterErrors.sol";
+import {ERC1155TokenMinterFactory} from "src/tokens/ERC1155/presets/minter/ERC1155TokenMinterFactory.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 // Interfaces
 import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import {IERC721A} from "erc721a/contracts/interfaces/IERC721A.sol";
-import {IERC721AQueryable} from "erc721a/contracts/extensions/IERC721AQueryable.sol";
+import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
+import {IERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 
-contract ERC721TokenMinterTest is Test {
+contract ERC1155TokenMinterTest is Test, ERC1155TokenMinterErrors {
     // Redeclare events
-    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+    event TransferSingle(
+        address indexed _operator, address indexed _from, address indexed _to, uint256 _id, uint256 _amount
+    );
+    event TransferBatch(
+        address indexed _operator, address indexed _from, address indexed _to, uint256[] _ids, uint256[] _amounts
+    );
 
-    ERC721TokenMinter private token;
+    ERC1155TokenMinter private token;
 
-    address owner;
+    address private owner;
 
     function setUp() public {
         owner = makeAddr("owner");
@@ -26,21 +32,19 @@ contract ERC721TokenMinterTest is Test {
         vm.deal(address(this), 100 ether);
         vm.deal(owner, 100 ether);
 
-        ERC721TokenMinterFactory factory = new ERC721TokenMinterFactory();
-        token = ERC721TokenMinter(factory.deploy(owner, "name", "symbol", "baseURI", 0x0));
+        ERC1155TokenMinterFactory factory = new ERC1155TokenMinterFactory();
+        token = ERC1155TokenMinter(factory.deploy(owner, "name", "baseURI", 0x0));
     }
 
     function testReinitializeFails() public {
         vm.expectRevert(InvalidInitialization.selector);
-        token.initialize(owner, "name", "symbol", "baseURI");
+        token.initialize(owner, "name", "baseURI");
     }
 
     function testSupportsInterface() public {
         assertTrue(token.supportsInterface(type(IERC165).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC721A).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC721AQueryable).interfaceId));
-        assertTrue(token.supportsInterface(0x80ac58cd)); // ERC721
-        assertTrue(token.supportsInterface(0x5b5e139f)); // ERC721Metadata
+        assertTrue(token.supportsInterface(type(IERC1155).interfaceId));
+        assertTrue(token.supportsInterface(type(IERC1155Metadata).interfaceId));
     }
 
     function testOwnerHasRoles() public {
@@ -48,11 +52,6 @@ contract ERC721TokenMinterTest is Test {
         assertTrue(token.hasRole(token.METADATA_ADMIN_ROLE(), owner));
         assertTrue(token.hasRole(token.MINTER_ROLE(), owner));
         assertTrue(token.hasRole(token.ROYALTY_ADMIN_ROLE(), owner));
-    }
-
-    function testNameAndSymbol() public {
-        assertEq(token.name(), "name");
-        assertEq(token.symbol(), "symbol");
     }
 
     //
@@ -70,20 +69,58 @@ contract ERC721TokenMinterTest is Test {
             )
         );
         vm.prank(caller);
-        token.mint(caller, 1);
+        token.mint(caller, 1, 1, "");
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 1;
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 1;
+        vm.expectRevert(
+            abi.encodePacked(
+                "AccessControl: account ",
+                Strings.toHexString(caller),
+                " is missing role ",
+                Strings.toHexString(uint256(token.MINTER_ROLE()), 32)
+            )
+        );
+        vm.prank(caller);
+        token.batchMint(caller, tokenIds, amounts, "");
     }
 
-    function testMintOwner() public {
+    function testMintOwner(uint256 tokenId, uint256 amount) public {
+        vm.assume(amount > 0);
+
         vm.expectEmit(true, true, true, true, address(token));
-        emit Transfer(address(0), owner, 0);
-
+        emit TransferSingle(owner, address(0), owner, tokenId, amount);
         vm.prank(owner);
-        token.mint(owner, 1);
+        token.mint(owner, tokenId, amount, "");
 
-        assertEq(token.balanceOf(owner), 1);
+        assertEq(token.balanceOf(owner, tokenId), amount);
     }
 
-    function testMintWithRole(address minter) public {
+    function testBatchMintOwner(uint256[] memory tokenIds, uint256[] memory amounts) public {
+        tokenIds = boundArrayLength(tokenIds, 10);
+        amounts = boundArrayLength(amounts, 10);
+        vm.assume(tokenIds.length == amounts.length);
+        for (uint256 i; i < amounts.length; i++) {
+            vm.assume(amounts[i] > 0);
+        }
+        // Unique ids
+        for (uint256 i; i < tokenIds.length; i++) {
+            for (uint256 j; j < tokenIds.length; j++) {
+                if (i != j) {
+                    vm.assume(tokenIds[i] != tokenIds[j]);
+                }
+            }
+        }
+
+        vm.expectEmit(true, true, true, true, address(token));
+        emit TransferBatch(owner, address(0), owner, tokenIds, amounts);
+        vm.prank(owner);
+        token.batchMint(owner, tokenIds, amounts, "");
+    }
+
+    function testMintWithRole(address minter, uint256 tokenId, uint256 amount) public {
         vm.assume(minter != owner);
         vm.assume(minter != address(0));
         // Give role
@@ -92,45 +129,52 @@ contract ERC721TokenMinterTest is Test {
         vm.stopPrank();
 
         vm.expectEmit(true, true, true, true, address(token));
-        emit Transfer(address(0), owner, 0);
+        emit TransferSingle(minter, address(0), owner, tokenId, amount);
 
         vm.prank(minter);
-        token.mint(owner, 1);
+        token.mint(owner, tokenId, amount, "");
 
-        assertEq(token.balanceOf(owner), 1);
+        assertEq(token.balanceOf(owner, tokenId), amount);
     }
 
-    function testMintMultiple() public {
-        vm.expectEmit(true, true, true, true, address(token));
-        emit Transfer(address(0), owner, 0);
-        vm.expectEmit(true, true, true, true, address(token));
-        emit Transfer(address(0), owner, 1);
+    function testBatchMintWithRole(address minter, uint256[] memory tokenIds, uint256[] memory amounts) public {
+        vm.assume(minter != owner);
+        vm.assume(minter != address(0));
+        tokenIds = boundArrayLength(tokenIds, 10);
+        amounts = boundArrayLength(amounts, 10);
+        vm.assume(tokenIds.length == amounts.length);
+        for (uint256 i; i < amounts.length; i++) {
+            vm.assume(amounts[i] > 0);
+        }
+        // Unique ids
+        for (uint256 i; i < tokenIds.length; i++) {
+            for (uint256 j; j < tokenIds.length; j++) {
+                if (i != j) {
+                    vm.assume(tokenIds[i] != tokenIds[j]);
+                }
+            }
+        }
 
-        vm.prank(owner);
-        token.mint(owner, 2);
+        // Give role
+        vm.startPrank(owner);
+        token.grantRole(token.MINTER_ROLE(), minter);
+        vm.stopPrank();
 
-        assertEq(token.balanceOf(owner), 2);
-        assertEq(token.ownerOf(0), owner);
-        assertEq(token.ownerOf(1), owner);
+        vm.expectEmit(true, true, true, true, address(token));
+        emit TransferBatch(minter, address(0), owner, tokenIds, amounts);
+        vm.prank(minter);
+        token.batchMint(owner, tokenIds, amounts, "");
     }
 
     //
     // Metadata
     //
     function testMetadataOwner() public {
-        // Mint token
-        vm.prank(owner);
-        token.mint(owner, 2);
-
         vm.prank(owner);
         token.setBaseMetadataURI("ipfs://newURI/");
 
-        assertEq(token.tokenURI(0), "ipfs://newURI/0");
-        assertEq(token.tokenURI(1), "ipfs://newURI/1");
-
-        // Invalid token
-        vm.expectRevert(IERC721A.URIQueryForNonexistentToken.selector);
-        token.tokenURI(2);
+        assertEq(token.uri(0), "ipfs://newURI/0.json");
+        assertEq(token.uri(1), "ipfs://newURI/1.json");
     }
 
     function testMetadataInvalid(address caller) public {
@@ -261,5 +305,16 @@ contract ERC721TokenMinterTest is Test {
         );
         vm.prank(caller);
         token.setTokenRoyalty(tokenId, receiver, feeNumerator);
+    }
+
+    function boundArrayLength(uint256[] memory arr, uint256 maxSize) private pure returns (uint256[] memory) {
+        if (arr.length <= maxSize) {
+            return arr;
+        }
+        uint256[] memory result = new uint256[](maxSize);
+        for (uint256 i; i < maxSize; i++) {
+            result[i] = arr[i];
+        }
+        return result;
     }
 }

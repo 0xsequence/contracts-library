@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-import {ERC20Token} from "./ERC20Token.sol";
-
-error InvalidInitialization();
+import {ERC20Token} from "@0xsequence/contracts-library/tokens/ERC20/ERC20Token.sol";
+import {ERC20TokenMinterErrors} from "@0xsequence/contracts-library/tokens/ERC20/presets/minter/ERC20TokenMinterErrors.sol";
 
 /**
  * A ready made implementation of ERC-20 capable of minting when role provided.
  */
-contract ERC20TokenMinter is ERC20Token {
+contract ERC20TokenMinter is ERC20Token, ERC20TokenMinterErrors {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address private immutable _initializer;

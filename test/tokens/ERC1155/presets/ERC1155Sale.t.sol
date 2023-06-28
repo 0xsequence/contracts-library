@@ -2,10 +2,10 @@
 pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
-import {ERC1155Sale} from "src/tokens/ERC1155/ERC1155Sale.sol";
-import {ERC1155SaleFactory} from "src/tokens/ERC1155/ERC1155SaleFactory.sol";
-import {ERC1155SaleErrors} from "src/tokens/ERC1155/ERC1155SaleErrors.sol";
-import {ERC1155SupplyErrors} from "src/tokens/ERC1155/ERC1155SupplyErrors.sol";
+import {ERC1155Sale} from "src/tokens/ERC1155/presets/sale/ERC1155Sale.sol";
+import {ERC1155SaleFactory} from "src/tokens/ERC1155/presets/sale/ERC1155SaleFactory.sol";
+import {ERC1155SaleErrors} from "src/tokens/ERC1155/presets/sale/ERC1155SaleErrors.sol";
+import {ERC1155SupplyErrors} from "src/tokens/ERC1155/extensions/supply/ERC1155SupplyErrors.sol";
 
 import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";

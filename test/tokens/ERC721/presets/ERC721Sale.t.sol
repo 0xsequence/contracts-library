@@ -2,9 +2,9 @@
 pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
-import {ERC721Sale} from "src/tokens/ERC721/ERC721Sale.sol";
-import {ERC721SaleErrors} from "src/tokens/ERC721/ERC721SaleErrors.sol";
-import {ERC721SaleFactory} from "src/tokens/ERC721/ERC721SaleFactory.sol";
+import {ERC721Sale} from "src/tokens/ERC721/presets/sale/ERC721Sale.sol";
+import {ERC721SaleErrors} from "src/tokens/ERC721/presets/sale/ERC721SaleErrors.sol";
+import {ERC721SaleFactory} from "src/tokens/ERC721/presets/sale/ERC721SaleFactory.sol";
 
 import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
