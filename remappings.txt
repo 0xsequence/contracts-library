@@ -1,6 +1,7 @@
 @0xsequence/contracts-library/=src/
 ds-test/=lib/forge-std/lib/ds-test/src/
 forge-std/=lib/forge-std/src/
+murky/=lib/murky/src/
 @0xsequence/erc20-meta-token/=node_modules/@0xsequence/erc20-meta-token/
 @0xsequence/erc-1155/=node_modules/@0xsequence/erc-1155/
 erc721a/=node_modules/erc721a/

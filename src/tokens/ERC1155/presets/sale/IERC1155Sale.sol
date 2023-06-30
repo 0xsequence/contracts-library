@@ -2,13 +2,14 @@
 pragma solidity ^0.8.17;
 
 interface IERC1155Sale {
-    event GlobalSaleDetailsUpdated(uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime);
-    event TokenSaleDetailsUpdated(uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime);
+    event GlobalSaleDetailsUpdated(uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
+    event TokenSaleDetailsUpdated(uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
 
     struct SaleDetails {
         uint256 cost;
         uint64 startTime;
         uint64 endTime; // 0 end time indicates sale inactive
+        bytes32 merkleRoot; // Root of allowed addresses
     }
 
     /**
@@ -21,11 +22,11 @@ interface IERC1155Sale {
 
     /**
      * Get token sale details.
-     * @param _tokenId Token ID to get sale details for.
+     * @param tokenId Token ID to get sale details for.
      * @return Sale details.
      * @notice Token sale details override global sale details.
      */
-    function tokenSaleDetails(uint256 _tokenId) external returns (SaleDetails memory);
+    function tokenSaleDetails(uint256 tokenId) external returns (SaleDetails memory);
 
     /**
      * Get payment token.
@@ -36,13 +37,20 @@ interface IERC1155Sale {
 
     /**
      * Mint tokens.
-     * @param _to Address to mint tokens to.
-     * @param _tokenIds Token IDs to mint.
-     * @param _amounts Amounts of tokens to mint.
-     * @param _data Data to pass if receiver is contract.
+     * @param to Address to mint tokens to.
+     * @param tokenIds Token IDs to mint.
+     * @param amounts Amounts of tokens to mint.
+     * @param data Data to pass if receiver is contract.
+     * @param proof Merkle proof for allowlist minting.
      * @notice Sale must be active for all tokens.
      */
-    function mint(address _to, uint256[] memory _tokenIds, uint256[] memory _amounts, bytes memory _data)
+    function mint(
+        address to,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts,
+        bytes memory data,
+        bytes32[] calldata proof
+    )
         external
         payable;
 }

@@ -7,8 +7,11 @@ import {ERC1155SaleFactory} from "src/tokens/ERC1155/presets/sale/ERC1155SaleFac
 import {ERC1155SaleErrors} from "src/tokens/ERC1155/presets/sale/ERC1155SaleErrors.sol";
 import {ERC1155SupplyErrors} from "src/tokens/ERC1155/extensions/supply/ERC1155SupplyErrors.sol";
 
+import {Merkle} from "murky/Merkle.sol";
 import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {TestHelper} from "test/tokens/TestHelper.sol";
+import {MerkleProofInvalid} from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
 
 // Interfaces
 import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
@@ -18,7 +21,7 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 
 // solhint-disable no-rely-on-time
 
-contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
+contract ERC1155SaleTest is Test, Merkle, ERC1155SaleErrors, ERC1155SupplyErrors {
     // Redeclare events
     event TransferBatch(
         address indexed _operator, address indexed _from, address indexed _to, uint256[] _ids, uint256[] _amounts
@@ -27,6 +30,8 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     ERC1155Sale private token;
     ERC20Mock private erc20;
     uint256 private perTokenCost = 0.02 ether;
+
+    address private constant ALLOWLIST_ADDR = 0xFA4eE536359087Fba7BD3248EE09e8Cc8347F8Ed;
 
     function setUp() public {
         token = new ERC1155Sale();
@@ -57,11 +62,11 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
     {
-        uint256[] memory tokenIds = singleToArray(tokenId);
-        uint256[] memory amounts = singleToArray(amount);
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
 
         vm.expectRevert(abi.encodeWithSelector(SaleInactive.selector, tokenId));
-        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "");
+        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "", TestHelper.blankProof());
     }
 
     // Minting denied when sale is active but not for the token.
@@ -71,11 +76,11 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         withFactory(useFactory)
         withTokenSaleActive(tokenId + 1)
     {
-        uint256[] memory tokenIds = singleToArray(tokenId);
-        uint256[] memory amounts = singleToArray(amount);
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
 
         vm.expectRevert(abi.encodeWithSelector(SaleInactive.selector, tokenId));
-        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "");
+        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "", TestHelper.blankProof());
     }
 
     // Minting denied when token sale is expired.
@@ -99,13 +104,13 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         if (block.timestamp >= startTime && block.timestamp <= endTime) {
             vm.warp(uint256(endTime) + 1);
         }
-        token.setTokenSaleDetails(tokenId, perTokenCost, 0, startTime, endTime);
+        token.setTokenSaleDetails(tokenId, perTokenCost, 0, startTime, endTime, "");
 
-        uint256[] memory tokenIds = singleToArray(tokenId);
-        uint256[] memory amounts = singleToArray(amount);
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
 
         vm.expectRevert(abi.encodeWithSelector(SaleInactive.selector, tokenId));
-        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "");
+        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "", TestHelper.blankProof());
     }
 
     // Minting denied when global sale is expired.
@@ -129,13 +134,13 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         if (block.timestamp >= startTime && block.timestamp <= endTime) {
             vm.warp(uint256(endTime) + 1);
         }
-        token.setGlobalSaleDetails(perTokenCost, 0, address(0), startTime, endTime);
+        token.setGlobalSaleDetails(perTokenCost, 0, address(0), startTime, endTime, "");
 
-        uint256[] memory tokenIds = singleToArray(tokenId);
-        uint256[] memory amounts = singleToArray(amount);
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
 
         vm.expectRevert(abi.encodeWithSelector(SaleInactive.selector, tokenId));
-        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "");
+        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "", TestHelper.blankProof());
     }
 
     // Minting denied when sale is active but not for all tokens in the group.
@@ -153,7 +158,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         amounts[1] = amount;
 
         vm.expectRevert(abi.encodeWithSelector(SaleInactive.selector, tokenId + 1));
-        token.mint{value: amount * perTokenCost * 2}(mintTo, tokenIds, amounts, "");
+        token.mint{value: amount * perTokenCost * 2}(mintTo, tokenIds, amounts, "", TestHelper.blankProof());
     }
 
     // Minting denied when global supply exceeded.
@@ -175,14 +180,14 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
             amount = supplyCap + 1;
         }
         token.setGlobalSaleDetails(
-            perTokenCost, supplyCap, address(0), uint64(block.timestamp), uint64(block.timestamp + 1)
+            perTokenCost, supplyCap, address(0), uint64(block.timestamp), uint64(block.timestamp + 1), ""
         );
 
-        uint256[] memory tokenIds = singleToArray(tokenId);
-        uint256[] memory amounts = singleToArray(amount);
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
 
         vm.expectRevert(abi.encodeWithSelector(InsufficientSupply.selector, 0, amount, supplyCap));
-        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "");
+        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "", TestHelper.blankProof());
     }
 
     // Minting denied when token supply exceeded.
@@ -204,14 +209,14 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
             amount = supplyCap + 1;
         }
         token.setTokenSaleDetails(
-            tokenId, perTokenCost, supplyCap, uint64(block.timestamp), uint64(block.timestamp + 1)
+            tokenId, perTokenCost, supplyCap, uint64(block.timestamp), uint64(block.timestamp + 1), ""
         );
 
-        uint256[] memory tokenIds = singleToArray(tokenId);
-        uint256[] memory amounts = singleToArray(amount);
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
 
         vm.expectRevert(abi.encodeWithSelector(InsufficientSupply.selector, 0, amount, supplyCap));
-        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "");
+        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "", TestHelper.blankProof());
     }
 
     // Minting allowed when sale is active globally.
@@ -221,13 +226,13 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         withFactory(useFactory)
         withGlobalSaleActive
     {
-        uint256[] memory tokenIds = singleToArray(tokenId);
-        uint256[] memory amounts = singleToArray(amount);
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
 
         uint256 count = token.balanceOf(mintTo, tokenId);
         vm.expectEmit(true, true, true, true);
         emit TransferBatch(address(this), address(0), mintTo, tokenIds, amounts);
-        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "");
+        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "", TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo, tokenId));
     }
 
@@ -238,13 +243,13 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         withFactory(useFactory)
         withTokenSaleActive(tokenId)
     {
-        uint256[] memory tokenIds = singleToArray(tokenId);
-        uint256[] memory amounts = singleToArray(amount);
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
 
         uint256 count = token.balanceOf(mintTo, tokenId);
         vm.expectEmit(true, true, true, true);
         emit TransferBatch(address(this), address(0), mintTo, tokenIds, amounts);
-        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "");
+        token.mint{value: amount * perTokenCost}(mintTo, tokenIds, amounts, "", TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo, tokenId));
     }
 
@@ -267,7 +272,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         uint256 count2 = token.balanceOf(mintTo, tokenId + 1);
         vm.expectEmit(true, true, true, true);
         emit TransferBatch(address(this), address(0), mintTo, tokenIds, amounts);
-        token.mint{value: amount * perTokenCost * 2}(mintTo, tokenIds, amounts, "");
+        token.mint{value: amount * perTokenCost * 2}(mintTo, tokenIds, amounts, "", TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo, tokenId));
         assertEq(count2 + amount, token.balanceOf(mintTo, tokenId + 1));
     }
@@ -278,14 +283,14 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
     {
-        token.setGlobalSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1));
-        uint256[] memory tokenIds = singleToArray(tokenId);
-        uint256[] memory amounts = singleToArray(amount);
+        token.setGlobalSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
 
         uint256 count = token.balanceOf(mintTo, tokenId);
         vm.expectEmit(true, true, true, true);
         emit TransferBatch(address(this), address(0), mintTo, tokenIds, amounts);
-        token.mint(mintTo, tokenIds, amounts, "");
+        token.mint(mintTo, tokenIds, amounts, "", TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo, tokenId));
     }
 
@@ -296,14 +301,14 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         withFactory(useFactory)
         withGlobalSaleActive
     {
-        token.setTokenSaleDetails(tokenId, 0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
-        uint256[] memory tokenIds = singleToArray(tokenId);
-        uint256[] memory amounts = singleToArray(amount);
+        token.setTokenSaleDetails(tokenId, 0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
 
         uint256 count = token.balanceOf(mintTo, tokenId);
         vm.expectEmit(true, true, true, true);
         emit TransferBatch(address(this), address(0), mintTo, tokenIds, amounts);
-        token.mint(mintTo, tokenIds, amounts, "");
+        token.mint(mintTo, tokenIds, amounts, "", TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo, tokenId));
     }
 
@@ -315,20 +320,137 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         withERC20
     {
         token.setGlobalSaleDetails(
-            perTokenCost, 0, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1)
+            perTokenCost, 0, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
         );
-        uint256[] memory tokenIds = singleToArray(tokenId);
-        uint256[] memory amounts = singleToArray(amount);
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
         uint256 cost = amount * perTokenCost;
 
         uint256 balanace = erc20.balanceOf(address(this));
         uint256 count = token.balanceOf(mintTo, tokenId);
         vm.expectEmit(true, true, true, true);
         emit TransferBatch(address(this), address(0), mintTo, tokenIds, amounts);
-        token.mint(mintTo, tokenIds, amounts, "");
+        token.mint(mintTo, tokenIds, amounts, "", TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo, tokenId));
         assertEq(balanace - cost, erc20.balanceOf(address(this)));
         assertEq(cost, erc20.balanceOf(address(token)));
+    }
+
+    // Minting with merkle success.
+    function testMerkleSuccess(address[] memory allowlist, uint256 senderIndex, uint256 tokenId, bool globalActive)
+        public
+    {
+        // Construct a merkle tree with the allowlist.
+        vm.assume(allowlist.length > 1);
+        vm.assume(senderIndex < allowlist.length);
+        bytes32[] memory addrs = new bytes32[](allowlist.length);
+        for (uint256 i = 0; i < allowlist.length; i++) {
+            addrs[i] = keccak256(abi.encodePacked(allowlist[i]));
+        }
+        bytes32 root = getRoot(addrs);
+        if (globalActive) {
+            token.setGlobalSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+        } else {
+            token.setTokenSaleDetails(tokenId, 0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+        }
+
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(uint256(1));
+        bytes32[] memory proof = getProof(addrs, senderIndex);
+
+        address sender = allowlist[senderIndex];
+        vm.prank(sender);
+        token.mint(sender, tokenIds, amounts, "", proof);
+
+        assertEq(1, token.balanceOf(sender, tokenId));
+    }
+
+    // Minting with merkle reuse fail.
+    function testMerkleReuseFail(address[] memory allowlist, uint256 senderIndex, uint256 tokenId, bool globalActive)
+        public
+    {
+        // Copy of testMerkleSuccess
+        vm.assume(allowlist.length > 1);
+        vm.assume(senderIndex < allowlist.length);
+        bytes32[] memory addrs = new bytes32[](allowlist.length);
+        for (uint256 i = 0; i < allowlist.length; i++) {
+            addrs[i] = keccak256(abi.encodePacked(allowlist[i]));
+        }
+        bytes32 root = getRoot(addrs);
+        if (globalActive) {
+            token.setGlobalSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+        } else {
+            token.setTokenSaleDetails(tokenId, 0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+        }
+
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(uint256(1));
+        bytes32[] memory proof = getProof(addrs, senderIndex);
+
+        address sender = allowlist[senderIndex];
+        vm.prank(sender);
+        token.mint(sender, tokenIds, amounts, "", proof);
+
+        assertEq(1, token.balanceOf(sender, tokenId));
+        // End copy
+
+        vm.expectRevert(abi.encodeWithSelector(MerkleProofInvalid.selector, root, proof, sender));
+        vm.prank(sender);
+        token.mint(sender, tokenIds, amounts, "", proof);
+    }
+
+    // Minting with merkle fail no proof.
+    function testMerkleFailNoProof(address[] memory allowlist, address sender, uint256 tokenId, bool globalActive)
+        public
+    {
+        // Construct a merkle tree with the allowlist.
+        vm.assume(allowlist.length > 1);
+        bytes32[] memory addrs = new bytes32[](allowlist.length);
+        for (uint256 i = 0; i < allowlist.length; i++) {
+            vm.assume(sender != allowlist[i]);
+            addrs[i] = keccak256(abi.encodePacked(allowlist[i]));
+        }
+        bytes32 root = getRoot(addrs);
+        if (globalActive) {
+            token.setGlobalSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+        } else {
+            token.setTokenSaleDetails(tokenId, 0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+        }
+
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(uint256(1));
+        bytes32[] memory proof = TestHelper.blankProof();
+
+        vm.expectRevert(abi.encodeWithSelector(MerkleProofInvalid.selector, root, proof, sender));
+        vm.prank(sender);
+        token.mint(sender, tokenIds, amounts, "", TestHelper.blankProof());
+    }
+
+    // Minting with merkle fail bad proof.
+    function testMerkleFailBadProof(address[] memory allowlist, address sender, uint256 tokenId, bool globalActive)
+        public
+    {
+        // Construct a merkle tree with the allowlist.
+        vm.assume(allowlist.length > 1);
+        bytes32[] memory addrs = new bytes32[](allowlist.length);
+        for (uint256 i = 0; i < allowlist.length; i++) {
+            vm.assume(sender != allowlist[i]);
+            addrs[i] = keccak256(abi.encodePacked(allowlist[i]));
+        }
+        bytes32 root = getRoot(addrs);
+        if (globalActive) {
+            token.setGlobalSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+        } else {
+            token.setTokenSaleDetails(tokenId, 0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+        }
+
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(uint256(1));
+        bytes32[] memory proof = getProof(addrs, 1); // Wrong sender
+
+        vm.expectRevert(abi.encodeWithSelector(MerkleProofInvalid.selector, root, proof, sender));
+        vm.prank(sender);
+        token.mint(sender, tokenIds, amounts, "", proof);
     }
 
     //
@@ -344,8 +466,8 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
         vm.assume(minter != address(this));
         vm.assume(minter != address(0));
 
-        uint256[] memory tokenIds = singleToArray(tokenId);
-        uint256[] memory amounts = singleToArray(amount);
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
 
         vm.expectRevert(
             abi.encodePacked(
@@ -367,8 +489,8 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     {
         token.grantRole(token.MINT_ADMIN_ROLE(), minter);
 
-        uint256[] memory tokenIds = singleToArray(tokenId);
-        uint256[] memory amounts = singleToArray(amount);
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
 
         uint256 count = token.balanceOf(mintTo, tokenId);
         token.mintAdmin(mintTo, tokenIds, amounts, "");
@@ -529,7 +651,7 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
 
     modifier withGlobalSaleActive() {
         token.setGlobalSaleDetails(
-            perTokenCost, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1)
+            perTokenCost, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
         );
         _;
     }
@@ -540,12 +662,8 @@ contract ERC1155SaleTest is Test, ERC1155SaleErrors, ERC1155SupplyErrors {
     }
 
     function setTokenSaleActive(uint256 tokenId) private {
-        token.setTokenSaleDetails(tokenId, perTokenCost, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1));
-    }
-
-    function singleToArray(uint256 value) private pure returns (uint256[] memory) {
-        uint256[] memory values = new uint256[](1);
-        values[0] = value;
-        return values;
+        token.setTokenSaleDetails(
+            tokenId, perTokenCost, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
     }
 }
