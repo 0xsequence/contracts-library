@@ -5,12 +5,14 @@ import {IERC1155Sale} from "@0xsequence/contracts-library/tokens/ERC1155/presets
 import {ERC1155SaleErrors} from "@0xsequence/contracts-library/tokens/ERC1155/presets/sale/ERC1155SaleErrors.sol";
 import {ERC1155Supply, ERC1155Token} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
 import {WithdrawControlled, AccessControl, SafeERC20, IERC20} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
+import {MerkleProofSingleUse} from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
 
 contract ERC1155Sale is
     IERC1155Sale,
     ERC1155SaleErrors,
     ERC1155Supply,
-    WithdrawControlled
+    WithdrawControlled,
+    MerkleProofSingleUse
 {
     bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
@@ -62,8 +64,9 @@ contract ERC1155Sale is
      * Checks the sale is active and takes payment.
      * @param _tokenIds Token IDs to mint.
      * @param _amounts Amounts of tokens to mint.
+     * @param _proof Merkle proof for allowlist minting.
      */
-    function _payForActiveMint(uint256[] memory _tokenIds, uint256[] memory _amounts) private {
+    function _payForActiveMint(uint256[] memory _tokenIds, uint256[] memory _amounts, bytes32[] calldata _proof) private {
         uint256 lastTokenId;
         uint256 totalCost;
         uint256 totalAmount;
@@ -90,9 +93,11 @@ contract ERC1155Sale is
                     revert SaleInactive(tokenId);
                 }
                 // Use global sale details
+                requireMerkleProof(gSaleDetails.merkleRoot, _proof, msg.sender);
                 totalCost += gSaleDetails.cost * amount;
             } else {
-                // Use token sale price
+                // Use token sale details
+                requireMerkleProof(saleDetails.merkleRoot, _proof, msg.sender);
                 totalCost += saleDetails.cost * amount;
             }
             totalAmount += amount;
@@ -119,14 +124,16 @@ contract ERC1155Sale is
      * @param tokenIds Token IDs to mint.
      * @param amounts Amounts of tokens to mint.
      * @param data Data to pass if receiver is contract.
+     * @param proof Merkle proof for allowlist minting.
      * @notice Sale must be active for all tokens.
      * @dev tokenIds must be sorted ascending without duplicates.
+     * @dev An empty proof is supplied when no proof is required.
      */
-    function mint(address to, uint256[] memory tokenIds, uint256[] memory amounts, bytes memory data)
+    function mint(address to, uint256[] memory tokenIds, uint256[] memory amounts, bytes memory data, bytes32[] calldata proof)
         public
         payable
     {
-        _payForActiveMint(tokenIds, amounts);
+        _payForActiveMint(tokenIds, amounts, proof);
         _batchMint(to, tokenIds, amounts, data);
     }
 
@@ -152,6 +159,7 @@ contract ERC1155Sale is
      * @param paymentTokenAddr The ERC20 token address to accept payment in. address(0) indicates ETH.
      * @param startTime The start time of the sale. Tokens cannot be minted before this time.
      * @param endTime The end time of the sale. Tokens cannot be minted after this time.
+     * @param merkleRoot The merkle root for allowlist minting.
      * @dev A zero end time indicates an inactive sale.
      */
     function setGlobalSaleDetails(
@@ -159,15 +167,16 @@ contract ERC1155Sale is
         uint256 supplyCap,
         address paymentTokenAddr,
         uint64 startTime,
-        uint64 endTime
+        uint64 endTime,
+        bytes32 merkleRoot
     )
         public
         onlyRole(MINT_ADMIN_ROLE)
     {
         _paymentToken = paymentTokenAddr;
-        _globalSaleDetails = SaleDetails(cost, startTime, endTime);
+        _globalSaleDetails = SaleDetails(cost, startTime, endTime, merkleRoot);
         totalSupplyCap = supplyCap;
-        emit GlobalSaleDetailsUpdated(cost, supplyCap, startTime, endTime);
+        emit GlobalSaleDetailsUpdated(cost, supplyCap, startTime, endTime, merkleRoot);
     }
 
     /**
@@ -177,6 +186,7 @@ contract ERC1155Sale is
      * @param supplyCap The maximum number of tokens that can be minted.
      * @param startTime The start time of the sale. Tokens cannot be minted before this time.
      * @param endTime The end time of the sale. Tokens cannot be minted after this time.
+     * @param merkleRoot The merkle root for allowlist minting.
      * @dev A zero end time indicates an inactive sale.
      * @notice The payment token is set globally.
      */
@@ -185,14 +195,15 @@ contract ERC1155Sale is
         uint256 cost,
         uint256 supplyCap,
         uint64 startTime,
-        uint64 endTime
+        uint64 endTime,
+        bytes32 merkleRoot
     )
         public
         onlyRole(MINT_ADMIN_ROLE)
     {
-        _tokenSaleDetails[tokenId] = SaleDetails(cost, startTime, endTime);
+        _tokenSaleDetails[tokenId] = SaleDetails(cost, startTime, endTime, merkleRoot);
         tokenSupplyCap[tokenId] = supplyCap;
-        emit TokenSaleDetailsUpdated(tokenId, cost, supplyCap, startTime, endTime);
+        emit TokenSaleDetailsUpdated(tokenId, cost, supplyCap, startTime, endTime, merkleRoot);
     }
 
     //
