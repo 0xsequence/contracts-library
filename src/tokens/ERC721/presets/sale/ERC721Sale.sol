@@ -5,8 +5,9 @@ import {IERC721Sale} from "@0xsequence/contracts-library/tokens/ERC721/presets/s
 import {ERC721SaleErrors} from "@0xsequence/contracts-library/tokens/ERC721/presets/sale/ERC721SaleErrors.sol";
 import {ERC721Token} from "@0xsequence/contracts-library/tokens/ERC721/ERC721Token.sol";
 import {WithdrawControlled, AccessControl, SafeERC20, IERC20} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
+import {MerkleProofSingleUse} from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
 
-contract ERC721Sale is IERC721Sale, ERC721Token, ERC721SaleErrors, WithdrawControlled {
+contract ERC721Sale is IERC721Sale, ERC721Token, ERC721SaleErrors, WithdrawControlled, MerkleProofSingleUse {
     bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
     bytes4 private constant _ERC20_TRANSFERFROM_SELECTOR =
@@ -54,12 +55,14 @@ contract ERC721Sale is IERC721Sale, ERC721Token, ERC721SaleErrors, WithdrawContr
     /**
      * Checks the sale is active and takes payment.
      * @param _amount Amount of tokens to mint.
+     * @param _proof Merkle proof for allowlist minting.
      */
-    function _payForActiveMint(uint256 _amount) private {
+    function _payForActiveMint(uint256 _amount, bytes32[] calldata _proof) private {
         // Active sale test
         if (blockTimeOutOfBounds(_saleDetails.startTime, _saleDetails.endTime)) {
             revert SaleInactive();
         }
+        requireMerkleProof(_saleDetails.merkleRoot, _proof, msg.sender);
 
         uint256 total = _saleDetails.cost * _amount;
         address paymentToken = _saleDetails.paymentToken;
@@ -82,15 +85,17 @@ contract ERC721Sale is IERC721Sale, ERC721Token, ERC721SaleErrors, WithdrawContr
      * Mint tokens.
      * @param to Address to mint tokens to.
      * @param amount Amount of tokens to mint.
+     * @param proof Merkle proof for allowlist minting.
      * @notice Sale must be active for all tokens.
+     * @dev An empty proof is supplied when no proof is required.
      */
-    function mint(address to, uint256 amount) public payable {
+    function mint(address to, uint256 amount, bytes32[] calldata proof) public payable {
         uint256 currentSupply = totalSupply();
         uint256 supplyCap = _saleDetails.supplyCap;
         if (supplyCap > 0 && currentSupply + amount > supplyCap) {
             revert InsufficientSupply(currentSupply, amount, supplyCap);
         }
-        _payForActiveMint(amount);
+        _payForActiveMint(amount, proof);
         _mint(to, amount);
     }
 
@@ -111,6 +116,7 @@ contract ERC721Sale is IERC721Sale, ERC721Token, ERC721SaleErrors, WithdrawContr
      * @param paymentToken The ERC20 token address to accept payment in. address(0) indicates ETH.
      * @param startTime The start time of the sale. Tokens cannot be minted before this time.
      * @param endTime The end time of the sale. Tokens cannot be minted after this time.
+     * @param merkleRoot The merkle root for allowlist minting.
      * @dev A zero end time indicates an inactive sale.
      */
     function setSaleDetails(
@@ -118,13 +124,14 @@ contract ERC721Sale is IERC721Sale, ERC721Token, ERC721SaleErrors, WithdrawContr
         uint256 cost,
         address paymentToken,
         uint64 startTime,
-        uint64 endTime
+        uint64 endTime,
+        bytes32 merkleRoot
     )
         public
         onlyRole(MINT_ADMIN_ROLE)
     {
-        _saleDetails = SaleDetails(supplyCap, cost, paymentToken, startTime, endTime);
-        emit SaleDetailsUpdated(supplyCap, cost, paymentToken, startTime, endTime);
+        _saleDetails = SaleDetails(supplyCap, cost, paymentToken, startTime, endTime, merkleRoot);
+        emit SaleDetailsUpdated(supplyCap, cost, paymentToken, startTime, endTime, merkleRoot);
     }
 
     //
