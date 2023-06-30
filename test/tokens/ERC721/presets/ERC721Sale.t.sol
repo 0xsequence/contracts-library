@@ -6,8 +6,11 @@ import {ERC721Sale} from "src/tokens/ERC721/presets/sale/ERC721Sale.sol";
 import {ERC721SaleErrors} from "src/tokens/ERC721/presets/sale/ERC721SaleErrors.sol";
 import {ERC721SaleFactory} from "src/tokens/ERC721/presets/sale/ERC721SaleFactory.sol";
 
+import {Merkle} from "murky/Merkle.sol";
 import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {TestHelper} from "test/tokens/TestHelper.sol";
+import {MerkleProofInvalid} from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
 
 // Interfaces
 import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
@@ -18,7 +21,7 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 
 // solhint-disable no-rely-on-time
 
-contract ERC721SaleTest is Test, ERC721SaleErrors {
+contract ERC721SaleTest is Test, Merkle, ERC721SaleErrors {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
@@ -57,7 +60,7 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
         withFactory(useFactory)
     {
         vm.expectRevert(SaleInactive.selector);
-        token.mint{value: amount * perTokenCost}(mintTo, amount);
+        token.mint{value: amount * perTokenCost}(mintTo, amount, TestHelper.blankProof());
     }
 
     // Minting denied when sale is expired.
@@ -74,10 +77,10 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
         if (block.timestamp >= startTime && block.timestamp <= endTime) {
             vm.warp(uint256(endTime) + 1);
         }
-        token.setSaleDetails(0, perTokenCost, address(0), uint64(startTime), uint64(endTime));
+        token.setSaleDetails(0, perTokenCost, address(0), uint64(startTime), uint64(endTime), "");
 
         vm.expectRevert(SaleInactive.selector);
-        token.mint{value: amount * perTokenCost}(mintTo, amount);
+        token.mint{value: amount * perTokenCost}(mintTo, amount, TestHelper.blankProof());
     }
 
     // Minting denied when supply exceeded.
@@ -92,10 +95,10 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
         if (amount <= supplyCap) {
             amount = supplyCap + 1;
         }
-        token.setSaleDetails(supplyCap, perTokenCost, address(0), uint64(block.timestamp), uint64(block.timestamp + 1));
+        token.setSaleDetails(supplyCap, perTokenCost, address(0), uint64(block.timestamp), uint64(block.timestamp + 1), "");
 
         vm.expectRevert(abi.encodeWithSelector(InsufficientSupply.selector, 0, amount, supplyCap));
-        token.mint{value: amount * perTokenCost}(mintTo, amount);
+        token.mint{value: amount * perTokenCost}(mintTo, amount, TestHelper.blankProof());
     }
 
     // Minting allowed when sale is active.
@@ -108,7 +111,7 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
         uint256 count = token.balanceOf(mintTo);
         vm.expectEmit(true, true, true, true, address(token));
         emit Transfer(address(0), mintTo, 0);
-        token.mint{value: amount * perTokenCost}(mintTo, amount);
+        token.mint{value: amount * perTokenCost}(mintTo, amount, TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo));
     }
 
@@ -118,12 +121,12 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
         assumeSafe(mintTo, amount)
         withFactory(useFactory)
     {
-        token.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1));
+        token.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
 
         uint256 count = token.balanceOf(mintTo);
         vm.expectEmit(true, true, true, true, address(token));
         emit Transfer(address(0), mintTo, 0);
-        token.mint(mintTo, amount);
+        token.mint(mintTo, amount, TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo));
     }
 
@@ -134,17 +137,110 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
         withFactory(useFactory)
         withERC20
     {
-        token.setSaleDetails(0, perTokenCost, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1));
+        token.setSaleDetails(0, perTokenCost, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
         uint256 cost = amount * perTokenCost;
 
         uint256 balanace = erc20.balanceOf(address(this));
         uint256 count = token.balanceOf(mintTo);
         vm.expectEmit(true, true, true, true, address(token));
         emit Transfer(address(0), mintTo, 0);
-        token.mint(mintTo, amount);
+        token.mint(mintTo, amount, TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo));
         assertEq(balanace - cost, erc20.balanceOf(address(this)));
         assertEq(cost, erc20.balanceOf(address(token)));
+    }
+
+    // Minting with merkle success.
+    function testMerkleSuccess(address[] memory allowlist, uint256 senderIndex)
+        public
+    {
+        // Construct a merkle tree with the allowlist.
+        vm.assume(allowlist.length > 1);
+        vm.assume(senderIndex < allowlist.length);
+        bytes32[] memory addrs = new bytes32[](allowlist.length);
+        for (uint256 i = 0; i < allowlist.length; i++) {
+            addrs[i] = keccak256(abi.encodePacked(allowlist[i]));
+        }
+        bytes32 root = getRoot(addrs);
+        token.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+
+        bytes32[] memory proof = getProof(addrs, senderIndex);
+
+        address sender = allowlist[senderIndex];
+        vm.prank(sender);
+        token.mint(sender, 1, proof);
+
+        assertEq(1, token.balanceOf(sender));
+    }
+
+    // Minting with merkle reuse fail.
+    function testMerkleReuseFail(address[] memory allowlist, uint256 senderIndex)
+        public
+    {
+        // Copy of testMerkleSuccess
+        vm.assume(allowlist.length > 1);
+        vm.assume(senderIndex < allowlist.length);
+        bytes32[] memory addrs = new bytes32[](allowlist.length);
+        for (uint256 i = 0; i < allowlist.length; i++) {
+            addrs[i] = keccak256(abi.encodePacked(allowlist[i]));
+        }
+        bytes32 root = getRoot(addrs);
+        token.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+
+        bytes32[] memory proof = getProof(addrs, senderIndex);
+
+        address sender = allowlist[senderIndex];
+        vm.prank(sender);
+        token.mint(sender, 1, proof);
+
+        assertEq(1, token.balanceOf(sender));
+        // End copy
+
+        vm.expectRevert(abi.encodeWithSelector(MerkleProofInvalid.selector, root, proof, sender));
+        vm.prank(sender);
+        token.mint(sender, 1, proof);
+    }
+
+    // Minting with merkle fail no proof.
+    function testMerkleFailNoProof(address[] memory allowlist, address sender)
+        public
+    {
+        // Construct a merkle tree with the allowlist.
+        vm.assume(allowlist.length > 1);
+        bytes32[] memory addrs = new bytes32[](allowlist.length);
+        for (uint256 i = 0; i < allowlist.length; i++) {
+            vm.assume(sender != allowlist[i]);
+            addrs[i] = keccak256(abi.encodePacked(allowlist[i]));
+        }
+        bytes32 root = getRoot(addrs);
+        token.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+
+        bytes32[] memory proof = TestHelper.blankProof();
+
+        vm.expectRevert(abi.encodeWithSelector(MerkleProofInvalid.selector, root, proof, sender));
+        vm.prank(sender);
+        token.mint(sender, 1, TestHelper.blankProof());
+    }
+
+    // Minting with merkle fail bad proof.
+    function testMerkleFailBadProof(address[] memory allowlist, address sender, uint256 tokenId)
+        public
+    {
+        // Construct a merkle tree with the allowlist.
+        vm.assume(allowlist.length > 1);
+        bytes32[] memory addrs = new bytes32[](allowlist.length);
+        for (uint256 i = 0; i < allowlist.length; i++) {
+            vm.assume(sender != allowlist[i]);
+            addrs[i] = keccak256(abi.encodePacked(allowlist[i]));
+        }
+        bytes32 root = getRoot(addrs);
+        token.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+
+        bytes32[] memory proof = getProof(addrs, 1); // Wrong sender
+
+        vm.expectRevert(abi.encodeWithSelector(MerkleProofInvalid.selector, root, proof, sender));
+        vm.prank(sender);
+        token.mint(sender, 1, proof);
     }
 
     //
@@ -288,13 +384,7 @@ contract ERC721SaleTest is Test, ERC721SaleErrors {
     }
 
     modifier withSaleActive() {
-        token.setSaleDetails(0, perTokenCost, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1));
+        token.setSaleDetails(0, perTokenCost, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
         _;
-    }
-
-    function singleToArray(uint256 value) private pure returns (uint256[] memory) {
-        uint256[] memory values = new uint256[](1);
-        values[0] = value;
-        return values;
     }
 }
