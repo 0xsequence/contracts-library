@@ -5,3 +5,6 @@ libs = ['lib']
 solc = "0.8.17"
 via_ir = true
 optimizer-runs = 20_000
+
+[profile.default.fuzz]
+runs = 1_024
