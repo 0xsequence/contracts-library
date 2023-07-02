@@ -2,7 +2,6 @@
 pragma solidity ^0.8.17;
 
 interface IERC1155TokenMinterFactoryFunctions {
-
     /**
      * Creates an ERC-1155 Token Minter proxy.
      * @param owner The owner of the ERC-1155 Token Minter proxy
@@ -22,7 +21,6 @@ interface IERC1155TokenMinterFactorySignals {
      * @param proxyAddr The address of the deployed proxy.
      */
     event ERC1155TokenMinterDeployed(address proxyAddr);
-
 }
 
 interface IERC1155TokenMinterFactory is IERC1155TokenMinterFactoryFunctions, IERC1155TokenMinterFactorySignals {}

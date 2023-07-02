@@ -5,6 +5,9 @@ import {ERC1155TokenMinter} from "@0xsequence/contracts-library/tokens/ERC1155/p
 import {IERC1155TokenMinterFactory} from "@0xsequence/contracts-library/tokens/ERC1155/presets/minter/IERC1155TokenMinterFactory.sol";
 import {ProxyDeployer} from "@0xsequence/contracts-library/proxies/ERC1967/ProxyDeployer.sol";
 
+/**
+ * Deployer of ERC-1155 Token Minter proxies.
+ */
 contract ERC1155TokenMinterFactory is IERC1155TokenMinterFactory, ProxyDeployer {
     address private immutable implAddr;
 

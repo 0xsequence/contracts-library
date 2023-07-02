@@ -53,7 +53,6 @@ interface IERC1155SaleFunctions {
         payable;
 }
 
-// Events and errors are declared separately for test inheritance.
 interface IERC1155SaleSignals {
 
     event GlobalSaleDetailsUpdated(uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
@@ -86,11 +85,6 @@ interface IERC1155SaleSignals {
      * Invalid token IDs.
      */
     error InvalidTokenIds();
-
-    /**
-     * Withdraw failed.
-     */
-    error WithdrawFailed();
 }
 
 interface IERC1155Sale is IERC1155SaleFunctions, IERC1155SaleSignals {}

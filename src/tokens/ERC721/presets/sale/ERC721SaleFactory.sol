@@ -5,6 +5,9 @@ import {ERC721Sale} from "@0xsequence/contracts-library/tokens/ERC721/presets/sa
 import {IERC721SaleFactory} from "@0xsequence/contracts-library/tokens/ERC721/presets/sale/IERC721SaleFactory.sol";
 import {ProxyDeployer} from "@0xsequence/contracts-library/proxies/ERC1967/ProxyDeployer.sol";
 
+/**
+ * Deployer of ERC-721 Sale proxies.
+ */
 contract ERC721SaleFactory is IERC721SaleFactory, ProxyDeployer {
     address private immutable _implAddr;
 
@@ -17,7 +20,7 @@ contract ERC721SaleFactory is IERC721SaleFactory, ProxyDeployer {
     }
 
     /**
-     * Creates an ERC-721 Floor Wrapper for given token contract
+     * Creates an ERC-721 Sale for given token contract
      * @param owner The owner of the ERC-721 Sale
      * @param name The name of the ERC-721 Sale token
      * @param symbol The symbol of the ERC-721 Sale token

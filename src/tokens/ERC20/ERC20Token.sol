@@ -9,7 +9,7 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 error InvalidInitialization();
 
 /**
- * A ready made implementation of ERC-20.
+ * A standard base implementation of ERC-20 for use in Sequence library contracts.
  */
 abstract contract ERC20Token is ERC20, AccessControl {
 

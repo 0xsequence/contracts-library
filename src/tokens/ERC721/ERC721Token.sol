@@ -9,7 +9,7 @@ import {ERC2981Controlled} from "@0xsequence/contracts-library/tokens/common/ERC
 error InvalidInitialization();
 
 /**
- * A ready made implementation of ERC-721.
+ * A standard base implementation of ERC-721 for use in Sequence library contracts.
  */
 abstract contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");

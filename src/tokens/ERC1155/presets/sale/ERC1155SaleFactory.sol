@@ -5,6 +5,9 @@ import {ERC1155Sale} from "@0xsequence/contracts-library/tokens/ERC1155/presets/
 import {IERC1155SaleFactory} from "@0xsequence/contracts-library/tokens/ERC1155/presets/sale/IERC1155SaleFactory.sol";
 import {ProxyDeployer} from "@0xsequence/contracts-library//proxies/ERC1967/ProxyDeployer.sol";
 
+/**
+ * Deployer of ERC-1155 Sale proxies.
+ */
 contract ERC1155SaleFactory is IERC1155SaleFactory, ProxyDeployer {
     address private immutable _implAddr;
 

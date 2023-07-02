@@ -13,12 +13,6 @@ interface IERC721SaleFunctions {
     }
 
     /**
-     * Get sale details.
-     * @return Sale details.
-     */
-    function saleDetails() external view returns (SaleDetails memory);
-
-    /**
      * Mint tokens.
      * @param to Address to mint tokens to.
      * @param amount Amount of tokens to mint.
@@ -27,6 +21,30 @@ interface IERC721SaleFunctions {
      * @dev An empty proof is supplied when no proof is required.
      */
     function mint(address to, uint256 amount, bytes32[] memory proof) external payable;
+
+    /**
+     * Set the sale details.
+     * @param supplyCap The maximum number of tokens that can be minted. 0 indicates unlimited supply.
+     * @param cost The amount of payment tokens to accept for each token minted.
+     * @param paymentToken The ERC20 token address to accept payment in. address(0) indicates ETH.
+     * @param startTime The start time of the sale. Tokens cannot be minted before this time.
+     * @param endTime The end time of the sale. Tokens cannot be minted after this time.
+     * @param merkleRoot The merkle root for allowlist minting.
+     */
+    function setSaleDetails(
+        uint256 supplyCap,
+        uint256 cost,
+        address paymentToken,
+        uint64 startTime,
+        uint64 endTime,
+        bytes32 merkleRoot
+    ) external;
+
+    /**
+     * Get sale details.
+     * @return Sale details.
+     */
+    function saleDetails() external view returns (SaleDetails memory);
 }
 
 interface IERC721SaleSignals {
@@ -56,11 +74,6 @@ interface IERC721SaleSignals {
      * @param actual Actual amount of tokens.
      */
     error InsufficientPayment(uint256 expected, uint256 actual);
-
-    /**
-     * Withdraw failed.
-     */
-    error WithdrawFailed();
 }
 
 interface IERC721Sale is IERC721SaleFunctions, IERC721SaleSignals {}

@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
+import {IERC2981Controlled} from "@0xsequence/contracts-library/tokens/common/IERC2981Controlled.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
  * An implementation of ERC-2981 that allows updates by roles.
  */
-abstract contract ERC2981Controlled is
-    ERC2981,
-    AccessControl
-{
+abstract contract ERC2981Controlled is ERC2981, AccessControl, IERC2981Controlled {
     bytes32 public constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
 
     //
@@ -57,6 +55,6 @@ abstract contract ERC2981Controlled is
         returns (bool)
     {
         return ERC2981.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId)
-            || super.supportsInterface(interfaceId);
+            || type(IERC2981Controlled).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
 }

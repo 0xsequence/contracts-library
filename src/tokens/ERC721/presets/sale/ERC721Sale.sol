@@ -6,6 +6,9 @@ import {ERC721Token} from "@0xsequence/contracts-library/tokens/ERC721/ERC721Tok
 import {WithdrawControlled, AccessControl, SafeERC20, IERC20} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
 import {MerkleProofSingleUse} from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
 
+/**
+ * An ERC-721 token contract with primary sale mechanisms.
+ */
 contract ERC721Sale is IERC721Sale, ERC721Token, WithdrawControlled, MerkleProofSingleUse {
     bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
@@ -46,7 +49,7 @@ contract ERC721Sale is IERC721Sale, ERC721Token, WithdrawControlled, MerkleProof
      * @param _endTime Latest acceptable timestamp (exclusive).
      * @dev A zero endTime value is always considered out of bounds.
      */
-    function blockTimeOutOfBounds(uint256 _startTime, uint256 _endTime) private view returns (bool) {
+    function _blockTimeOutOfBounds(uint256 _startTime, uint256 _endTime) private view returns (bool) {
         // 0 end time indicates inactive sale.
         return _endTime == 0 || block.timestamp < _startTime || block.timestamp >= _endTime; // solhint-disable-line not-rely-on-time
     }
@@ -58,7 +61,7 @@ contract ERC721Sale is IERC721Sale, ERC721Token, WithdrawControlled, MerkleProof
      */
     function _payForActiveMint(uint256 _amount, bytes32[] calldata _proof) private {
         // Active sale test
-        if (blockTimeOutOfBounds(_saleDetails.startTime, _saleDetails.endTime)) {
+        if (_blockTimeOutOfBounds(_saleDetails.startTime, _saleDetails.endTime)) {
             revert SaleInactive();
         }
         requireMerkleProof(_saleDetails.merkleRoot, _proof, msg.sender);
