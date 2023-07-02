@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-interface IERC1155SaleFactory {
-    /**
-     * Event emitted when a new ERC-1155 Sale proxy contract is deployed.
-     * @param proxyAddr The address of the deployed proxy.
-     */
-    event ERC1155SaleDeployed(address proxyAddr);
+interface IERC1155SaleFactoryFunctions {
 
     /**
      * Creates an ERC-1155 Sale proxy contract
@@ -20,3 +15,14 @@ interface IERC1155SaleFactory {
         external
         returns (address proxyAddr);
 }
+
+interface IERC1155SaleFactorySignals {
+    /**
+     * Event emitted when a new ERC-1155 Sale proxy contract is deployed.
+     * @param proxyAddr The address of the deployed proxy.
+     */
+    event ERC1155SaleDeployed(address proxyAddr);
+
+}
+
+interface IERC1155SaleFactory is IERC1155SaleFactoryFunctions, IERC1155SaleFactorySignals {}

@@ -2,14 +2,14 @@
 pragma solidity ^0.8.17;
 
 import {ERC1155MintBurn, ERC1155} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
-import {ERC1155TokenMinterErrors} from "@0xsequence/contracts-library/tokens/ERC1155//presets/minter/ERC1155TokenMinterErrors.sol";
+import {IERC1155TokenMinter} from "@0xsequence/contracts-library/tokens/ERC1155//presets/minter/IERC1155TokenMinter.sol";
 import {ERC1155Token} from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155Token.sol";
 import {ERC2981Controlled} from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
 
 /**
  * A ready made implementation of ERC-1155 capable of minting when role provided.
  */
-contract ERC1155TokenMinter is ERC1155MintBurn, ERC1155Token, ERC1155TokenMinterErrors {
+contract ERC1155TokenMinter is ERC1155MintBurn, ERC1155Token, IERC1155TokenMinter {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address private immutable initializer;

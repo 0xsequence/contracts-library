@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
 import {ERC721Sale} from "src/tokens/ERC721/presets/sale/ERC721Sale.sol";
-import {ERC721SaleErrors} from "src/tokens/ERC721/presets/sale/ERC721SaleErrors.sol";
+import {IERC721SaleSignals} from "src/tokens/ERC721/presets/sale/IERC721Sale.sol";
 import {ERC721SaleFactory} from "src/tokens/ERC721/presets/sale/ERC721SaleFactory.sol";
 
 import {Merkle} from "murky/Merkle.sol";
@@ -21,7 +21,7 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 
 // solhint-disable no-rely-on-time
 
-contract ERC721SaleTest is Test, Merkle, ERC721SaleErrors {
+contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
@@ -223,7 +223,7 @@ contract ERC721SaleTest is Test, Merkle, ERC721SaleErrors {
     }
 
     // Minting with merkle fail bad proof.
-    function testMerkleFailBadProof(address[] memory allowlist, address sender, uint256 tokenId)
+    function testMerkleFailBadProof(address[] memory allowlist, address sender)
         public
     {
         // Construct a merkle tree with the allowlist.

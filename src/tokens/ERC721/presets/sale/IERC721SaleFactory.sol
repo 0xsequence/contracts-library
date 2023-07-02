@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-interface IERC721SaleFactory {
-    /**
-     * Event emitted when a new ERC-721 Sale proxy contract is deployed.
-     * @param proxyAddr The address of the deployed proxy.
-     */
-    event ERC721SaleDeployed(address proxyAddr);
+interface IERC721SaleFactoryFunctions {
 
     /**
      * Creates an ERC-721 Floor Wrapper for given token contract
@@ -27,3 +22,14 @@ interface IERC721SaleFactory {
         external
         returns (address proxyAddr);
 }
+
+
+interface IERC721SaleFactorySignals {
+    /**
+     * Event emitted when a new ERC-721 Sale proxy contract is deployed.
+     * @param proxyAddr The address of the deployed proxy.
+     */
+    event ERC721SaleDeployed(address proxyAddr);
+}
+
+interface IERC721SaleFactory is IERC721SaleFactoryFunctions, IERC721SaleFactorySignals {}

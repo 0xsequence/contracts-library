@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-import {ProxyDeployerErrors} from "./ProxyDeployerErrors.sol";
+import {IProxyDeployer} from "./IProxyDeployer.sol";
 import {Proxy} from "./Proxy.sol";
 
-abstract contract ProxyDeployer is ProxyDeployerErrors {
+abstract contract ProxyDeployer is IProxyDeployer {
 
     /**
      * Creates a proxy contract for a given implementation

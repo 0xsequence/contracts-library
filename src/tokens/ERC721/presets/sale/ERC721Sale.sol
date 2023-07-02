@@ -2,12 +2,11 @@
 pragma solidity ^0.8.17;
 
 import {IERC721Sale} from "@0xsequence/contracts-library/tokens/ERC721/presets/sale/IERC721Sale.sol";
-import {ERC721SaleErrors} from "@0xsequence/contracts-library/tokens/ERC721/presets/sale/ERC721SaleErrors.sol";
 import {ERC721Token} from "@0xsequence/contracts-library/tokens/ERC721/ERC721Token.sol";
 import {WithdrawControlled, AccessControl, SafeERC20, IERC20} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
 import {MerkleProofSingleUse} from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
 
-contract ERC721Sale is IERC721Sale, ERC721Token, ERC721SaleErrors, WithdrawControlled, MerkleProofSingleUse {
+contract ERC721Sale is IERC721Sale, ERC721Token, WithdrawControlled, MerkleProofSingleUse {
     bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
     bytes4 private constant _ERC20_TRANSFERFROM_SELECTOR =

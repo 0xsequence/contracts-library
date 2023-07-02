@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-interface IERC721Sale {
-    event SaleDetailsUpdated(uint256 supplyCap, uint256 cost, address paymentToken, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
+interface IERC721SaleFunctions {
 
     struct SaleDetails {
         uint256 supplyCap; // 0 supply cap indicates unlimited supply
@@ -29,3 +28,39 @@ interface IERC721Sale {
      */
     function mint(address to, uint256 amount, bytes32[] memory proof) external payable;
 }
+
+interface IERC721SaleSignals {
+    event SaleDetailsUpdated(uint256 supplyCap, uint256 cost, address paymentToken, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
+
+    /**
+     * Contract already initialized.
+     */
+    error InvalidInitialization();
+
+    /**
+     * Sale is not active.
+     */
+    error SaleInactive();
+
+    /**
+     * Insufficient supply.
+     * @param currentSupply Current supply.
+     * @param amount Amount to mint.
+     * @param maxSupply Maximum supply.
+     */
+    error InsufficientSupply(uint256 currentSupply, uint256 amount, uint256 maxSupply);
+
+    /**
+     * Insufficient tokens for payment.
+     * @param expected Expected amount of tokens.
+     * @param actual Actual amount of tokens.
+     */
+    error InsufficientPayment(uint256 expected, uint256 actual);
+
+    /**
+     * Withdraw failed.
+     */
+    error WithdrawFailed();
+}
+
+interface IERC721Sale is IERC721SaleFunctions, IERC721SaleSignals {}

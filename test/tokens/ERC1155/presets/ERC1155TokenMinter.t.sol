@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
 import {ERC1155TokenMinter} from "src/tokens/ERC1155/presets/minter/ERC1155TokenMinter.sol";
-import {ERC1155TokenMinterErrors} from "src/tokens/ERC1155/presets/minter/ERC1155TokenMinterErrors.sol";
+import {IERC1155TokenMinterSignals} from "src/tokens/ERC1155/presets/minter/IERC1155TokenMinter.sol";
 import {ERC1155TokenMinterFactory} from "src/tokens/ERC1155/presets/minter/ERC1155TokenMinterFactory.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -13,7 +13,7 @@ import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import {IERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 
-contract ERC1155TokenMinterTest is Test, ERC1155TokenMinterErrors {
+contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
     // Redeclare events
     event TransferSingle(
         address indexed _operator, address indexed _from, address indexed _to, uint256 _id, uint256 _amount

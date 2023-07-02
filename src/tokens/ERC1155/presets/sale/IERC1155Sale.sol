@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-interface IERC1155Sale {
-    event GlobalSaleDetailsUpdated(uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
-    event TokenSaleDetailsUpdated(uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
+interface IERC1155SaleFunctions {
 
     struct SaleDetails {
         uint256 cost;
@@ -54,3 +52,45 @@ interface IERC1155Sale {
         external
         payable;
 }
+
+// Events and errors are declared separately for test inheritance.
+interface IERC1155SaleSignals {
+
+    event GlobalSaleDetailsUpdated(uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
+    event TokenSaleDetailsUpdated(uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
+
+    /**
+     * Contract already initialized.
+     */
+    error InvalidInitialization();
+
+    /**
+     * Sale is not active globally.
+     */
+    error GlobalSaleInactive();
+
+    /**
+     * Sale is not active.
+     * @param tokenId Invalid Token ID.
+     */
+    error SaleInactive(uint256 tokenId);
+
+    /**
+     * Insufficient tokens for payment.
+     * @param expected Expected amount of tokens.
+     * @param actual Actual amount of tokens.
+     */
+    error InsufficientPayment(uint256 expected, uint256 actual);
+
+    /**
+     * Invalid token IDs.
+     */
+    error InvalidTokenIds();
+
+    /**
+     * Withdraw failed.
+     */
+    error WithdrawFailed();
+}
+
+interface IERC1155Sale is IERC1155SaleFunctions, IERC1155SaleSignals {}

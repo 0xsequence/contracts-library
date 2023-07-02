@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-// A contract for errors for extensibility.
-abstract contract ERC1155SupplyErrors {
+interface IERC1155SupplySignals {
 
     /**
      * Insufficient supply of tokens.
@@ -14,3 +13,5 @@ abstract contract ERC1155SupplyErrors {
      */
     error InvalidArrayLength();
 }
+
+interface IERC1155Supply is IERC1155SupplySignals {}
