@@ -2,14 +2,12 @@
 pragma solidity ^0.8.17;
 
 import {IERC1155Sale} from "@0xsequence/contracts-library/tokens/ERC1155/presets/sale/IERC1155Sale.sol";
-import {ERC1155SaleErrors} from "@0xsequence/contracts-library/tokens/ERC1155/presets/sale/ERC1155SaleErrors.sol";
 import {ERC1155Supply, ERC1155Token} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
 import {WithdrawControlled, AccessControl, SafeERC20, IERC20} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
 import {MerkleProofSingleUse} from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
 
 contract ERC1155Sale is
     IERC1155Sale,
-    ERC1155SaleErrors,
     ERC1155Supply,
     WithdrawControlled,
     MerkleProofSingleUse

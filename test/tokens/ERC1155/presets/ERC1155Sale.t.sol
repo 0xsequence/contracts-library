@@ -2,10 +2,10 @@
 pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
+import {IERC1155SaleSignals} from "src/tokens/ERC1155/presets/sale/IERC1155Sale.sol";
 import {ERC1155Sale} from "src/tokens/ERC1155/presets/sale/ERC1155Sale.sol";
 import {ERC1155SaleFactory} from "src/tokens/ERC1155/presets/sale/ERC1155SaleFactory.sol";
-import {ERC1155SaleErrors} from "src/tokens/ERC1155/presets/sale/ERC1155SaleErrors.sol";
-import {ERC1155SupplyErrors} from "src/tokens/ERC1155/extensions/supply/ERC1155SupplyErrors.sol";
+import {IERC1155SupplySignals} from "src/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
 
 import {Merkle} from "murky/Merkle.sol";
 import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
@@ -21,7 +21,7 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 
 // solhint-disable no-rely-on-time
 
-contract ERC1155SaleTest is Test, Merkle, ERC1155SaleErrors, ERC1155SupplyErrors {
+contract ERC1155SaleTest is Test, Merkle, IERC1155SaleSignals, IERC1155SupplySignals {
     // Redeclare events
     event TransferBatch(
         address indexed _operator, address indexed _from, address indexed _to, uint256[] _ids, uint256[] _amounts

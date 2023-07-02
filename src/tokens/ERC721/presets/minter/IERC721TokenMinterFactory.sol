@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-interface IERC721TokenMinterFactory {
-    /**
-     * Event emitted when a new ERC-721 Token Minter proxy contract is deployed.
-     * @param proxyAddr The address of the deployed proxy.
-     */
-    event ERC721TokenMinterDeployed(address proxyAddr);
+interface IERC721TokenMinterFactoryFunctions {
 
     /**
      * Creates an ERC-721 Token Minter proxy.
@@ -21,3 +16,13 @@ interface IERC721TokenMinterFactory {
         external
         returns (address proxyAddr);
 }
+
+interface IERC721TokenMinterFactorySignalss {
+    /**
+     * Event emitted when a new ERC-721 Token Minter proxy contract is deployed.
+     * @param proxyAddr The address of the deployed proxy.
+     */
+    event ERC721TokenMinterDeployed(address proxyAddr);
+}
+
+interface IERC721TokenMinterFactory is IERC721TokenMinterFactoryFunctions, IERC721TokenMinterFactorySignalss {}

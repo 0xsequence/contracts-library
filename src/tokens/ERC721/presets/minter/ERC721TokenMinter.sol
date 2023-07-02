@@ -2,12 +2,12 @@
 pragma solidity ^0.8.17;
 
 import {ERC721Token} from "@0xsequence/contracts-library/tokens/ERC721/ERC721Token.sol";
-import {ERC721TokenMinterErrors} from "@0xsequence/contracts-library/tokens/ERC721/presets/minter/ERC721TokenMinterErrors.sol";
+import {IERC721TokenMinter} from "@0xsequence/contracts-library/tokens/ERC721/presets/minter/IERC721TokenMinter.sol";
 
 /**
  * A ready made implementation of ERC-721 with role based minting.
  */
-contract ERC721TokenMinter is ERC721Token, ERC721TokenMinterErrors {
+contract ERC721TokenMinter is ERC721Token, IERC721TokenMinter {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address private immutable _initializer;

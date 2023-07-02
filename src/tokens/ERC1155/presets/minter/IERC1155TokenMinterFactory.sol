@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-interface IERC1155TokenMinterFactory {
-    /**
-     * Event emitted when a new ERC-1155 Token Minter proxy contract is deployed.
-     * @param proxyAddr The address of the deployed proxy.
-     */
-    event ERC1155TokenMinterDeployed(address proxyAddr);
+interface IERC1155TokenMinterFactoryFunctions {
 
     /**
      * Creates an ERC-1155 Token Minter proxy.
@@ -20,3 +15,14 @@ interface IERC1155TokenMinterFactory {
         external
         returns (address proxyAddr);
 }
+
+interface IERC1155TokenMinterFactorySignals {
+    /**
+     * Event emitted when a new ERC-1155 Token Minter proxy contract is deployed.
+     * @param proxyAddr The address of the deployed proxy.
+     */
+    event ERC1155TokenMinterDeployed(address proxyAddr);
+
+}
+
+interface IERC1155TokenMinterFactory is IERC1155TokenMinterFactoryFunctions, IERC1155TokenMinterFactorySignals {}

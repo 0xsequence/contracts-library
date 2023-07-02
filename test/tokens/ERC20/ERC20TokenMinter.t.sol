@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "forge-std/Test.sol";
 import {ERC20TokenMinter} from "src/tokens/ERC20/presets/minter/ERC20TokenMinter.sol";
-import {ERC20TokenMinterErrors} from "src/tokens/ERC20/presets/minter/ERC20TokenMinterErrors.sol";
+import {IERC20TokenMinterSignals} from "src/tokens/ERC20/presets/minter/IERC20TokenMinter.sol";
 import {ERC20TokenMinterFactory} from "src/tokens/ERC20/presets/minter/ERC20TokenMinterFactory.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -13,7 +13,7 @@ import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-contract ERC20TokenMinterTest is Test, ERC20TokenMinterErrors {
+contract ERC20TokenMinterTest is Test, IERC20TokenMinterSignals {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 value);
 
