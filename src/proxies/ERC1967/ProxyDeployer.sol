@@ -4,6 +4,9 @@ pragma solidity ^0.8.17;
 import {IProxyDeployer} from "./IProxyDeployer.sol";
 import {Proxy} from "./Proxy.sol";
 
+/**
+ * A base implementation for proxy deployer contracts.
+ */
 abstract contract ProxyDeployer is IProxyDeployer {
 
     /**

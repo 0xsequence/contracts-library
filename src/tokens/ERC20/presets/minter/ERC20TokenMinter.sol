@@ -45,6 +45,7 @@ contract ERC20TokenMinter is ERC20Token, IERC20TokenMinter {
      * Mint tokens.
      * @param to Address to mint tokens to.
      * @param amount Amount of tokens to mint.
+     * @notice This function can only be called by a minter.
      */
     function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
         _mint(to, amount);

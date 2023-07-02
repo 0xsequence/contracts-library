@@ -5,6 +5,9 @@ import {ERC20TokenMinter} from "@0xsequence/contracts-library/tokens/ERC20/prese
 import {IERC20TokenMinterFactory} from "@0xsequence/contracts-library/tokens/ERC20/presets/minter/IERC20TokenMinterFactory.sol";
 import {ProxyDeployer} from "@0xsequence/contracts-library/proxies/ERC1967/ProxyDeployer.sol";
 
+/**
+ * Deployer of ERC-20 Token Minter proxies.
+ */
 contract ERC20TokenMinterFactory is IERC20TokenMinterFactory, ProxyDeployer {
     address private immutable _implAddr;
 

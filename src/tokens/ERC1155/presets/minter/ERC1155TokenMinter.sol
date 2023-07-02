@@ -7,7 +7,7 @@ import {ERC1155Token} from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155
 import {ERC2981Controlled} from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
 
 /**
- * A ready made implementation of ERC-1155 capable of minting when role provided.
+ * An implementation of ERC-1155 capable of minting when role provided.
  */
 contract ERC1155TokenMinter is ERC1155MintBurn, ERC1155Token, IERC1155TokenMinter {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");

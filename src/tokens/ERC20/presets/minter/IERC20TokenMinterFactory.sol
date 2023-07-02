@@ -18,6 +18,7 @@ interface IERC20TokenMinterFactoryFunctions {
 }
 
 interface IERC20TokenMinterFactorySignals {
+
     /**
      * Event emitted when a new ERC-20 Token Minter proxy contract is deployed.
      * @param proxyAddr The address of the deployed proxy.

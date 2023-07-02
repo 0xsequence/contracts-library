@@ -2,7 +2,6 @@
 pragma solidity ^0.8.17;
 
 interface IERC721TokenMinterFactoryFunctions {
-
     /**
      * Creates an ERC-721 Token Minter proxy.
      * @param owner The owner of the ERC-721 Token Minter proxy

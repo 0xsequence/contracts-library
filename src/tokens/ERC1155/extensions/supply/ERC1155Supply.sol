@@ -5,7 +5,7 @@ import {ERC1155Token} from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155
 import {IERC1155Supply} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
 
 /**
- * An ERC1155 extension that tracks token supply.
+ * An ERC-1155 extension that tracks token supply.
  */
 abstract contract ERC1155Supply is ERC1155Token, IERC1155Supply {
     // Maximum supply globaly and per token. 0 indicates unlimited supply

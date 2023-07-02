@@ -5,7 +5,7 @@ import {ERC721Token} from "@0xsequence/contracts-library/tokens/ERC721/ERC721Tok
 import {IERC721TokenMinter} from "@0xsequence/contracts-library/tokens/ERC721/presets/minter/IERC721TokenMinter.sol";
 
 /**
- * A ready made implementation of ERC-721 with role based minting.
+ * An implementation of ERC-721 capable of minting when role provided.
  */
 contract ERC721TokenMinter is ERC721Token, IERC721TokenMinter {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");

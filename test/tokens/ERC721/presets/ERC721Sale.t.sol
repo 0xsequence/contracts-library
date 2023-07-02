@@ -10,7 +10,7 @@ import {Merkle} from "murky/Merkle.sol";
 import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {TestHelper} from "test/tokens/TestHelper.sol";
-import {MerkleProofInvalid} from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
+import {IMerkleProofSingleUseSignals} from "@0xsequence/contracts-library/tokens/common/IMerkleProofSingleUse.sol";
 
 // Interfaces
 import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
@@ -21,7 +21,7 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 
 // solhint-disable no-rely-on-time
 
-contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals {
+contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleUseSignals {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
