@@ -21,16 +21,18 @@ contract ERC20TokenMinterTest is Test, IERC20TokenMinterSignals {
 
     uint8 private constant DECIMALS = 18;
 
-    address owner;
+    address private proxyOwner;
+    address private owner; // Token owner
 
     function setUp() public {
         owner = makeAddr("owner");
+        proxyOwner = makeAddr("proxyOwner");
 
         vm.deal(address(this), 100 ether);
         vm.deal(owner, 100 ether);
 
-        ERC20TokenMinterFactory factory = new ERC20TokenMinterFactory();
-        token = ERC20TokenMinter(factory.deploy(owner, "name", "symbol", DECIMALS, 0x0));
+        ERC20TokenMinterFactory factory = new ERC20TokenMinterFactory(address(this));
+        token = ERC20TokenMinter(factory.deploy(proxyOwner, owner, "name", "symbol", DECIMALS, 0x0));
     }
 
     function testReinitializeFails() public {
@@ -60,6 +62,7 @@ contract ERC20TokenMinterTest is Test, IERC20TokenMinterSignals {
     //
     function testMintInvalidRole(address caller, uint256 amount) public {
         vm.assume(caller != owner);
+        vm.assume(caller != proxyOwner);
         vm.assume(amount > 0);
 
         vm.expectRevert(
@@ -88,6 +91,7 @@ contract ERC20TokenMinterTest is Test, IERC20TokenMinterSignals {
 
     function testMintWithRole(address minter, uint256 amount) public {
         vm.assume(minter != owner);
+        vm.assume(minter != proxyOwner);
         vm.assume(minter != address(0));
         vm.assume(amount > 0);
         // Give role

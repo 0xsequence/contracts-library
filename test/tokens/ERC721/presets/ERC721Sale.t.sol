@@ -29,7 +29,11 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
     ERC20Mock private erc20;
     uint256 private perTokenCost = 0.02 ether;
 
+    address private proxyOwner;
+
     function setUp() public {
+        proxyOwner = makeAddr("proxyOwner");
+
         token = new ERC721Sale();
         token.initialize(address(this), "test", "test", "ipfs://");
 
@@ -37,8 +41,8 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
     }
 
     function setUpFromFactory() public {
-        ERC721SaleFactory factory = new ERC721SaleFactory();
-        token = ERC721Sale(factory.deployERC721Sale(address(this), "test", "test", "ipfs://", ""));
+        ERC721SaleFactory factory = new ERC721SaleFactory(address(this));
+        token = ERC721Sale(factory.deploy(proxyOwner, address(this), "test", "test", "ipfs://", ""));
     }
 
     function testSupportsInterface() public {

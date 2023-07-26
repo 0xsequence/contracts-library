@@ -19,16 +19,18 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
 
     ERC721TokenMinter private token;
 
-    address owner;
+    address private proxyOwner;
+    address private owner;
 
     function setUp() public {
         owner = makeAddr("owner");
+        proxyOwner = makeAddr("proxyOwner");
 
         vm.deal(address(this), 100 ether);
         vm.deal(owner, 100 ether);
 
-        ERC721TokenMinterFactory factory = new ERC721TokenMinterFactory();
-        token = ERC721TokenMinter(factory.deploy(owner, "name", "symbol", "baseURI", 0x0));
+        ERC721TokenMinterFactory factory = new ERC721TokenMinterFactory(address(this));
+        token = ERC721TokenMinter(factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", 0x0));
     }
 
     function testReinitializeFails() public {
@@ -61,6 +63,7 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
     //
     function testMintInvalidRole(address caller) public {
         vm.assume(caller != owner);
+        vm.assume(caller != proxyOwner);
 
         vm.expectRevert(
             abi.encodePacked(
@@ -86,6 +89,7 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
 
     function testMintWithRole(address minter) public {
         vm.assume(minter != owner);
+        vm.assume(minter != proxyOwner);
         vm.assume(minter != address(0));
         // Give role
         vm.startPrank(owner);
@@ -136,6 +140,7 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
 
     function testMetadataInvalid(address caller) public {
         vm.assume(caller != owner);
+        vm.assume(caller != proxyOwner);
         vm.expectRevert(
             abi.encodePacked(
                 "AccessControl: account ",
@@ -150,6 +155,7 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
 
     function testMetadataWithRole(address caller) public {
         vm.assume(caller != owner);
+        vm.assume(caller != proxyOwner);
         vm.assume(caller != address(0));
         // Give role
         vm.startPrank(owner);
@@ -206,6 +212,7 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
         vm.assume(feeNumerator <= 10000);
         vm.assume(receiver != address(0));
         vm.assume(caller != owner);
+        vm.assume(caller != proxyOwner);
         vm.assume(salePrice < type(uint128).max); // Buffer for overflow
 
         vm.startPrank(owner);
@@ -239,6 +246,7 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
         vm.assume(feeNumerator <= 10000);
         vm.assume(receiver != address(0));
         vm.assume(caller != owner);
+        vm.assume(caller != proxyOwner);
         vm.assume(salePrice < type(uint128).max); // Buffer for overflow
 
         vm.expectRevert(

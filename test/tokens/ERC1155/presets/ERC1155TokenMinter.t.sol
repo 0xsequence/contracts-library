@@ -24,16 +24,18 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
 
     ERC1155TokenMinter private token;
 
+    address private proxyOwner;
     address private owner;
 
     function setUp() public {
         owner = makeAddr("owner");
+        proxyOwner = makeAddr("proxyOwner");
 
         vm.deal(address(this), 100 ether);
         vm.deal(owner, 100 ether);
 
-        ERC1155TokenMinterFactory factory = new ERC1155TokenMinterFactory();
-        token = ERC1155TokenMinter(factory.deploy(owner, "name", "baseURI", 0x0));
+        ERC1155TokenMinterFactory factory = new ERC1155TokenMinterFactory(address(this));
+        token = ERC1155TokenMinter(factory.deploy(proxyOwner, owner, "name", "baseURI", 0x0));
     }
 
     function testReinitializeFails() public {
@@ -59,6 +61,7 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
     //
     function testMintInvalidRole(address caller) public {
         vm.assume(caller != owner);
+        vm.assume(caller != proxyOwner);
 
         vm.expectRevert(
             abi.encodePacked(
@@ -122,6 +125,7 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
 
     function testMintWithRole(address minter, uint256 tokenId, uint256 amount) public {
         vm.assume(minter != owner);
+        vm.assume(minter != proxyOwner);
         vm.assume(minter != address(0));
         // Give role
         vm.startPrank(owner);
@@ -139,6 +143,7 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
 
     function testBatchMintWithRole(address minter, uint256[] memory tokenIds, uint256[] memory amounts) public {
         vm.assume(minter != owner);
+        vm.assume(minter != proxyOwner);
         vm.assume(minter != address(0));
         tokenIds = boundArrayLength(tokenIds, 10);
         amounts = boundArrayLength(amounts, 10);
@@ -179,6 +184,7 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
 
     function testMetadataInvalid(address caller) public {
         vm.assume(caller != owner);
+        vm.assume(caller != proxyOwner);
         vm.expectRevert(
             abi.encodePacked(
                 "AccessControl: account ",
@@ -193,6 +199,7 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
 
     function testMetadataWithRole(address caller) public {
         vm.assume(caller != owner);
+        vm.assume(caller != proxyOwner);
         vm.assume(caller != address(0));
         // Give role
         vm.startPrank(owner);
@@ -249,6 +256,7 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
         vm.assume(feeNumerator <= 10000);
         vm.assume(receiver != address(0));
         vm.assume(caller != owner);
+        vm.assume(caller != proxyOwner);
         vm.assume(salePrice < type(uint128).max); // Buffer for overflow
 
         vm.startPrank(owner);
@@ -282,6 +290,7 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
         vm.assume(feeNumerator <= 10000);
         vm.assume(receiver != address(0));
         vm.assume(caller != owner);
+        vm.assume(caller != proxyOwner);
         vm.assume(salePrice < type(uint128).max); // Buffer for overflow
 
         vm.expectRevert(

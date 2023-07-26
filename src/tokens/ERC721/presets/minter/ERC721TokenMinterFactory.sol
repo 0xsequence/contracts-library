@@ -1,40 +1,50 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-import {IERC721TokenMinterFactory} from "@0xsequence/contracts-library/tokens/ERC721/presets/minter/IERC721TokenMinterFactory.sol";
+import {IERC721TokenMinterFactory} from
+    "@0xsequence/contracts-library/tokens/ERC721/presets/minter/IERC721TokenMinterFactory.sol";
 import {ERC721TokenMinter} from "@0xsequence/contracts-library/tokens/ERC721/presets/minter/ERC721TokenMinter.sol";
-import {ProxyDeployer} from "@0xsequence/contracts-library/proxies/ERC1967/ProxyDeployer.sol";
+import {SequenceProxyFactory} from "@0xsequence/contracts-library/proxies/SequenceProxyFactory.sol";
 
 /**
  * Deployer of ERC-721 Token Minter proxies.
  */
-contract ERC721TokenMinterFactory is IERC721TokenMinterFactory, ProxyDeployer {
-    address private immutable _implAddr;
+contract ERC721TokenMinterFactory is IERC721TokenMinterFactory, SequenceProxyFactory {
 
     /**
      * Creates an ERC-721 Token Minter Factory.
+     * @param factoryOwner The owner of the ERC-721 Token Minter Factory
      */
-    constructor() {
-        ERC721TokenMinter proxyImpl = new ERC721TokenMinter();
-        _implAddr = address(proxyImpl);
+    constructor(address factoryOwner) {
+        ERC721TokenMinter impl = new ERC721TokenMinter();
+        SequenceProxyFactory._initialize(address(impl), factoryOwner);
     }
 
     /**
      * Creates an ERC-721 Token Minter proxy.
-     * @param owner The owner of the ERC-721 Token Minter proxy
+     * @param proxyOwner The owner of the ERC-721 Token Minter proxy
+     * @param tokenOwner The owner of the ERC-721 Token Minter implementation
      * @param name The name of the ERC-721 Token Minter proxy
      * @param symbol The symbol of the ERC-721 Token Minter proxy
      * @param baseURI The base URI of the ERC-721 Token Minter proxy
      * @param salt The deployment salt
      * @return proxyAddr The address of the ERC-721 Token Minter Proxy
      * @dev The provided `salt` is hashed with the caller address for security.
+     * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-20 Token Minter functions.
      */
-    function deploy(address owner, string memory name, string memory symbol, string memory baseURI, bytes32 salt)
+    function deploy(
+        address proxyOwner,
+        address tokenOwner,
+        string memory name,
+        string memory symbol,
+        string memory baseURI,
+        bytes32 salt
+    )
         external
         returns (address proxyAddr)
     {
-        proxyAddr = _deployProxy(_implAddr, keccak256(abi.encode(msg.sender, salt)));
-        ERC721TokenMinter(proxyAddr).initialize(owner, name, symbol, baseURI);
+        proxyAddr = _createProxy(salt, proxyOwner, "");
+        ERC721TokenMinter(proxyAddr).initialize(tokenOwner, name, symbol, baseURI);
         emit ERC721TokenMinterDeployed(proxyAddr);
         return proxyAddr;
     }
