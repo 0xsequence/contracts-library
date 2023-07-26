@@ -4,13 +4,15 @@ pragma solidity ^0.8.17;
 interface IERC1155SaleFactoryFunctions {
     /**
      * Creates an ERC-1155 Sale proxy contract
-     * @param owner The owner of the ERC-1155 Sale
+     * @param proxyOwner The owner of the ERC-1155 Sale proxy
+     * @param tokenOwner The owner of the ERC-1155 Sale implementation
      * @param name The name of the ERC-1155 Sale token
      * @param baseURI The base URI of the ERC-1155 Sale token
      * @param salt The deployment salt
      * @return proxyAddr The address of the ERC-1155 Sale Proxy
+     * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-20 Token Minter functions.
      */
-    function deployERC1155Sale(address owner, string memory name, string memory baseURI, bytes32 salt)
+    function deploy(address proxyOwner, address tokenOwner, string memory name, string memory baseURI, bytes32 salt)
         external
         returns (address proxyAddr);
 }

@@ -31,9 +31,13 @@ contract ERC1155SaleTest is Test, Merkle, IERC1155SaleSignals, IERC1155SupplySig
     ERC20Mock private erc20;
     uint256 private perTokenCost = 0.02 ether;
 
+    address private proxyOwner;
+
     address private constant ALLOWLIST_ADDR = 0xFA4eE536359087Fba7BD3248EE09e8Cc8347F8Ed;
 
     function setUp() public {
+        proxyOwner = makeAddr("proxyOwner");
+
         token = new ERC1155Sale();
         token.initialize(address(this), "test", "ipfs://");
 
@@ -41,8 +45,8 @@ contract ERC1155SaleTest is Test, Merkle, IERC1155SaleSignals, IERC1155SupplySig
     }
 
     function setUpFromFactory() public {
-        ERC1155SaleFactory factory = new ERC1155SaleFactory();
-        token = ERC1155Sale(factory.deployERC1155Sale(address(this), "test", "ipfs://", ""));
+        ERC1155SaleFactory factory = new ERC1155SaleFactory(address(this));
+        token = ERC1155Sale(factory.deploy(proxyOwner, address(this), "test", "ipfs://", ""));
     }
 
     function testSupportsInterface() public {
@@ -599,8 +603,7 @@ contract ERC1155SaleTest is Test, Merkle, IERC1155SaleSignals, IERC1155SupplySig
         public
         withFactory(useFactory)
     {
-        // Address 9 doesnt receive ETH
-        vm.assume(withdrawTo != address(9));
+        vm.assume(uint160(withdrawTo) > 16);
         testMintSingleSuccess(false, withdrawTo, tokenId, amount);
 
         uint256 tokenBalance = address(token).balance;
@@ -635,6 +638,7 @@ contract ERC1155SaleTest is Test, Merkle, IERC1155SaleSignals, IERC1155SupplySig
 
     modifier assumeSafe(address nonContract, uint256 tokenId, uint256 amount) {
         vm.assume(uint160(nonContract) > 16);
+        vm.assume(nonContract != proxyOwner);
         vm.assume(nonContract.code.length == 0);
         vm.assume(tokenId < 100);
         vm.assume(amount > 0 && amount < 20);
