@@ -4,35 +4,38 @@ This subsection contains contracts related to the [ERC721 token standard](https:
 
 ## ERC721Token
 
-This contract is a complete, ready-to-use implementation of the ERC-721 token standard. It leverages the [Azuki ERC-721A implementation](https://www.erc721a.org/) for gas efficiency. It includes role based access control features from the [OpenZeppelin AccessControl](https://docs.openzeppelin.com/contracts/4.x/access-control) contract, providing control over minting operations and metadata administration. Please refer to OpenZeppelin documentation for more information on AccessControl.
-
-The ERC721Token contract has a two-step deployment process. First, it's deployed with an empty constructor. After deployment, the `initialize` function must be called to set the owner, token name, symbol, and base URI. This process is in place to support proxy deployments with the ERC721TokenFactory.
+This contract is a base implementation of the ERC-721 token standard. It leverages the [Azuki ERC-721A implementation](https://www.erc721a.org/) for gas efficiency. It includes role based access control features from the [OpenZeppelin AccessControl](https://docs.openzeppelin.com/contracts/4.x/access-control) contract, to provide control over added features. Please refer to OpenZeppelin documentation for more information on AccessControl.
 
 The contract supports the [ERC2981 token royalty standard](https://eips.ethereum.org/EIPS/eip-2981) via the ERC2981Controlled contract. Please refer to the ERC2981Controlled documentation for more information on token royalty.
 
-### Functions
+## Presets
 
-* `initialize(address owner, string memory tokenName_, string memory tokenSymbol_, string memory baseURI_)`: Initializes the token contract, setting the owner, name, symbol, and base URI.
-* `mint(address to, uint256 amount)`: Mints the given amount of tokens to the specified address. This function is restricted to addresses with the Minter role.
-* `setBaseMetadataURI(string memory baseURI_)`: Updates the base URI for the token metadata. This function is restricted to addresses with the Metadata Admin role.
+This folder contains contracts that are pre-configured for specific use cases.
 
-## ERC721TokenFactory
+### Minter
 
-This contract deploys ERC721Token contracts. It uses a proxy pattern to create new token instances to reduce gas costs.
+The `ERC721TokenMinter` contract is a preset that configures the `ERC721Token` contract to allow minting of tokens. It adds a `MINTER_ROLE` and a `mint(address to, uint256 amount)` function that can only be called by accounts with the `MINTER_ROLE`.
 
-The deployment uses a `salt` which is combined with the caller's address for cross chain consistency and security.
+### Sale
 
-### Functions
+The `ERC721TokenSale` contract is a preset that configures the `ERC721Token` contract to allow for the sale of tokens. It adds a `mint(address to, uint256 amount, bytes32[] memory proof)` function allows for the minting of tokens under various conditions.
 
-* `deploy(address owner, string memory name, string memory symbol, string memory baseURI, bytes32 salt)`: Deploys a new ERC721Token proxy contract, initializes it, and emits an ERC721TokenDeployed event.
+Conditions may be set by the contract owner using the `setSaleDetails(uint256 supplyCap, uint256 cost, address paymentToken, uint64 startTime, uint64 endTime, bytes32 merkleRoot)` function that can only be called by accounts with the `MINT_ADMIN_ROLE`. The variables function as follows:
+
+* supplyCap: The maximum number of tokens that can be minted. 0 indicates unlimited supply.
+* cost: The amount of payment tokens to accept for each token minted.
+* paymentToken: The ERC20 token address to accept payment in. address(0) indicates ETH.
+* startTime: The start time of the sale. Tokens cannot be minted before this time.
+* endTime: The end time of the sale. Tokens cannot be minted after this time.
+* merkleRoot: The merkle root for allowlist minting.
 
 ## Usage
 
-To create a new ERC721 token:
+This section of this repo utilitizes a factory pattern that deploys proxies contracts. This allows for a single deployment of each `Factory` contract, and subsequent deployments of the contracts with minimal gas costs.
 
-1. Deploy the ERC721TokenFactory contract (or use an existing deployment).
+1. Deploy the `[XXX]Factory` contract for the contract you wish to use (or use an existing deployment).
 2. Call the `deploy` function on the factory, providing the desired parameters.
-3. A new ERC721Token contract will be created and initialized, ready for use.
+3. A new contract will be created and initialized, ready for use.
 
 ## Dependencies
 

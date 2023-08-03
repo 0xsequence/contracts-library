@@ -4,9 +4,9 @@ This section contains common contracts that can be used for additional functiona
 
 ## ERC2981Controlled
 
-The `ERC2981Controlled` contract is an implementation of the [ERC2981 token royalty standard](https://eips.ethereum.org/EIPS/eip-2981), which provides a standardized way to handle royalties in NFTs and SFTs. 
+The `ERC2981Controlled` contract is an implementation of the [ERC2981 token royalty standard](https://eips.ethereum.org/EIPS/eip-2981), which provides a standardized way to handle royalties in NFTs and SFTs.
 
-This contract allows the royalty information for the contract as a whole, or individual token IDs, to be updated by users with the `ROYALTY_ADMIN_ROLE`. 
+This contract allows the royalty information for the contract as a whole, or individual token IDs, to be updated by users with the `ROYALTY_ADMIN_ROLE`.
 
 ### Functions
 
@@ -30,3 +30,56 @@ Alternatively, use the `ERC721Token` or `ERC1155Token` implementations which alr
 ### Dependencies
 
 The `ERC2981Controlled` contract depends on OpenZeppelin's `ERC2981` and `AccessControl` contracts. `ERC2981` provides the basic royalty-related functionality according to the standard, while `AccessControl` provides a flexible system of access control based on roles.
+
+## MerkleProofSingleUse
+
+The `MerkleProofSingleUse` contract provides a way to verify that a given value is included in a Merkle tree, and that it has not been used before.
+This is useful for verifying that a given token ID has not been used before, for example in a claim process.
+
+### Functions
+
+* `checkMerkleProof(bytes32 root, bytes32[] calldata proof, address addr)`: An internal function that allows a contract to verify that a given value is included in a Merkle tree. The `root` is the Merkle root, the `proof` is the Merkle proof, and the `addr` is the value to verify. If the value is not included in the Merkle tree or if the proof has already been used, the function will return false.
+* `requireMerkleProof(bytes32 root, bytes32[] calldata proof, address addr)`: An internal function that does the same as above, and also marks the proof has having been used by the address.
+
+### Usage
+
+To use this contract, it should be inherited by the main token contract and functions called as required. For example when minting in an NFT contract:
+
+```solidity
+contract MyNFT is ERC721, MerkleProofSingleUse {
+    
+    function mint(address to, bytes32 root, bytes32[] calldata proof) public {
+        requireMerkleProof(root, proof, to);
+        _mint(to, tokenId);
+    }
+
+    //...
+}
+```
+
+### Dependencies
+
+The `MerkleProofSingleUse` contract depends on OpenZeppelin's `MerkleProof` contract. `MerkleProof` provides the basic Merkle proof verification functionality.
+
+## WithdrawControlled
+
+The `WithdrawControlled` contract provides a way to withdraw ETH and ERC20 tokens from a contract. This is useful for contracts that receive ETH or ERC20 tokens, and need to be able to withdraw them.
+
+### Functions
+
+* `withdrawETH(address payable to, uint256 value)`: Allows an address with the `WITHDRAW_ROLE` to withdraw ETH from the contract. The `to` parameter is the address to withdraw to, and the `value` is the amount to withdraw.
+* `withdrawERC20(address token, address to, uint256 value)`: Allows an address with the `WITHDRAW_ROLE` to withdraw ERC20 tokens from the contract. The `token` parameter is the address of the ERC20 token to withdraw, the `to` parameter is the address to withdraw to, and the `value` is the amount to withdraw.
+
+### Usage
+
+To use this contract, it should be inherited by the main token contract. For example:
+
+```solidity
+contract MyNFT is ERC721, WithdrawControlled {
+    // ...
+}
+```
+
+### Dependencies
+
+The `WithdrawControlled` contract depends on OpenZeppelin's `AccessControl` contract. `AccessControl` provides a flexible system of access control based on roles.
