@@ -4,37 +4,35 @@ This subsection contains contracts related to the [ERC1155 token standard](https
 
 ## ERC1155Token
 
-This contract is a complete, ready-to-use implementation of the ERC-1155 token standard. It includes additional features from the ERC1155MintBurn, ERC1155Meta, and ERC1155Metadata contracts. These contracts provide minting capabilities, support for meta transactions, and metadata functionality.
+This contract is a base implementation of the ERC-1155 token standard. It includes role based access control features from the [OpenZeppelin AccessControl](https://docs.openzeppelin.com/contracts/4.x/access-control) contract, to provide control over added features. Please refer to OpenZeppelin documentation for more information on AccessControl.
 
-Meta transactions are provided by the [0xSequence ERC1155 library](https://github.com/0xsequence/erc-1155/blob/master/SPECIFICATIONS.md#meta-transactions). Please refer to library documentation for more information on meta transactions.
+This contracts provide minting capabilities, support for meta transactions, and metadata functionality. It includes additional features from the ERC1155MintBurn, ERC1155Meta, and ERC1155Metadata contracts. Meta transactions are provided by the [0xSequence ERC1155 library](https://github.com/0xsequence/erc-1155/blob/master/SPECIFICATIONS.md#meta-transactions). Please refer to library documentation for more information on meta transactions.
 
-The ERC1155Token contract has a two-step deployment process. First, it's deployed with an empty constructor. After deployment, the `initialize` function must be called to set the owner, name, and base URI. This process is in place to support proxy deployments with the ERC1155TokenFactory.
+The contract supports the [ERC2981 token royalty standard](https://eips.ethereum.org/EIPS/eip-2981) via the ERC2981Controlled contract. Please refer to the ERC2981Controlled documentation for more information on token royalty.
 
-### Functions
+## Presets
 
-* `initialize(address owner, string memory name_, string memory baseURI_)`: Initializes the token contract, setting the owner, name, and base URI.
-* `mint(address to, uint256 tokenId, uint256 amount, bytes memory data)`: Mints the specified amount of tokens of a given ID to the specified address. This function is restricted to addresses with the Minter role.
-* `batchMint(address to, uint256[] memory tokenIds, uint256[] memory amounts, bytes memory data)`: Mints specified amounts of tokens of given IDs to the specified address. This function is restricted to addresses with the Minter role.
-* `setBaseMetadataURI(string memory baseURI_)`: Updates the base URI for the token metadata. This function is restricted to addresses with the Metadata Admin role.
-* `setContractName(string memory name_)`: Updates the contract's name. This function is restricted to addresses with the Metadata Admin role.
+This folder contains contracts that are pre-configured for specific use cases.
 
-## ERC1155TokenFactory
+### Minter
 
-This contract deploys ERC1155Token contracts. It uses a proxy pattern to create new token instances to reduce gas costs.
+The `ERC1155TokenMinter` contract is a preset that configures the `ERC1155Token` contract to allow minting of tokens. It adds a `MINTER_ROLE` and a `mint(address to, uint256 amount)` function that can only be called by accounts with the `MINTER_ROLE`.
 
-The deployment uses a `salt` which is combined with the caller's address for cross chain consistency and security.
+### Sale
 
-### Functions
+The `ERC1155TokenSale` contract is a preset that configures the `ERC1155Token` contract to allow for the sale of tokens. It adds a `mint(address to, , uint256[] memory tokenIds, uint256[] memory amounts, bytes memory data, bytes32[] calldata proof)` function allows for the minting of tokens under various conditions.
 
-* `deploy(address owner, string memory name, string memory baseURI, bytes32 salt)`: Deploys a new ERC1155Token proxy contract, initializes it, and emits an ERC1155TokenDeployed event.
+Conditions may be set by the contract owner using either the `setTokenSaleDetails(uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot)` function for single token settings or the `setGlobalSaleDetails(uint256 cost, uint256 supplyCap, address paymentTokenAddr, uint64 startTime, uint64 endTime, bytes32 merkleRoot)` function for global settings. These functions can only be called by accounts with the `MINT_ADMIN_ROLE`. 
+
+For information about the function parameters, please refer to the function specification in `presets/sale/IERC1155Sale.sol`.
 
 ## Usage
 
-To create a new ERC1155 token:
+This section of this repo utilitizes a factory pattern that deploys proxies contracts. This allows for a single deployment of each `Factory` contract, and subsequent deployments of the contracts with minimal gas costs.
 
-1. Deploy the ERC1155TokenFactory contract (or use an existing deployment).
+1. Deploy the `[XXX]Factory` contract for the contract you wish to use (or use an existing deployment).
 2. Call the `deploy` function on the factory, providing the desired parameters.
-3. A new ERC1155Token contract will be created and initialized, ready for use.
+3. A new contract will be created and initialized, ready for use.
 
 ## Dependencies
 
