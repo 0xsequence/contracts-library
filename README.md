@@ -35,8 +35,6 @@ Then run the deployment script.
 yarn deploy
 ```
 
-**Note:** The Factory contracts in this repository contain no state and are not ownable, as such they only need to be deployed once per network. The Factory contracts are then available to be used by anyone.
-
 ## Dependencies
 
 The contracts in this repository are built with Solidity ^0.8.17 and use 0xSequence, OpenZeppelin and Azuki contracts for standards implementation and additional functionalities such as access control.
