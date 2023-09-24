@@ -13,7 +13,7 @@ import { JsonRpcProvider } from '@ethersproject/providers'
 
 dotenvConfig()
 
-const { PRIVATE_KEY, RPC_URL } = process.env
+const { PRIVATE_KEY, RPC_URL, FACTORY_OWNER } = process.env
 
 const MAX_GAS_LIMIT = 6000000
 
@@ -47,7 +47,7 @@ const singletonFactoryFactory = {
 }
 
 const main = async () => {
-  if (!PRIVATE_KEY || !RPC_URL) {
+  if (!PRIVATE_KEY || !RPC_URL || !FACTORY_OWNER) {
     throw new Error('Environment vars not set')
   }
 
@@ -76,7 +76,7 @@ const main = async () => {
       }
     }
     const contract = new MyContractFactory(wallet)
-    const contractCode = contract.getDeployTransaction().data
+    const contractCode = contract.getDeployTransaction(FACTORY_OWNER).data
     if (!contractCode) {
       throw new Error(`${solFile} did not return contract code`)
     }
