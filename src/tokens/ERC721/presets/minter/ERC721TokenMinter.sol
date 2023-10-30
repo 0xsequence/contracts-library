@@ -56,4 +56,18 @@ contract ERC721TokenMinter is ERC721Token, IERC721TokenMinter {
     function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
         _mint(to, amount);
     }
+
+    //
+    // Admin
+    //
+
+    /**
+     * Set name and symbol of token.
+     * @param tokenName Name of token.
+     * @param tokenSymbol Symbol of token.
+     */
+    function setNameAndSymbol(string memory tokenName, string memory tokenSymbol) external onlyRole(METADATA_ADMIN_ROLE) {
+        _tokenName = tokenName;
+        _tokenSymbol = tokenSymbol;
+    }
 }
