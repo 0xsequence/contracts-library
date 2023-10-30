@@ -52,6 +52,20 @@ contract ERC20TokenMinter is ERC20Token, IERC20TokenMinter {
     }
 
     //
+    // Admin
+    //
+
+    /**
+     * Set name and symbol of token.
+     * @param tokenName Name of token.
+     * @param tokenSymbol Symbol of token.
+     */
+    function setNameAndSymbol(string memory tokenName, string memory tokenSymbol) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _tokenName = tokenName;
+        _tokenSymbol = tokenSymbol;
+    }
+
+    //
     // Views
     //
 

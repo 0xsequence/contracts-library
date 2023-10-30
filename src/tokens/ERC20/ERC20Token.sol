@@ -13,8 +13,8 @@ error InvalidInitialization();
  */
 abstract contract ERC20Token is ERC20, AccessControl {
 
-    string private _tokenName;
-    string private _tokenSymbol;
+    string internal _tokenName;
+    string internal _tokenSymbol;
     uint8 private _tokenDecimals;
 
     address private immutable _initializer;

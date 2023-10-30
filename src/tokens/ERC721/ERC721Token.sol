@@ -15,8 +15,8 @@ abstract contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
     string private _tokenBaseURI;
-    string private _tokenName;
-    string private _tokenSymbol;
+    string internal _tokenName;
+    string internal _tokenSymbol;
 
     address private immutable _initializer;
     bool private _initialized;
