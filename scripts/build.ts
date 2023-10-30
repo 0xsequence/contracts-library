@@ -29,10 +29,9 @@ const main = async () => {
 
     // Replace source urls with file contents
     for (const sourceKey of Object.keys(compilerDetails.sources)) {
-      compilerDetails.sources[sourceKey].contents = await readFile(
-        join(sourceKey),
-        'utf8',
-      )
+      compilerDetails.sources[sourceKey] = {
+        content: await readFile(join(sourceKey), 'utf8'),
+      }
     }
 
     // Write the compiler input file
