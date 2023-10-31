@@ -18,15 +18,10 @@ abstract contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
     string internal _tokenName;
     string internal _tokenSymbol;
 
-    address private immutable _initializer;
-    bool private _initialized;
-
     /**
      * Deploy contract.
      */
-    constructor() ERC721A("", "") {
-        _initializer = msg.sender;
-    }
+    constructor() ERC721A("", "") {}
 
     /**
      * Initialize contract.
@@ -36,11 +31,9 @@ abstract contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
      * @param tokenBaseURI Base URI of the token
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, string memory tokenName, string memory tokenSymbol, string memory tokenBaseURI) public virtual {
-        if (msg.sender != _initializer || _initialized) {
-            revert InvalidInitialization();
-        }
-
+    function _initialize(address owner, string memory tokenName, string memory tokenSymbol, string memory tokenBaseURI)
+        internal
+    {
         _tokenName = tokenName;
         _tokenSymbol = tokenSymbol;
         _tokenBaseURI = tokenBaseURI;
@@ -48,8 +41,6 @@ abstract contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
         _setupRole(DEFAULT_ADMIN_ROLE, owner);
         _setupRole(METADATA_ADMIN_ROLE, owner);
         _setupRole(ROYALTY_ADMIN_ROLE, owner);
-
-        _initialized = true;
     }
 
     //

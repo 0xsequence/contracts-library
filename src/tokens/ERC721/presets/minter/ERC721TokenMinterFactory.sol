@@ -27,10 +27,12 @@ contract ERC721TokenMinterFactory is IERC721TokenMinterFactory, SequenceProxyFac
      * @param name The name of the ERC-721 Token Minter proxy
      * @param symbol The symbol of the ERC-721 Token Minter proxy
      * @param baseURI The base URI of the ERC-721 Token Minter proxy
+     * @param royaltyReceiver Address of who should be sent the royalty payment
+     * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @param salt The deployment salt
      * @return proxyAddr The address of the ERC-721 Token Minter Proxy
      * @dev The provided `salt` is hashed with the caller address for security.
-     * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-20 Token Minter functions.
+     * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-721 Token Minter functions.
      */
     function deploy(
         address proxyOwner,
@@ -38,13 +40,15 @@ contract ERC721TokenMinterFactory is IERC721TokenMinterFactory, SequenceProxyFac
         string memory name,
         string memory symbol,
         string memory baseURI,
+        address royaltyReceiver,
+        uint96 royaltyFeeNumerator,
         bytes32 salt
     )
         external
         returns (address proxyAddr)
     {
         proxyAddr = _createProxy(salt, proxyOwner, "");
-        ERC721TokenMinter(proxyAddr).initialize(tokenOwner, name, symbol, baseURI);
+        ERC721TokenMinter(proxyAddr).initialize(tokenOwner, name, symbol, baseURI, royaltyReceiver, royaltyFeeNumerator);
         emit ERC721TokenMinterDeployed(proxyAddr);
         return proxyAddr;
     }

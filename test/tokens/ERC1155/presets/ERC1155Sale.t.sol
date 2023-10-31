@@ -39,14 +39,14 @@ contract ERC1155SaleTest is Test, Merkle, IERC1155SaleSignals, IERC1155SupplySig
         proxyOwner = makeAddr("proxyOwner");
 
         token = new ERC1155Sale();
-        token.initialize(address(this), "test", "ipfs://");
+        token.initialize(address(this), "test", "ipfs://", address(this), 0);
 
         vm.deal(address(this), 1e6 ether);
     }
 
     function setUpFromFactory() public {
         ERC1155SaleFactory factory = new ERC1155SaleFactory(address(this));
-        token = ERC1155Sale(factory.deploy(proxyOwner, address(this), "test", "ipfs://", ""));
+        token = ERC1155Sale(factory.deploy(proxyOwner, address(this), "test", "ipfs://", address(this), 0, ""));
     }
 
     function testSupportsInterface() public {

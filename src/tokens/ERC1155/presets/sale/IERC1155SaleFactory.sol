@@ -8,11 +8,21 @@ interface IERC1155SaleFactoryFunctions {
      * @param tokenOwner The owner of the ERC-1155 Sale implementation
      * @param name The name of the ERC-1155 Sale token
      * @param baseURI The base URI of the ERC-1155 Sale token
+     * @param royaltyReceiver Address of who should be sent the royalty payment
+     * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @param salt The deployment salt
      * @return proxyAddr The address of the ERC-1155 Sale Proxy
-     * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-20 Token Minter functions.
+     * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-1155 Token Sale functions.
      */
-    function deploy(address proxyOwner, address tokenOwner, string memory name, string memory baseURI, bytes32 salt)
+    function deploy(
+        address proxyOwner,
+        address tokenOwner,
+        string memory name,
+        string memory baseURI,
+        address royaltyReceiver,
+        uint96 royaltyFeeNumerator,
+        bytes32 salt
+    )
         external
         returns (address proxyAddr);
 }

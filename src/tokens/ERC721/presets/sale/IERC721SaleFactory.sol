@@ -10,6 +10,8 @@ interface IERC721SaleFactoryFunctions {
      * @param name The name of the ERC-721 Sale token
      * @param symbol The symbol of the ERC-721 Sale token
      * @param baseURI The base URI of the ERC-721 Sale token
+     * @param royaltyReceiver Address of who should be sent the royalty payment
+     * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @param salt The deployment salt
      * @return proxyAddr The address of the ERC-721 Sale Proxy
      * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-721 Sale functions.
@@ -20,6 +22,8 @@ interface IERC721SaleFactoryFunctions {
         string memory name,
         string memory symbol,
         string memory baseURI,
+        address royaltyReceiver,
+        uint96 royaltyFeeNumerator,
         bytes32 salt
     )
         external

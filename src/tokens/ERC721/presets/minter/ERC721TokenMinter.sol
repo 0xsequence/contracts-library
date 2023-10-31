@@ -26,18 +26,27 @@ contract ERC721TokenMinter is ERC721Token, IERC721TokenMinter {
      * @param tokenName Name of the token
      * @param tokenSymbol Symbol of the token
      * @param tokenBaseURI Base URI of the token
+     * @param royaltyReceiver Address of who should be sent the royalty payment
+     * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, string memory tokenName, string memory tokenSymbol, string memory tokenBaseURI)
+    function initialize(
+        address owner,
+        string memory tokenName,
+        string memory tokenSymbol,
+        string memory tokenBaseURI,
+        address royaltyReceiver,
+        uint96 royaltyFeeNumerator
+    )
         public
         virtual
-        override
     {
         if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }
 
-        ERC721Token.initialize(owner, tokenName, tokenSymbol, tokenBaseURI);
+        ERC721Token._initialize(owner, tokenName, tokenSymbol, tokenBaseURI);
+        _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
 
         _setupRole(MINTER_ROLE, owner);
 
@@ -66,7 +75,10 @@ contract ERC721TokenMinter is ERC721Token, IERC721TokenMinter {
      * @param tokenName Name of token.
      * @param tokenSymbol Symbol of token.
      */
-    function setNameAndSymbol(string memory tokenName, string memory tokenSymbol) external onlyRole(METADATA_ADMIN_ROLE) {
+    function setNameAndSymbol(string memory tokenName, string memory tokenSymbol)
+        external
+        onlyRole(METADATA_ADMIN_ROLE)
+    {
         _tokenName = tokenName;
         _tokenSymbol = tokenSymbol;
     }

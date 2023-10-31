@@ -30,12 +30,12 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
         vm.deal(owner, 100 ether);
 
         ERC721TokenMinterFactory factory = new ERC721TokenMinterFactory(address(this));
-        token = ERC721TokenMinter(factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", 0x0));
+        token = ERC721TokenMinter(factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", address(this), 0, 0x0));
     }
 
     function testReinitializeFails() public {
         vm.expectRevert(InvalidInitialization.selector);
-        token.initialize(owner, "name", "symbol", "baseURI");
+        token.initialize(owner, "name", "symbol", "baseURI", address(this), 0);
     }
 
     function testSupportsInterface() public {
@@ -196,7 +196,7 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
         assertEq(amount, salePrice * feeNumerator / 10000);
 
         (receiver_, amount) = token.royaltyInfo(69, salePrice);
-        assertEq(receiver_, address(0));
+        assertEq(receiver_, address(this));
         assertEq(amount, 0);
     }
 

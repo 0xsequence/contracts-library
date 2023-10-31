@@ -3,7 +3,12 @@ pragma solidity ^0.8.17;
 
 import {IERC721Sale} from "@0xsequence/contracts-library/tokens/ERC721/presets/sale/IERC721Sale.sol";
 import {ERC721Token} from "@0xsequence/contracts-library/tokens/ERC721/ERC721Token.sol";
-import {WithdrawControlled, AccessControl, SafeERC20, IERC20} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
+import {
+    WithdrawControlled,
+    AccessControl,
+    SafeERC20,
+    IERC20
+} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
 import {MerkleProofSingleUse} from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
 
 /**
@@ -25,18 +30,28 @@ contract ERC721Sale is IERC721Sale, ERC721Token, WithdrawControlled, MerkleProof
      * @param tokenName Name of the token
      * @param tokenSymbol Symbol of the token
      * @param tokenBaseURI Base URI of the token
+     * @param royaltyReceiver Address of who should be sent the royalty payment
+     * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, string memory tokenName, string memory tokenSymbol, string memory tokenBaseURI)
+    function initialize(
+        address owner,
+        string memory tokenName,
+        string memory tokenSymbol,
+        string memory tokenBaseURI,
+        address royaltyReceiver,
+        uint96 royaltyFeeNumerator
+    )
         public
         virtual
-        override
     {
         if (_initialized) {
             revert InvalidInitialization();
         }
 
-        ERC721Token.initialize(owner, tokenName, tokenSymbol, tokenBaseURI);
+        ERC721Token._initialize(owner, tokenName, tokenSymbol, tokenBaseURI);
+        _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
+
         _setupRole(MINT_ADMIN_ROLE, owner);
         _setupRole(WITHDRAW_ROLE, owner);
 
@@ -145,7 +160,10 @@ contract ERC721Sale is IERC721Sale, ERC721Token, WithdrawControlled, MerkleProof
      * @param tokenName Name of token.
      * @param tokenSymbol Symbol of token.
      */
-    function setNameAndSymbol(string memory tokenName, string memory tokenSymbol) external onlyRole(METADATA_ADMIN_ROLE) {
+    function setNameAndSymbol(string memory tokenName, string memory tokenSymbol)
+        external
+        onlyRole(METADATA_ADMIN_ROLE)
+    {
         _tokenName = tokenName;
         _tokenSymbol = tokenSymbol;
     }
