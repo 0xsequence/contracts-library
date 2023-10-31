@@ -30,7 +30,7 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
         vm.deal(owner, 100 ether);
 
         ERC721TokenMinterFactory factory = new ERC721TokenMinterFactory(address(this));
-        token = ERC721TokenMinter(factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", address(this), 0, 0x0));
+        token = ERC721TokenMinter(factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", address(this), 0));
     }
 
     function testReinitializeFails() public {

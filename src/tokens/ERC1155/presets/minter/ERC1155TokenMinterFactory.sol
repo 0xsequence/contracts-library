@@ -27,9 +27,7 @@ contract ERC1155TokenMinterFactory is IERC1155TokenMinterFactory, SequenceProxyF
      * @param baseURI The base URI of the ERC-1155 Token Minter proxy
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
-     * @param salt The deployment salt
      * @return proxyAddr The address of the ERC-1155 Token Minter Proxy
-     * @dev The provided `salt` is hashed with the caller address for security.
      * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-1155 Token Minter functions.
      */
     function deploy(
@@ -38,12 +36,12 @@ contract ERC1155TokenMinterFactory is IERC1155TokenMinterFactory, SequenceProxyF
         string memory name,
         string memory baseURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator,
-        bytes32 salt
+        uint96 royaltyFeeNumerator
     )
         external
         returns (address proxyAddr)
     {
+        bytes32 salt = keccak256(abi.encodePacked(tokenOwner, name, baseURI, royaltyReceiver, royaltyFeeNumerator));
         proxyAddr = _createProxy(salt, proxyOwner, "");
         ERC1155TokenMinter(proxyAddr).initialize(tokenOwner, name, baseURI, royaltyReceiver, royaltyFeeNumerator);
         emit ERC1155TokenMinterDeployed(proxyAddr);

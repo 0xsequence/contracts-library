@@ -10,7 +10,6 @@ interface IERC1155SaleFactoryFunctions {
      * @param baseURI The base URI of the ERC-1155 Sale token
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
-     * @param salt The deployment salt
      * @return proxyAddr The address of the ERC-1155 Sale Proxy
      * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-1155 Token Sale functions.
      */
@@ -20,8 +19,7 @@ interface IERC1155SaleFactoryFunctions {
         string memory name,
         string memory baseURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator,
-        bytes32 salt
+        uint96 royaltyFeeNumerator
     )
         external
         returns (address proxyAddr);

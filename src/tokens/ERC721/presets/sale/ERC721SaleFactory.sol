@@ -9,7 +9,6 @@ import {SequenceProxyFactory} from "@0xsequence/contracts-library/proxies/Sequen
  * Deployer of ERC-721 Sale proxies.
  */
 contract ERC721SaleFactory is IERC721SaleFactory, SequenceProxyFactory {
-
     /**
      * Creates an ERC-721 Sale Factory.
      * @param factoryOwner The owner of the ERC-721 Sale Factory
@@ -28,7 +27,6 @@ contract ERC721SaleFactory is IERC721SaleFactory, SequenceProxyFactory {
      * @param baseURI The base URI of the ERC-721 Sale token
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
-     * @param salt The deployment salt
      * @return proxyAddr The address of the ERC-721 Sale Proxy
      * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-721 Sale functions.
      */
@@ -39,12 +37,13 @@ contract ERC721SaleFactory is IERC721SaleFactory, SequenceProxyFactory {
         string memory symbol,
         string memory baseURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator,
-        bytes32 salt
+        uint96 royaltyFeeNumerator
     )
         external
         returns (address proxyAddr)
     {
+        bytes32 salt =
+            keccak256(abi.encodePacked(tokenOwner, name, symbol, baseURI, royaltyReceiver, royaltyFeeNumerator));
         proxyAddr = _createProxy(salt, proxyOwner, "");
         ERC721Sale(proxyAddr).initialize(tokenOwner, name, symbol, baseURI, royaltyReceiver, royaltyFeeNumerator);
         emit ERC721SaleDeployed(proxyAddr);

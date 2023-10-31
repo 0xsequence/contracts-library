@@ -26,7 +26,6 @@ contract ERC1155SaleFactory is IERC1155SaleFactory, SequenceProxyFactory {
      * @param baseURI The base URI of the ERC-1155 Sale token
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
-     * @param salt The deployment salt
      * @return proxyAddr The address of the ERC-1155 Sale Proxy
      * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-1155 Sale Minter functions.
      */
@@ -36,12 +35,12 @@ contract ERC1155SaleFactory is IERC1155SaleFactory, SequenceProxyFactory {
         string memory name,
         string memory baseURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator,
-        bytes32 salt
+        uint96 royaltyFeeNumerator
     )
         external
         returns (address proxyAddr)
     {
+        bytes32 salt = keccak256(abi.encodePacked(tokenOwner, name, baseURI, royaltyReceiver, royaltyFeeNumerator));
         proxyAddr = _createProxy(salt, proxyOwner, "");
         ERC1155Sale(proxyAddr).initialize(tokenOwner, name, baseURI, royaltyReceiver, royaltyFeeNumerator);
         emit ERC1155SaleDeployed(proxyAddr);

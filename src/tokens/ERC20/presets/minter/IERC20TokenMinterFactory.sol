@@ -9,19 +9,10 @@ interface IERC20TokenMinterFactoryFunctions {
      * @param name The name of the ERC-20 Token Minter proxy
      * @param symbol The symbol of the ERC-20 Token Minter proxy
      * @param decimals The decimals of the ERC-20 Token Minter proxy
-     * @param salt The deployment salt
      * @return proxyAddr The address of the ERC-20 Token Minter Proxy
-     * @dev The provided `salt` is hashed with the caller address for security.
      * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-20 Token Minter functions.
      */
-    function deploy(
-        address proxyOwner,
-        address tokenOwner,
-        string memory name,
-        string memory symbol,
-        uint8 decimals,
-        bytes32 salt
-    )
+    function deploy(address proxyOwner, address tokenOwner, string memory name, string memory symbol, uint8 decimals)
         external
         returns (address proxyAddr);
 }

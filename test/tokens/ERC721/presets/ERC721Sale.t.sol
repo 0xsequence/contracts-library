@@ -42,7 +42,7 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
 
     function setUpFromFactory() public {
         ERC721SaleFactory factory = new ERC721SaleFactory(address(this));
-        token = ERC721Sale(factory.deploy(proxyOwner, address(this), "test", "test", "ipfs://", address(this), 0, ""));
+        token = ERC721Sale(factory.deploy(proxyOwner, address(this), "test", "test", "ipfs://", address(this), 0));
     }
 
     function testSupportsInterface() public {
