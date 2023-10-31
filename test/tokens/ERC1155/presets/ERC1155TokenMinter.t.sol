@@ -35,7 +35,7 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
         vm.deal(owner, 100 ether);
 
         ERC1155TokenMinterFactory factory = new ERC1155TokenMinterFactory(address(this));
-        token = ERC1155TokenMinter(factory.deploy(proxyOwner, owner, "name", "baseURI", address(this), 0, 0x0));
+        token = ERC1155TokenMinter(factory.deploy(proxyOwner, owner, "name", "baseURI", address(this), 0));
     }
 
     function testReinitializeFails() public {

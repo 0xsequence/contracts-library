@@ -32,7 +32,7 @@ contract ERC20TokenMinterTest is Test, IERC20TokenMinterSignals {
         vm.deal(owner, 100 ether);
 
         ERC20TokenMinterFactory factory = new ERC20TokenMinterFactory(address(this));
-        token = ERC20TokenMinter(factory.deploy(proxyOwner, owner, "name", "symbol", DECIMALS, 0x0));
+        token = ERC20TokenMinter(factory.deploy(proxyOwner, owner, "name", "symbol", DECIMALS));
     }
 
     function testReinitializeFails() public {
