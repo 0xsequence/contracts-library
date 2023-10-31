@@ -35,12 +35,12 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
         vm.deal(owner, 100 ether);
 
         ERC1155TokenMinterFactory factory = new ERC1155TokenMinterFactory(address(this));
-        token = ERC1155TokenMinter(factory.deploy(proxyOwner, owner, "name", "baseURI", 0x0));
+        token = ERC1155TokenMinter(factory.deploy(proxyOwner, owner, "name", "baseURI", address(this), 0, 0x0));
     }
 
     function testReinitializeFails() public {
         vm.expectRevert(InvalidInitialization.selector);
-        token.initialize(owner, "name", "baseURI");
+        token.initialize(owner, "name", "baseURI", address(this), 0);
     }
 
     function testSupportsInterface() public {
@@ -240,7 +240,7 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
         assertEq(amount, salePrice * feeNumerator / 10000);
 
         (receiver_, amount) = token.royaltyInfo(69, salePrice);
-        assertEq(receiver_, address(0));
+        assertEq(receiver_, address(this));
         assertEq(amount, 0);
     }
 

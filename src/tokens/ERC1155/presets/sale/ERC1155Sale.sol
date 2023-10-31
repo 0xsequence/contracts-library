@@ -2,16 +2,19 @@
 pragma solidity ^0.8.17;
 
 import {IERC1155Sale} from "@0xsequence/contracts-library/tokens/ERC1155/presets/sale/IERC1155Sale.sol";
-import {ERC1155Supply, ERC1155Token} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
-import {WithdrawControlled, AccessControl, SafeERC20, IERC20} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
+import {
+    ERC1155Supply,
+    ERC1155Token
+} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
+import {
+    WithdrawControlled,
+    AccessControl,
+    SafeERC20,
+    IERC20
+} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
 import {MerkleProofSingleUse} from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
 
-contract ERC1155Sale is
-    IERC1155Sale,
-    ERC1155Supply,
-    WithdrawControlled,
-    MerkleProofSingleUse
-{
+contract ERC1155Sale is IERC1155Sale, ERC1155Supply, WithdrawControlled, MerkleProofSingleUse {
     bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
     bytes4 private constant _ERC20_TRANSFERFROM_SELECTOR =
@@ -27,20 +30,30 @@ contract ERC1155Sale is
 
     /**
      * Initialize the contract.
-     * @param owner Owner address.
-     * @param tokenName Token name.
-     * @param tokenBaseURI Base URI for token metadata.
+     * @param owner Owner address
+     * @param tokenName Token name
+     * @param tokenBaseURI Base URI for token metadata
+     * @param royaltyReceiver Address of who should be sent the royalty payment
+     * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, string memory tokenName, string memory tokenBaseURI) public virtual override {
+    function initialize(
+        address owner,
+        string memory tokenName,
+        string memory tokenBaseURI,
+        address royaltyReceiver,
+        uint96 royaltyFeeNumerator
+    )
+        public
+        virtual
+    {
         if (_initialized) {
             revert InvalidInitialization();
         }
-        ERC1155Token.initialize(owner, tokenName, tokenBaseURI);
 
-        name = tokenName;
-        baseURI = tokenBaseURI;
-        _setupRole(DEFAULT_ADMIN_ROLE, owner);
+        ERC1155Token._initialize(owner, tokenName, tokenBaseURI);
+        _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
+
         _setupRole(MINT_ADMIN_ROLE, owner);
         _setupRole(WITHDRAW_ROLE, owner);
 
@@ -64,7 +77,9 @@ contract ERC1155Sale is
      * @param _amounts Amounts of tokens to mint.
      * @param _proof Merkle proof for allowlist minting.
      */
-    function _payForActiveMint(uint256[] memory _tokenIds, uint256[] memory _amounts, bytes32[] calldata _proof) private {
+    function _payForActiveMint(uint256[] memory _tokenIds, uint256[] memory _amounts, bytes32[] calldata _proof)
+        private
+    {
         uint256 lastTokenId;
         uint256 totalCost;
         uint256 totalAmount;
@@ -127,7 +142,13 @@ contract ERC1155Sale is
      * @dev tokenIds must be sorted ascending without duplicates.
      * @dev An empty proof is supplied when no proof is required.
      */
-    function mint(address to, uint256[] memory tokenIds, uint256[] memory amounts, bytes memory data, bytes32[] calldata proof)
+    function mint(
+        address to,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts,
+        bytes memory data,
+        bytes32[] calldata proof
+    )
         public
         payable
     {

@@ -14,15 +14,10 @@ error InvalidInitialization();
 abstract contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981Controlled {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
-    address private immutable _initializer;
-    bool private _initialized;
-
     /**
-     * Initialize contract.
+     * Deploy contract.
      */
-    constructor() ERC1155Metadata("", "") {
-        _initializer = msg.sender;
-    }
+    constructor() ERC1155Metadata("", "") {}
 
     /**
      * Initialize the contract.
@@ -30,21 +25,14 @@ abstract contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata,
      * @param tokenName Token name.
      * @param tokenBaseURI Base URI for token metadata.
      * @dev This should be called immediately after deployment.
-     
      */
-    function initialize(address owner, string memory tokenName, string memory tokenBaseURI) public virtual {
-        if (msg.sender != _initializer || _initialized) {
-            revert InvalidInitialization();
-        }
-
+    function _initialize(address owner, string memory tokenName, string memory tokenBaseURI) internal {
         name = tokenName;
         baseURI = tokenBaseURI;
 
         _setupRole(DEFAULT_ADMIN_ROLE, owner);
         _setupRole(ROYALTY_ADMIN_ROLE, owner);
         _setupRole(METADATA_ADMIN_ROLE, owner);
-
-        _initialized = true;
     }
 
     //
@@ -84,7 +72,6 @@ abstract contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata,
         returns (bool)
     {
         return ERC1155.supportsInterface(interfaceId) || ERC1155Metadata.supportsInterface(interfaceId)
-            || ERC2981Controlled.supportsInterface(interfaceId)
-            || super.supportsInterface(interfaceId);
+            || ERC2981Controlled.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
     }
 }
