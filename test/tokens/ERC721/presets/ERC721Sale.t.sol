@@ -19,7 +19,7 @@ import {IERC721A} from "erc721a/contracts/interfaces/IERC721A.sol";
 import {IERC721AQueryable} from "erc721a/contracts/interfaces/IERC721AQueryable.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
-// solhint-disable no-rely-on-time
+// solhint-disable not-rely-on-time
 
 contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleUseSignals {
     // Redeclare events

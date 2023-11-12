@@ -19,7 +19,7 @@ import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import {IERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
-// solhint-disable no-rely-on-time
+// solhint-disable not-rely-on-time
 
 contract ERC1155SaleTest is Test, Merkle, IERC1155SaleSignals, IERC1155SupplySignals, IMerkleProofSingleUseSignals {
     // Redeclare events
