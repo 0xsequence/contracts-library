@@ -27,7 +27,7 @@ interface IERC721TokenMinterFactoryFunctions {
         returns (address proxyAddr);
 }
 
-interface IERC721TokenMinterFactorySignalss {
+interface IERC721TokenMinterFactorySignals {
     /**
      * Event emitted when a new ERC-721 Token Minter proxy contract is deployed.
      * @param proxyAddr The address of the deployed proxy.
@@ -35,4 +35,4 @@ interface IERC721TokenMinterFactorySignalss {
     event ERC721TokenMinterDeployed(address proxyAddr);
 }
 
-interface IERC721TokenMinterFactory is IERC721TokenMinterFactoryFunctions, IERC721TokenMinterFactorySignalss {}
+interface IERC721TokenMinterFactory is IERC721TokenMinterFactoryFunctions, IERC721TokenMinterFactorySignals {}
