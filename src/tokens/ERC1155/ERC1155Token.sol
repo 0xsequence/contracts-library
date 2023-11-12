@@ -14,6 +14,8 @@ error InvalidInitialization();
 abstract contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata, ERC2981Controlled {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
+    string private _contractURI;
+
     /**
      * Deploy contract.
      */
@@ -24,11 +26,20 @@ abstract contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata,
      * @param owner Owner address.
      * @param tokenName Token name.
      * @param tokenBaseURI Base URI for token metadata.
+     * @param tokenContractURI Contract URI for token metadata.
      * @dev This should be called immediately after deployment.
      */
-    function _initialize(address owner, string memory tokenName, string memory tokenBaseURI) internal {
+    function _initialize(
+        address owner,
+        string memory tokenName,
+        string memory tokenBaseURI,
+        string memory tokenContractURI
+    )
+        internal
+    {
         name = tokenName;
         baseURI = tokenBaseURI;
+        _contractURI = tokenContractURI;
 
         _setupRole(DEFAULT_ADMIN_ROLE, owner);
         _setupRole(ROYALTY_ADMIN_ROLE, owner);
@@ -40,8 +51,8 @@ abstract contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata,
     //
 
     /**
-     * Update the base URL of token's URI.
-     * @param tokenBaseURI New base URL of token's URI
+     * Update the base URI of token's URI.
+     * @param tokenBaseURI New base URI of token's URI
      */
     function setBaseMetadataURI(string memory tokenBaseURI) external onlyRole(METADATA_ADMIN_ROLE) {
         _setBaseMetadataURI(tokenBaseURI);
@@ -55,9 +66,27 @@ abstract contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata,
         _setContractName(tokenName);
     }
 
+    /**
+     * Update the contract URI of token's URI.
+     * @param tokenContractURI New contract URI of token's URI
+     * @notice Refer to https://docs.opensea.io/docs/contract-level-metadata
+     */
+    function setContractURI(string memory tokenContractURI) external onlyRole(METADATA_ADMIN_ROLE) {
+        _contractURI = tokenContractURI;
+    }
+
     //
     // Views
     //
+
+    /**
+     * Get the contract URI of token's URI.
+     * @return Contract URI of token's URI
+     * @notice Refer to https://docs.opensea.io/docs/contract-level-metadata
+     */
+    function contractURI() public view returns (string memory) {
+        return _contractURI;
+    }
 
     /**
      * Check interface support.

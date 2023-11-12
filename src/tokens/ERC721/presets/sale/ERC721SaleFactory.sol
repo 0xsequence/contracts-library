@@ -25,6 +25,7 @@ contract ERC721SaleFactory is IERC721SaleFactory, SequenceProxyFactory {
      * @param name The name of the ERC-721 Sale token
      * @param symbol The symbol of the ERC-721 Sale token
      * @param baseURI The base URI of the ERC-721 Sale token
+     * @param contractURI The contract URI of the ERC-721 Sale token
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @return proxyAddr The address of the ERC-721 Sale Proxy
@@ -36,16 +37,20 @@ contract ERC721SaleFactory is IERC721SaleFactory, SequenceProxyFactory {
         string memory name,
         string memory symbol,
         string memory baseURI,
+        string memory contractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
     )
         external
         returns (address proxyAddr)
     {
-        bytes32 salt =
-            keccak256(abi.encodePacked(tokenOwner, name, symbol, baseURI, royaltyReceiver, royaltyFeeNumerator));
+        bytes32 salt = keccak256(
+            abi.encodePacked(tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator)
+        );
         proxyAddr = _createProxy(salt, proxyOwner, "");
-        ERC721Sale(proxyAddr).initialize(tokenOwner, name, symbol, baseURI, royaltyReceiver, royaltyFeeNumerator);
+        ERC721Sale(proxyAddr).initialize(
+            tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator
+        );
         emit ERC721SaleDeployed(proxyAddr);
         return proxyAddr;
     }

@@ -39,14 +39,14 @@ contract ERC1155SaleTest is Test, Merkle, IERC1155SaleSignals, IERC1155SupplySig
         proxyOwner = makeAddr("proxyOwner");
 
         token = new ERC1155Sale();
-        token.initialize(address(this), "test", "ipfs://", address(this), 0);
+        token.initialize(address(this), "test", "ipfs://", "ipfs://", address(this), 0);
 
         vm.deal(address(this), 1e6 ether);
     }
 
     function setUpFromFactory() public {
         ERC1155SaleFactory factory = new ERC1155SaleFactory(address(this));
-        token = ERC1155Sale(factory.deploy(proxyOwner, address(this), "test", "ipfs://", address(this), 0));
+        token = ERC1155Sale(factory.deploy(proxyOwner, address(this), "test", "ipfs://", "ipfs://", address(this), 0));
     }
 
     function testSupportsInterface() public {
@@ -54,6 +54,20 @@ contract ERC1155SaleTest is Test, Merkle, IERC1155SaleSignals, IERC1155SupplySig
         assertTrue(token.supportsInterface(type(IERC1155).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155Metadata).interfaceId));
         assertTrue(token.supportsInterface(type(IAccessControl).interfaceId));
+    }
+
+    //
+    // Metadata
+    //
+
+    function testContractURI(bool useFactory) external withFactory(useFactory) {
+        address nonOwner = makeAddr("nonOwner");
+        vm.expectRevert(); // Missing role
+        vm.prank(nonOwner);
+        token.setContractURI("contract://");
+
+        token.setContractURI("contract://");
+        assertEq("contract://", token.contractURI());
     }
 
     //

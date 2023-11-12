@@ -8,6 +8,7 @@ interface IERC1155SaleFactoryFunctions {
      * @param tokenOwner The owner of the ERC-1155 Sale implementation
      * @param name The name of the ERC-1155 Sale token
      * @param baseURI The base URI of the ERC-1155 Sale token
+     * @param contractURI The contract URI of the ERC-1155 Sale token
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @return proxyAddr The address of the ERC-1155 Sale Proxy
@@ -18,6 +19,7 @@ interface IERC1155SaleFactoryFunctions {
         address tokenOwner,
         string memory name,
         string memory baseURI,
+        string memory contractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
     )

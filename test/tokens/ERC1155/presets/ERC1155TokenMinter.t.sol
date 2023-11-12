@@ -35,12 +35,12 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
         vm.deal(owner, 100 ether);
 
         ERC1155TokenMinterFactory factory = new ERC1155TokenMinterFactory(address(this));
-        token = ERC1155TokenMinter(factory.deploy(proxyOwner, owner, "name", "baseURI", address(this), 0));
+        token = ERC1155TokenMinter(factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0));
     }
 
     function testReinitializeFails() public {
         vm.expectRevert(InvalidInitialization.selector);
-        token.initialize(owner, "name", "baseURI", address(this), 0);
+        token.initialize(owner, "name", "baseURI", "contractURI", address(this), 0);
     }
 
     function testSupportsInterface() public {
@@ -54,6 +54,21 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
         assertTrue(token.hasRole(token.METADATA_ADMIN_ROLE(), owner));
         assertTrue(token.hasRole(token.MINTER_ROLE(), owner));
         assertTrue(token.hasRole(token.ROYALTY_ADMIN_ROLE(), owner));
+    }
+
+    //
+    // Metadata
+    //
+
+    function testContractURI() external {
+        address nonOwner = makeAddr("nonOwner");
+        vm.expectRevert(); // Missing role
+        vm.prank(nonOwner);
+        token.setContractURI("contract://");
+
+        vm.prank(owner);
+        token.setContractURI("contract://");
+        assertEq("contract://", token.contractURI());
     }
 
     //

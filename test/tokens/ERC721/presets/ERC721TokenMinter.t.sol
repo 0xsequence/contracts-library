@@ -30,12 +30,12 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
         vm.deal(owner, 100 ether);
 
         ERC721TokenMinterFactory factory = new ERC721TokenMinterFactory(address(this));
-        token = ERC721TokenMinter(factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", address(this), 0));
+        token = ERC721TokenMinter(factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", "contractURI", address(this), 0));
     }
 
     function testReinitializeFails() public {
         vm.expectRevert(InvalidInitialization.selector);
-        token.initialize(owner, "name", "symbol", "baseURI", address(this), 0);
+        token.initialize(owner, "name", "symbol", "baseURI", "contractURI", address(this), 0);
     }
 
     function testSupportsInterface() public {
@@ -82,6 +82,17 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
 
         testMintOwner();
         assertEq("metadata://0", token.tokenURI(0));
+    }
+
+    function testContractURI() external {
+        address nonOwner = makeAddr("nonOwner");
+        vm.expectRevert(); // Missing role
+        vm.prank(nonOwner);
+        token.setContractURI("contract://");
+
+        vm.prank(owner);
+        token.setContractURI("contract://");
+        assertEq("contract://", token.contractURI());
     }
 
     //

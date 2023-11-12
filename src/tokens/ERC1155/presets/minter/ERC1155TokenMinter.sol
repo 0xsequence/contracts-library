@@ -24,6 +24,7 @@ contract ERC1155TokenMinter is ERC1155MintBurn, ERC1155Token, IERC1155TokenMinte
      * @param owner Owner address
      * @param tokenName Token name
      * @param tokenBaseURI Base URI for token metadata
+     * @param tokenContractURI Contract URI for token metadata
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @dev This should be called immediately after deployment.
@@ -32,6 +33,7 @@ contract ERC1155TokenMinter is ERC1155MintBurn, ERC1155Token, IERC1155TokenMinte
         address owner,
         string memory tokenName,
         string memory tokenBaseURI,
+        string memory tokenContractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
     )
@@ -42,7 +44,7 @@ contract ERC1155TokenMinter is ERC1155MintBurn, ERC1155Token, IERC1155TokenMinte
             revert InvalidInitialization();
         }
 
-        ERC1155Token._initialize(owner, tokenName, tokenBaseURI);
+        ERC1155Token._initialize(owner, tokenName, tokenBaseURI, tokenContractURI);
         _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
 
         _setupRole(MINTER_ROLE, owner);

@@ -35,14 +35,14 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
         proxyOwner = makeAddr("proxyOwner");
 
         token = new ERC721Sale();
-        token.initialize(address(this), "test", "test", "ipfs://", address(this), 0);
+        token.initialize(address(this), "test", "test", "ipfs://", "ipfs://", address(this), 0);
 
         vm.deal(address(this), 100 ether);
     }
 
     function setUpFromFactory() public {
         ERC721SaleFactory factory = new ERC721SaleFactory(address(this));
-        token = ERC721Sale(factory.deploy(proxyOwner, address(this), "test", "test", "ipfs://", address(this), 0));
+        token = ERC721Sale(factory.deploy(proxyOwner, address(this), "test", "test", "ipfs://", "ipfs://", address(this), 0));
     }
 
     function testSupportsInterface() public {
@@ -57,7 +57,7 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
     // Metadata
     //
 
-    function testNameAndSymbol() external {
+    function testNameAndSymbol(bool useFactory) external withFactory(useFactory) {
         address nonOwner = makeAddr("nonOwner");
         vm.expectRevert(); // Missing role
         vm.prank(nonOwner);
@@ -68,7 +68,7 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
         assertEq("symbol", token.symbol());
     }
 
-    function testTokenMetadata() external {
+    function testTokenMetadata(bool useFactory) external withFactory(useFactory) {
         address nonOwner = makeAddr("nonOwner");
         vm.expectRevert(); // Missing role
         vm.prank(nonOwner);
@@ -83,6 +83,16 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
 
         token.mint(mintTo, 1, TestHelper.blankProof());
         assertEq("metadata://0", token.tokenURI(0));
+    }
+
+    function testContractURI(bool useFactory) external withFactory(useFactory) {
+        address nonOwner = makeAddr("nonOwner");
+        vm.expectRevert(); // Missing role
+        vm.prank(nonOwner);
+        token.setContractURI("contract://");
+
+        token.setContractURI("contract://");
+        assertEq("contract://", token.contractURI());
     }
 
     //

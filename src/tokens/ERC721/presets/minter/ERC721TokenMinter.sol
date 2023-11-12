@@ -26,6 +26,7 @@ contract ERC721TokenMinter is ERC721Token, IERC721TokenMinter {
      * @param tokenName Name of the token
      * @param tokenSymbol Symbol of the token
      * @param tokenBaseURI Base URI of the token
+     * @param tokenContractURI Contract URI of the token
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @dev This should be called immediately after deployment.
@@ -35,6 +36,7 @@ contract ERC721TokenMinter is ERC721Token, IERC721TokenMinter {
         string memory tokenName,
         string memory tokenSymbol,
         string memory tokenBaseURI,
+        string memory tokenContractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
     )
@@ -45,7 +47,7 @@ contract ERC721TokenMinter is ERC721Token, IERC721TokenMinter {
             revert InvalidInitialization();
         }
 
-        ERC721Token._initialize(owner, tokenName, tokenSymbol, tokenBaseURI);
+        ERC721Token._initialize(owner, tokenName, tokenSymbol, tokenBaseURI, tokenContractURI);
         _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
 
         _setupRole(MINTER_ROLE, owner);

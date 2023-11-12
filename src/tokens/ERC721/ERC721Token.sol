@@ -17,6 +17,7 @@ abstract contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
     string private _tokenBaseURI;
     string private _tokenName;
     string private _tokenSymbol;
+    string private _contractURI;
 
     /**
      * Deploy contract.
@@ -29,14 +30,22 @@ abstract contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
      * @param tokenName Name of the token
      * @param tokenSymbol Symbol of the token
      * @param tokenBaseURI Base URI of the token
+     * @param tokenContractURI Contract URI of the token
      * @dev This should be called immediately after deployment.
      */
-    function _initialize(address owner, string memory tokenName, string memory tokenSymbol, string memory tokenBaseURI)
+    function _initialize(
+        address owner,
+        string memory tokenName,
+        string memory tokenSymbol,
+        string memory tokenBaseURI,
+        string memory tokenContractURI
+    )
         internal
     {
         _tokenName = tokenName;
         _tokenSymbol = tokenSymbol;
         _tokenBaseURI = tokenBaseURI;
+        _contractURI = tokenContractURI;
 
         _setupRole(DEFAULT_ADMIN_ROLE, owner);
         _setupRole(METADATA_ADMIN_ROLE, owner);
@@ -61,16 +70,34 @@ abstract contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
     }
 
     /**
-     * Update the base URL of token's URI.
-     * @param tokenBaseURI New base URL of token's URI
+     * Update the base URI of token's URI.
+     * @param tokenBaseURI New base URI of token's URI
      */
     function setBaseMetadataURI(string memory tokenBaseURI) external onlyRole(METADATA_ADMIN_ROLE) {
         _tokenBaseURI = tokenBaseURI;
     }
 
+    /**
+     * Update the contract URI of token's URI.
+     * @param tokenContractURI New contract URI of token's URI
+     * @notice Refer to https://docs.opensea.io/docs/contract-level-metadata
+     */
+    function setContractURI(string memory tokenContractURI) external onlyRole(METADATA_ADMIN_ROLE) {
+        _contractURI = tokenContractURI;
+    }
+
     //
     // Views
     //
+
+    /**
+     * Get the contract URI of token's URI.
+     * @return Contract URI of token's URI
+     * @notice Refer to https://docs.opensea.io/docs/contract-level-metadata
+     */
+    function contractURI() public view returns (string memory) {
+        return _contractURI;
+    }
 
     /**
      * Check interface support.

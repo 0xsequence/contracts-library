@@ -26,6 +26,7 @@ contract ERC721TokenMinterFactory is IERC721TokenMinterFactory, SequenceProxyFac
      * @param name The name of the ERC-721 Token Minter proxy
      * @param symbol The symbol of the ERC-721 Token Minter proxy
      * @param baseURI The base URI of the ERC-721 Token Minter proxy
+     * @param contractURI The contract URI of the ERC-721 Token Minter proxy
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @return proxyAddr The address of the ERC-721 Token Minter Proxy
@@ -37,6 +38,7 @@ contract ERC721TokenMinterFactory is IERC721TokenMinterFactory, SequenceProxyFac
         string memory name,
         string memory symbol,
         string memory baseURI,
+        string memory contractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
     )
@@ -44,9 +46,9 @@ contract ERC721TokenMinterFactory is IERC721TokenMinterFactory, SequenceProxyFac
         returns (address proxyAddr)
     {
         bytes32 salt =
-            keccak256(abi.encodePacked(tokenOwner, name, symbol, baseURI, royaltyReceiver, royaltyFeeNumerator));
+            keccak256(abi.encodePacked(tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
         proxyAddr = _createProxy(salt, proxyOwner, "");
-        ERC721TokenMinter(proxyAddr).initialize(tokenOwner, name, symbol, baseURI, royaltyReceiver, royaltyFeeNumerator);
+        ERC721TokenMinter(proxyAddr).initialize(tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator);
         emit ERC721TokenMinterDeployed(proxyAddr);
         return proxyAddr;
     }
