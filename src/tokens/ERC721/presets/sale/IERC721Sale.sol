@@ -45,13 +45,6 @@ interface IERC721SaleFunctions {
      * @return Sale details.
      */
     function saleDetails() external view returns (SaleDetails memory);
-
-    /**
-     * Set name and symbol of token.
-     * @param tokenName Name of token.
-     * @param tokenSymbol Symbol of token.
-     */
-    function setNameAndSymbol(string memory tokenName, string memory tokenSymbol) external;
 }
 
 interface IERC721SaleSignals {

@@ -152,23 +152,6 @@ contract ERC721Sale is IERC721Sale, ERC721Token, WithdrawControlled, MerkleProof
     }
 
     //
-    // Admin
-    //
-
-    /**
-     * Set name and symbol of token.
-     * @param tokenName Name of token.
-     * @param tokenSymbol Symbol of token.
-     */
-    function setNameAndSymbol(string memory tokenName, string memory tokenSymbol)
-        external
-        onlyRole(METADATA_ADMIN_ROLE)
-    {
-        _tokenName = tokenName;
-        _tokenSymbol = tokenSymbol;
-    }
-
-    //
     // Views
     //
 

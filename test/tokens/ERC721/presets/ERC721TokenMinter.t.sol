@@ -53,9 +53,35 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
         assertTrue(token.hasRole(token.ROYALTY_ADMIN_ROLE(), owner));
     }
 
-    function testNameAndSymbol() public {
-        assertEq(token.name(), "name");
-        assertEq(token.symbol(), "symbol");
+    //
+    // Metadata
+    //
+
+    function testNameAndSymbol() external {
+        address nonOwner = makeAddr("nonOwner");
+        vm.expectRevert(); // Missing role
+        vm.prank(nonOwner);
+        token.setNameAndSymbol("name", "symbol");
+
+        vm.prank(owner);
+        token.setNameAndSymbol("name", "symbol");
+        assertEq("name", token.name());
+        assertEq("symbol", token.symbol());
+    }
+
+    function testTokenMetadata() external {
+        address nonOwner = makeAddr("nonOwner");
+        vm.expectRevert(); // Missing role
+        vm.prank(nonOwner);
+        token.setBaseMetadataURI("metadata://");
+
+        vm.prank(owner);
+        token.setBaseMetadataURI("metadata://");
+        vm.expectRevert(IERC721A.URIQueryForNonexistentToken.selector); // Not minted
+        token.tokenURI(0);
+
+        testMintOwner();
+        assertEq("metadata://0", token.tokenURI(0));
     }
 
     //

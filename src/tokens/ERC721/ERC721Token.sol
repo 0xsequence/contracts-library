@@ -15,8 +15,8 @@ abstract contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
     bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
     string private _tokenBaseURI;
-    string internal _tokenName;
-    string internal _tokenSymbol;
+    string private _tokenName;
+    string private _tokenSymbol;
 
     /**
      * Deploy contract.
@@ -46,6 +46,19 @@ abstract contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
     //
     // Metadata
     //
+
+    /**
+     * Set name and symbol of token.
+     * @param tokenName Name of token.
+     * @param tokenSymbol Symbol of token.
+     */
+    function setNameAndSymbol(string memory tokenName, string memory tokenSymbol)
+        external
+        onlyRole(METADATA_ADMIN_ROLE)
+    {
+        _tokenName = tokenName;
+        _tokenSymbol = tokenSymbol;
+    }
 
     /**
      * Update the base URL of token's URI.

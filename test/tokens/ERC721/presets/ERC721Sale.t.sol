@@ -54,6 +54,38 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
     }
 
     //
+    // Metadata
+    //
+
+    function testNameAndSymbol() external {
+        address nonOwner = makeAddr("nonOwner");
+        vm.expectRevert(); // Missing role
+        vm.prank(nonOwner);
+        token.setNameAndSymbol("name", "symbol");
+
+        token.setNameAndSymbol("name", "symbol");
+        assertEq("name", token.name());
+        assertEq("symbol", token.symbol());
+    }
+
+    function testTokenMetadata() external {
+        address nonOwner = makeAddr("nonOwner");
+        vm.expectRevert(); // Missing role
+        vm.prank(nonOwner);
+        token.setBaseMetadataURI("metadata://");
+
+        token.setBaseMetadataURI("metadata://");
+        vm.expectRevert(IERC721A.URIQueryForNonexistentToken.selector); // Not minted
+        token.tokenURI(0);
+
+        address mintTo = makeAddr("mintTo");
+        token.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
+
+        token.mint(mintTo, 1, TestHelper.blankProof());
+        assertEq("metadata://0", token.tokenURI(0));
+    }
+
+    //
     // Minting
     //
 

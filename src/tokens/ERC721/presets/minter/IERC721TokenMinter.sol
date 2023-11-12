@@ -8,13 +8,6 @@ interface IERC721TokenMinterFunctions {
      * @param amount Amount of tokens to mint.
      */
     function mint(address to, uint256 amount) external;
-
-    /**
-     * Set name and symbol of token.
-     * @param tokenName Name of token.
-     * @param tokenSymbol Symbol of token.
-     */
-    function setNameAndSymbol(string memory tokenName, string memory tokenSymbol) external;
 }
 
 interface IERC721TokenMinterSignals {
