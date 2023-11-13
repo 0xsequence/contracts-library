@@ -11,7 +11,7 @@ import {
  * An implementation of ERC-721 capable of minting when role provided.
  */
 contract ERC721TokenMinter is ERC721Token, IERC721TokenMinter {
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 internal constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address private immutable _initializer;
     bool private _initialized;

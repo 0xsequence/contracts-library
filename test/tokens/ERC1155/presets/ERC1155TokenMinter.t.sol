@@ -64,9 +64,6 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
      */
     function testSelectorCollision() public {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
-        checkSelectorCollision(0x19c1f93c); // METADATA_ADMIN_ROLE()
-        checkSelectorCollision(0xd5391393); // MINTER_ROLE()
-        checkSelectorCollision(0x31003ca4); // ROYALTY_ADMIN_ROLE()
         checkSelectorCollision(0x00fdd58e); // balanceOf(address,uint256)
         checkSelectorCollision(0x4e1273f4); // balanceOfBatch(address[],uint256[])
         checkSelectorCollision(0x6c0360eb); // baseURI()
@@ -101,9 +98,9 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
 
     function testOwnerHasRoles() public {
         assertTrue(token.hasRole(token.DEFAULT_ADMIN_ROLE(), owner));
-        assertTrue(token.hasRole(token.METADATA_ADMIN_ROLE(), owner));
-        assertTrue(token.hasRole(token.MINTER_ROLE(), owner));
-        assertTrue(token.hasRole(token.ROYALTY_ADMIN_ROLE(), owner));
+        assertTrue(token.hasRole(keccak256("METADATA_ADMIN_ROLE"), owner));
+        assertTrue(token.hasRole(keccak256("MINTER_ROLE"), owner));
+        assertTrue(token.hasRole(keccak256("ROYALTY_ADMIN_ROLE"), owner));
     }
 
     //
@@ -133,7 +130,7 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
                 "AccessControl: account ",
                 Strings.toHexString(caller),
                 " is missing role ",
-                Strings.toHexString(uint256(token.MINTER_ROLE()), 32)
+                vm.toString(keccak256("MINTER_ROLE"))
             )
         );
         vm.prank(caller);
@@ -148,7 +145,7 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
                 "AccessControl: account ",
                 Strings.toHexString(caller),
                 " is missing role ",
-                Strings.toHexString(uint256(token.MINTER_ROLE()), 32)
+                vm.toString(keccak256("MINTER_ROLE"))
             )
         );
         vm.prank(caller);
@@ -194,7 +191,7 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
         vm.assume(minter != address(0));
         // Give role
         vm.startPrank(owner);
-        token.grantRole(token.MINTER_ROLE(), minter);
+        token.grantRole(keccak256("MINTER_ROLE"), minter);
         vm.stopPrank();
 
         vm.expectEmit(true, true, true, true, address(token));
@@ -227,7 +224,7 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
 
         // Give role
         vm.startPrank(owner);
-        token.grantRole(token.MINTER_ROLE(), minter);
+        token.grantRole(keccak256("MINTER_ROLE"), minter);
         vm.stopPrank();
 
         vm.expectEmit(true, true, true, true, address(token));
@@ -255,7 +252,7 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
                 "AccessControl: account ",
                 Strings.toHexString(caller),
                 " is missing role ",
-                Strings.toHexString(uint256(token.METADATA_ADMIN_ROLE()), 32)
+                vm.toString(keccak256("METADATA_ADMIN_ROLE"))
             )
         );
         vm.prank(caller);
@@ -268,7 +265,7 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
         vm.assume(caller != address(0));
         // Give role
         vm.startPrank(owner);
-        token.grantRole(token.METADATA_ADMIN_ROLE(), caller);
+        token.grantRole(keccak256("METADATA_ADMIN_ROLE"), caller);
         vm.stopPrank();
 
         vm.prank(caller);
@@ -325,7 +322,7 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
         vm.assume(salePrice < type(uint128).max); // Buffer for overflow
 
         vm.startPrank(owner);
-        token.grantRole(token.ROYALTY_ADMIN_ROLE(), caller);
+        token.grantRole(keccak256("ROYALTY_ADMIN_ROLE"), caller);
         vm.stopPrank();
 
         vm.prank(caller);
@@ -363,7 +360,7 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
                 "AccessControl: account ",
                 Strings.toHexString(caller),
                 " is missing role ",
-                Strings.toHexString(uint256(token.ROYALTY_ADMIN_ROLE()), 32)
+                vm.toString(keccak256("ROYALTY_ADMIN_ROLE"))
             )
         );
         vm.prank(caller);
@@ -374,7 +371,7 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
                 "AccessControl: account ",
                 Strings.toHexString(caller),
                 " is missing role ",
-                Strings.toHexString(uint256(token.ROYALTY_ADMIN_ROLE()), 32)
+                vm.toString(keccak256("ROYALTY_ADMIN_ROLE"))
             )
         );
         vm.prank(caller);

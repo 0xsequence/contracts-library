@@ -9,7 +9,7 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
  * An abstract contract that allows ETH and ERC20 tokens stored in the contract to be withdrawn.
  */
 abstract contract WithdrawControlled is AccessControl, IWithdrawControlled {
-    bytes32 public constant WITHDRAW_ROLE = keccak256("WITHDRAW_ROLE");
+    bytes32 internal constant WITHDRAW_ROLE = keccak256("WITHDRAW_ROLE");
 
     //
     // Withdraw

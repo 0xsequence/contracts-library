@@ -9,7 +9,7 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
  * An implementation of ERC-2981 that allows updates by roles.
  */
 abstract contract ERC2981Controlled is ERC2981, AccessControl, IERC2981Controlled {
-    bytes32 public constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
+    bytes32 internal constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
 
     //
     // Royalty

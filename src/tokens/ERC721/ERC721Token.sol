@@ -12,7 +12,7 @@ error InvalidInitialization();
  * A standard base implementation of ERC-721 for use in Sequence library contracts.
  */
 abstract contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
-    bytes32 public constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
+    bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
     string private _tokenBaseURI;
     string private _tokenName;

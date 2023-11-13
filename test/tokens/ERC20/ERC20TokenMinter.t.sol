@@ -54,7 +54,6 @@ contract ERC20TokenMinterTest is TestHelper, IERC20TokenMinterSignals {
      */
     function testSelectorCollision() public {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
-        checkSelectorCollision(0xd5391393); // MINTER_ROLE()
         checkSelectorCollision(0xdd62ed3e); // allowance(address,address)
         checkSelectorCollision(0x095ea7b3); // approve(address,uint256)
         checkSelectorCollision(0x70a08231); // balanceOf(address)
@@ -79,7 +78,7 @@ contract ERC20TokenMinterTest is TestHelper, IERC20TokenMinterSignals {
 
     function testOwnerHasRoles() public {
         assertTrue(token.hasRole(token.DEFAULT_ADMIN_ROLE(), owner));
-        assertTrue(token.hasRole(token.MINTER_ROLE(), owner));
+        assertTrue(token.hasRole(keccak256("MINTER_ROLE"), owner));
     }
 
     function testInitValues() public {
@@ -101,7 +100,7 @@ contract ERC20TokenMinterTest is TestHelper, IERC20TokenMinterSignals {
                 "AccessControl: account ",
                 Strings.toHexString(caller),
                 " is missing role ",
-                Strings.toHexString(uint256(token.MINTER_ROLE()), 32)
+                vm.toString(keccak256("MINTER_ROLE"))
             )
         );
         vm.prank(caller);
@@ -127,7 +126,7 @@ contract ERC20TokenMinterTest is TestHelper, IERC20TokenMinterSignals {
         vm.assume(amount > 0);
         // Give role
         vm.startPrank(owner);
-        token.grantRole(token.MINTER_ROLE(), minter);
+        token.grantRole(keccak256("MINTER_ROLE"), minter);
         vm.stopPrank();
 
         vm.expectEmit(true, true, true, false, address(token));

@@ -63,10 +63,6 @@ contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155Sup
      */
     function testSelectorCollision() public {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
-        checkSelectorCollision(0x19c1f93c); // METADATA_ADMIN_ROLE()
-        checkSelectorCollision(0x85a712af); // MINT_ADMIN_ROLE()
-        checkSelectorCollision(0x31003ca4); // ROYALTY_ADMIN_ROLE()
-        checkSelectorCollision(0xe02023a1); // WITHDRAW_ROLE()
         checkSelectorCollision(0x00fdd58e); // balanceOf(address,uint256)
         checkSelectorCollision(0x4e1273f4); // balanceOfBatch(address[],uint256[])
         checkSelectorCollision(0x6c0360eb); // baseURI()
@@ -546,7 +542,7 @@ contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155Sup
                 "AccessControl: account ",
                 Strings.toHexString(minter),
                 " is missing role ",
-                Strings.toHexString(uint256(token.MINT_ADMIN_ROLE()), 32)
+                vm.toString(keccak256("MINT_ADMIN_ROLE"))
             )
         );
         vm.prank(minter);
@@ -559,7 +555,7 @@ contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155Sup
         assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
     {
-        token.grantRole(token.MINT_ADMIN_ROLE(), minter);
+        token.grantRole(keccak256("MINT_ADMIN_ROLE"), minter);
 
         uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
         uint256[] memory amounts = TestHelper.singleToArray(amount);
@@ -575,14 +571,14 @@ contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155Sup
 
     // Token royalty fails if the caller doesn't have the ROYALTY_ADMIN_ROLE
     function testSetTokenRoyaltyFail(uint256 _tokenId, address _receiver, uint96 _feeNumerator) public {
-        token.revokeRole(token.ROYALTY_ADMIN_ROLE(), address(this));
+        token.revokeRole(keccak256("ROYALTY_ADMIN_ROLE"), address(this));
 
         vm.expectRevert(
             abi.encodePacked(
                 "AccessControl: account ",
                 Strings.toHexString(address(this)),
                 " is missing role ",
-                Strings.toHexString(uint256(token.ROYALTY_ADMIN_ROLE()), 32)
+                vm.toString(keccak256("ROYALTY_ADMIN_ROLE"))
             )
         );
         token.setTokenRoyalty(_tokenId, _receiver, _feeNumerator);
@@ -590,14 +586,14 @@ contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155Sup
 
     // Default royalty fails if the caller doesn't have the ROYALTY_ADMIN_ROLE
     function testSetDefaultRoyaltyFail(address _receiver, uint96 _feeNumerator) public {
-        token.revokeRole(token.ROYALTY_ADMIN_ROLE(), address(this));
+        token.revokeRole(keccak256("ROYALTY_ADMIN_ROLE"), address(this));
 
         vm.expectRevert(
             abi.encodePacked(
                 "AccessControl: account ",
                 Strings.toHexString(address(this)),
                 " is missing role ",
-                Strings.toHexString(uint256(token.ROYALTY_ADMIN_ROLE()), 32)
+                vm.toString(keccak256("ROYALTY_ADMIN_ROLE"))
             )
         );
         token.setDefaultRoyalty(_receiver, _feeNumerator);
@@ -643,14 +639,14 @@ contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155Sup
 
     // Withdraw fails if the caller doesn't have the WITHDRAW_ROLE
     function testWithdrawFail(bool useFactory, address withdrawTo, uint256 amount) public withFactory(useFactory) {
-        token.revokeRole(token.WITHDRAW_ROLE(), address(this));
+        token.revokeRole(keccak256("WITHDRAW_ROLE"), address(this));
 
         vm.expectRevert(
             abi.encodePacked(
                 "AccessControl: account ",
                 Strings.toHexString(address(this)),
                 " is missing role ",
-                Strings.toHexString(uint256(token.WITHDRAW_ROLE()), 32)
+                vm.toString(keccak256("WITHDRAW_ROLE"))
             )
         );
         token.withdrawETH(withdrawTo, amount);
@@ -660,7 +656,7 @@ contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155Sup
                 "AccessControl: account ",
                 Strings.toHexString(address(this)),
                 " is missing role ",
-                Strings.toHexString(uint256(token.WITHDRAW_ROLE()), 32)
+                vm.toString(keccak256("WITHDRAW_ROLE"))
             )
         );
         token.withdrawERC20(address(erc20), withdrawTo, amount);

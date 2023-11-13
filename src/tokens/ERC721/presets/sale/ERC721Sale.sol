@@ -15,7 +15,7 @@ import {MerkleProofSingleUse} from "@0xsequence/contracts-library/tokens/common/
  * An ERC-721 token contract with primary sale mechanisms.
  */
 contract ERC721Sale is IERC721Sale, ERC721Token, WithdrawControlled, MerkleProofSingleUse {
-    bytes32 public constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
+    bytes32 internal constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
     bytes4 private constant _ERC20_TRANSFERFROM_SELECTOR =
         bytes4(keccak256(bytes("transferFrom(address,address,uint256)")));

@@ -11,7 +11,7 @@ import {
  * A ready made implementation of ERC-20 capable of minting when role provided.
  */
 contract ERC20TokenMinter is ERC20Token, IERC20TokenMinter {
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 internal constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address private immutable _initializer;
     bool private _initialized;
