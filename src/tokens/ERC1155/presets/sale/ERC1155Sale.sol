@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 import {IERC1155Sale, IERC1155SaleFunctions} from "@0xsequence/contracts-library/tokens/ERC1155/presets/sale/IERC1155Sale.sol";
 import {

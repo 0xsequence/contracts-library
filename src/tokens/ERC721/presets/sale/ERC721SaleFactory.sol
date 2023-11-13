@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 import {ERC721Sale} from "@0xsequence/contracts-library/tokens/ERC721/presets/sale/ERC721Sale.sol";
 import {IERC721SaleFactory} from "@0xsequence/contracts-library/tokens/ERC721/presets/sale/IERC721SaleFactory.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 import {BeaconProxy, Proxy} from "./openzeppelin/BeaconProxy.sol";
 import {TransparentUpgradeableProxy, ERC1967Proxy} from "./openzeppelin/TransparentUpgradeableProxy.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 import {ERC1155Token} from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155Token.sol";
 import {IERC1155Supply} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 import {
     ERC721AQueryable, IERC721AQueryable, ERC721A, IERC721A

@@ -3,7 +3,7 @@
 
 // Note: This implementation is an exact copy with the constructor removed, and pragma and imports updated.
 
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 import "@openzeppelin/contracts/proxy/Proxy.sol";

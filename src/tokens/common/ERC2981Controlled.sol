@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 import {IERC2981Controlled} from "@0xsequence/contracts-library/tokens/common/IERC2981Controlled.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";

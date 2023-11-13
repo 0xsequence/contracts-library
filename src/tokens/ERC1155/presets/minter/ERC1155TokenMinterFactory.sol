@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.19;
 
 import {ERC1155TokenMinter} from "@0xsequence/contracts-library/tokens/ERC1155/presets/minter/ERC1155TokenMinter.sol";
 import {IERC1155TokenMinterFactory} from
