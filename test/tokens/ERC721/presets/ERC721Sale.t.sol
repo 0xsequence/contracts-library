@@ -220,13 +220,13 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
     }
 
     // Minting with merkle reuse fail.
-    function testMerkleReuseFail(address[] memory allowlist, uint256 senderIndex)
-        public
-    {
+    function testMerkleReuseFail(address[] memory allowlist, uint256 senderIndex) public {
         // Copy of testMerkleSuccess
         vm.assume(allowlist.length > 1);
         vm.assume(senderIndex < allowlist.length);
         bytes32[] memory addrs = new bytes32[](allowlist.length);
+        address sender = allowlist[senderIndex];
+        vm.assume(sender != address(0));
         for (uint256 i = 0; i < allowlist.length; i++) {
             addrs[i] = keccak256(abi.encodePacked(allowlist[i]));
         }
@@ -235,7 +235,6 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
 
         bytes32[] memory proof = getProof(addrs, senderIndex);
 
-        address sender = allowlist[senderIndex];
         vm.prank(sender);
         token.mint(sender, 1, proof);
 

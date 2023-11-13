@@ -390,6 +390,8 @@ contract ERC1155SaleTest is Test, Merkle, IERC1155SaleSignals, IERC1155SupplySig
         // Copy of testMerkleSuccess
         vm.assume(allowlist.length > 1);
         vm.assume(senderIndex < allowlist.length);
+        address sender = allowlist[senderIndex];
+        vm.assume(sender != address(0));
         bytes32[] memory addrs = new bytes32[](allowlist.length);
         for (uint256 i = 0; i < allowlist.length; i++) {
             addrs[i] = keccak256(abi.encodePacked(allowlist[i]));
@@ -405,7 +407,6 @@ contract ERC1155SaleTest is Test, Merkle, IERC1155SaleSignals, IERC1155SupplySig
         uint256[] memory amounts = TestHelper.singleToArray(uint256(1));
         bytes32[] memory proof = getProof(addrs, senderIndex);
 
-        address sender = allowlist[senderIndex];
         vm.prank(sender);
         token.mint(sender, tokenIds, amounts, "", proof);
 
