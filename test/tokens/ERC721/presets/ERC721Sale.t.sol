@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import {TestHelper} from "../../../TestHelper.sol";
 
 import {ERC721Sale} from "src/tokens/ERC721/presets/sale/ERC721Sale.sol";
-import {IERC721SaleSignals} from "src/tokens/ERC721/presets/sale/IERC721Sale.sol";
+import {IERC721SaleSignals, IERC721SaleFunctions, IERC721Sale} from "src/tokens/ERC721/presets/sale/IERC721Sale.sol";
 import {ERC721SaleFactory} from "src/tokens/ERC721/presets/sale/ERC721SaleFactory.sol";
 
 import {Merkle} from "murky/Merkle.sol";
@@ -15,6 +15,7 @@ import {IMerkleProofSingleUseSignals} from "@0xsequence/contracts-library/tokens
 // Interfaces
 import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import {IERC721A} from "erc721a/contracts/interfaces/IERC721A.sol";
 import {IERC721AQueryable} from "erc721a/contracts/interfaces/IERC721AQueryable.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
@@ -49,9 +50,11 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
     function testSupportsInterface() public {
         assertTrue(token.supportsInterface(type(IERC165).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721).interfaceId));
+        assertTrue(token.supportsInterface(type(IERC721Metadata).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721A).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721AQueryable).interfaceId));
         assertTrue(token.supportsInterface(type(IAccessControl).interfaceId));
+        assertTrue(token.supportsInterface(type(IERC721SaleFunctions).interfaceId));
     }
 
     /**

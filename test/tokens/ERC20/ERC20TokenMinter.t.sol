@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import {TestHelper} from "../../TestHelper.sol";
 
 import {ERC20TokenMinter} from "src/tokens/ERC20/presets/minter/ERC20TokenMinter.sol";
-import {IERC20TokenMinterSignals} from "src/tokens/ERC20/presets/minter/IERC20TokenMinter.sol";
+import {IERC20TokenMinter, IERC20TokenMinterSignals, IERC20TokenMinterFunctions} from "src/tokens/ERC20/presets/minter/IERC20TokenMinter.sol";
 import {ERC20TokenMinterFactory} from "src/tokens/ERC20/presets/minter/ERC20TokenMinterFactory.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -45,6 +45,7 @@ contract ERC20TokenMinterTest is TestHelper, IERC20TokenMinterSignals {
         assertTrue(token.supportsInterface(type(IERC165).interfaceId));
         assertTrue(token.supportsInterface(type(IERC20).interfaceId));
         assertTrue(token.supportsInterface(type(IERC20Metadata).interfaceId));
+        assertTrue(token.supportsInterface(type(IERC20TokenMinterFunctions).interfaceId));
     }
 
     /**

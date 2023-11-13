@@ -2,7 +2,10 @@
 pragma solidity ^0.8.17;
 
 import {ERC1155MintBurn, ERC1155} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
-import {IERC1155TokenMinter} from "@0xsequence/contracts-library/tokens/ERC1155//presets/minter/IERC1155TokenMinter.sol";
+import {
+    IERC1155TokenMinter,
+    IERC1155TokenMinterFunctions
+} from "@0xsequence/contracts-library/tokens/ERC1155//presets/minter/IERC1155TokenMinter.sol";
 import {ERC1155Token} from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155Token.sol";
 import {ERC2981Controlled} from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
 
@@ -91,6 +94,6 @@ contract ERC1155TokenMinter is ERC1155MintBurn, ERC1155Token, IERC1155TokenMinte
      * @return True if supported
      */
     function supportsInterface(bytes4 interfaceId) public view override (ERC1155Token, ERC1155) returns (bool) {
-        return ERC1155Token.supportsInterface(interfaceId);
+        return type(IERC1155TokenMinterFunctions).interfaceId == interfaceId || ERC1155Token.supportsInterface(interfaceId);
     }
 }

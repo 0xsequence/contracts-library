@@ -4,8 +4,13 @@ pragma solidity ^0.8.17;
 import {TestHelper} from "../../../TestHelper.sol";
 
 import {ERC1155TokenMinter} from "src/tokens/ERC1155/presets/minter/ERC1155TokenMinter.sol";
-import {IERC1155TokenMinterSignals} from "src/tokens/ERC1155/presets/minter/IERC1155TokenMinter.sol";
+import {
+    IERC1155TokenMinterSignals,
+    IERC1155TokenMinterFunctions,
+    IERC1155TokenMinter
+} from "src/tokens/ERC1155/presets/minter/IERC1155TokenMinter.sol";
 import {ERC1155TokenMinterFactory} from "src/tokens/ERC1155/presets/minter/ERC1155TokenMinterFactory.sol";
+import {IERC1155Supply} from "src/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -49,6 +54,8 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
         assertTrue(token.supportsInterface(type(IERC165).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155Metadata).interfaceId));
+        assertTrue(token.supportsInterface(type(IERC1155Supply).interfaceId));
+        assertTrue(token.supportsInterface(type(IERC1155TokenMinterFunctions).interfaceId));
     }
 
     /**

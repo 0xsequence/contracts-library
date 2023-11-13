@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-import {IERC1155Sale} from "@0xsequence/contracts-library/tokens/ERC1155/presets/sale/IERC1155Sale.sol";
+import {IERC1155Sale, IERC1155SaleFunctions} from "@0xsequence/contracts-library/tokens/ERC1155/presets/sale/IERC1155Sale.sol";
 import {
     ERC1155Supply,
     ERC1155Token
@@ -272,6 +272,6 @@ contract ERC1155Sale is IERC1155Sale, ERC1155Supply, WithdrawControlled, MerkleP
         override (ERC1155Token, AccessControl)
         returns (bool)
     {
-        return interfaceId == type(IERC1155Sale).interfaceId || super.supportsInterface(interfaceId);
+        return type(IERC1155SaleFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
 }

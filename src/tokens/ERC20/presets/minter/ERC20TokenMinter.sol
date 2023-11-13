@@ -2,7 +2,10 @@
 pragma solidity ^0.8.17;
 
 import {ERC20Token} from "@0xsequence/contracts-library/tokens/ERC20/ERC20Token.sol";
-import {IERC20TokenMinter} from "@0xsequence/contracts-library/tokens/ERC20/presets/minter/IERC20TokenMinter.sol";
+import {
+    IERC20TokenMinter,
+    IERC20TokenMinterFunctions
+} from "@0xsequence/contracts-library/tokens/ERC20/presets/minter/IERC20TokenMinter.sol";
 
 /**
  * A ready made implementation of ERC-20 capable of minting when role provided.
@@ -25,7 +28,11 @@ contract ERC20TokenMinter is ERC20Token, IERC20TokenMinter {
      * @param tokenDecimals Number of decimals
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, string memory tokenName, string memory tokenSymbol, uint8 tokenDecimals) public virtual override {
+    function initialize(address owner, string memory tokenName, string memory tokenSymbol, uint8 tokenDecimals)
+        public
+        virtual
+        override
+    {
         if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }
@@ -60,7 +67,10 @@ contract ERC20TokenMinter is ERC20Token, IERC20TokenMinter {
      * @param tokenName Name of token.
      * @param tokenSymbol Symbol of token.
      */
-    function setNameAndSymbol(string memory tokenName, string memory tokenSymbol) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setNameAndSymbol(string memory tokenName, string memory tokenSymbol)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
         _tokenName = tokenName;
         _tokenSymbol = tokenSymbol;
     }
@@ -75,6 +85,7 @@ contract ERC20TokenMinter is ERC20Token, IERC20TokenMinter {
      * @return True if supported
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return ERC20Token.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
+        return type(IERC20TokenMinterFunctions).interfaceId == interfaceId || ERC20Token.supportsInterface(interfaceId)
+            || super.supportsInterface(interfaceId);
     }
 }

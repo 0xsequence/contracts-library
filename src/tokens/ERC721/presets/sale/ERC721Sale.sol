@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-import {IERC721Sale} from "@0xsequence/contracts-library/tokens/ERC721/presets/sale/IERC721Sale.sol";
+import {IERC721Sale, IERC721SaleFunctions} from "@0xsequence/contracts-library/tokens/ERC721/presets/sale/IERC721Sale.sol";
 import {ERC721Token} from "@0xsequence/contracts-library/tokens/ERC721/ERC721Token.sol";
 import {
     WithdrawControlled,
@@ -177,6 +177,6 @@ contract ERC721Sale is IERC721Sale, ERC721Token, WithdrawControlled, MerkleProof
         override (ERC721Token, AccessControl)
         returns (bool)
     {
-        return interfaceId == type(IERC721Sale).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IERC721SaleFunctions).interfaceId || super.supportsInterface(interfaceId);
     }
 }

@@ -2,7 +2,10 @@
 pragma solidity ^0.8.17;
 
 import {ERC721Token} from "@0xsequence/contracts-library/tokens/ERC721/ERC721Token.sol";
-import {IERC721TokenMinter} from "@0xsequence/contracts-library/tokens/ERC721/presets/minter/IERC721TokenMinter.sol";
+import {
+    IERC721TokenMinter,
+    IERC721TokenMinterFunctions
+} from "@0xsequence/contracts-library/tokens/ERC721/presets/minter/IERC721TokenMinter.sol";
 
 /**
  * An implementation of ERC-721 capable of minting when role provided.
@@ -66,5 +69,18 @@ contract ERC721TokenMinter is ERC721Token, IERC721TokenMinter {
      */
     function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
         _mint(to, amount);
+    }
+
+    //
+    // Views
+    //
+
+    /**
+     * Check interface support.
+     * @param interfaceId Interface id
+     * @return True if supported
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return type(IERC721TokenMinterFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
 }

@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import {TestHelper} from "../../../TestHelper.sol";
 
 import {ERC721TokenMinter} from "src/tokens/ERC721/presets/minter/ERC721TokenMinter.sol";
-import {IERC721TokenMinterSignals} from "src/tokens/ERC721/presets/minter/IERC721TokenMinter.sol";
+import {IERC721TokenMinterSignals, IERC721TokenMinterFunctions, IERC721TokenMinter} from "src/tokens/ERC721/presets/minter/IERC721TokenMinter.sol";
 import {ERC721TokenMinterFactory} from "src/tokens/ERC721/presets/minter/ERC721TokenMinterFactory.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -13,6 +13,8 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC721A} from "erc721a/contracts/interfaces/IERC721A.sol";
 import {IERC721AQueryable} from "erc721a/contracts/extensions/IERC721AQueryable.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 
 contract ERC721TokenMinterTest is TestHelper, IERC721TokenMinterSignals {
     // Redeclare events
@@ -45,8 +47,9 @@ contract ERC721TokenMinterTest is TestHelper, IERC721TokenMinterSignals {
         assertTrue(token.supportsInterface(type(IERC165).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721A).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721AQueryable).interfaceId));
-        assertTrue(token.supportsInterface(0x80ac58cd)); // ERC721
-        assertTrue(token.supportsInterface(0x5b5e139f)); // ERC721Metadata
+        assertTrue(token.supportsInterface(type(IERC721).interfaceId));
+        assertTrue(token.supportsInterface(type(IERC721Metadata).interfaceId));
+        assertTrue(token.supportsInterface(type(IERC721TokenMinterFunctions).interfaceId));
     }
 
     /**

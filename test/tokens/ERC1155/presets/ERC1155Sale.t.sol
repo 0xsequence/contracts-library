@@ -3,10 +3,10 @@ pragma solidity ^0.8.17;
 
 import {TestHelper} from "../../../TestHelper.sol";
 
-import {IERC1155SaleSignals} from "src/tokens/ERC1155/presets/sale/IERC1155Sale.sol";
+import {IERC1155SaleSignals, IERC1155SaleFunctions} from "src/tokens/ERC1155/presets/sale/IERC1155Sale.sol";
 import {ERC1155Sale} from "src/tokens/ERC1155/presets/sale/ERC1155Sale.sol";
 import {ERC1155SaleFactory} from "src/tokens/ERC1155/presets/sale/ERC1155SaleFactory.sol";
-import {IERC1155SupplySignals} from "src/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
+import {IERC1155SupplySignals, IERC1155Supply} from "src/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
 
 import {Merkle} from "murky/Merkle.sol";
 import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
@@ -54,6 +54,7 @@ contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155Sup
         assertTrue(token.supportsInterface(type(IERC1155).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155Metadata).interfaceId));
         assertTrue(token.supportsInterface(type(IAccessControl).interfaceId));
+        assertTrue(token.supportsInterface(type(IERC1155SaleFunctions).interfaceId));
     }
 
     /**
