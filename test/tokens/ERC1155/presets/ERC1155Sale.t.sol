@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-import "forge-std/Test.sol";
+import {TestHelper} from "../../../TestHelper.sol";
+
 import {IERC1155SaleSignals} from "src/tokens/ERC1155/presets/sale/IERC1155Sale.sol";
 import {ERC1155Sale} from "src/tokens/ERC1155/presets/sale/ERC1155Sale.sol";
 import {ERC1155SaleFactory} from "src/tokens/ERC1155/presets/sale/ERC1155SaleFactory.sol";
@@ -10,7 +11,6 @@ import {IERC1155SupplySignals} from "src/tokens/ERC1155/extensions/supply/IERC11
 import {Merkle} from "murky/Merkle.sol";
 import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {TestHelper} from "test/tokens/TestHelper.sol";
 import {IMerkleProofSingleUseSignals} from "@0xsequence/contracts-library/tokens/common/IMerkleProofSingleUse.sol";
 
 // Interfaces
@@ -21,7 +21,7 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 
 // solhint-disable not-rely-on-time
 
-contract ERC1155SaleTest is Test, Merkle, IERC1155SaleSignals, IERC1155SupplySignals, IMerkleProofSingleUseSignals {
+contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155SupplySignals, IMerkleProofSingleUseSignals {
     // Redeclare events
     event TransferBatch(
         address indexed _operator, address indexed _from, address indexed _to, uint256[] _ids, uint256[] _amounts
@@ -54,6 +54,58 @@ contract ERC1155SaleTest is Test, Merkle, IERC1155SaleSignals, IERC1155SupplySig
         assertTrue(token.supportsInterface(type(IERC1155).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155Metadata).interfaceId));
         assertTrue(token.supportsInterface(type(IAccessControl).interfaceId));
+    }
+
+    /**
+     * Test all public selectors for collisions against the proxy admin functions.
+     * @dev yarn ts-node scripts/outputSelectors.ts
+     */
+    function testSelectorCollision() public {
+        checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
+        checkSelectorCollision(0x19c1f93c); // METADATA_ADMIN_ROLE()
+        checkSelectorCollision(0x85a712af); // MINT_ADMIN_ROLE()
+        checkSelectorCollision(0x31003ca4); // ROYALTY_ADMIN_ROLE()
+        checkSelectorCollision(0xe02023a1); // WITHDRAW_ROLE()
+        checkSelectorCollision(0x00fdd58e); // balanceOf(address,uint256)
+        checkSelectorCollision(0x4e1273f4); // balanceOfBatch(address[],uint256[])
+        checkSelectorCollision(0x6c0360eb); // baseURI()
+        checkSelectorCollision(0xf8e4dec5); // checkMerkleProof(bytes32,bytes32[],address)
+        checkSelectorCollision(0xe8a3d485); // contractURI()
+        checkSelectorCollision(0x2d0335ab); // getNonce(address)
+        checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
+        checkSelectorCollision(0x119cd50c); // globalSaleDetails()
+        checkSelectorCollision(0x2f2ff15d); // grantRole(bytes32,address)
+        checkSelectorCollision(0x91d14854); // hasRole(bytes32,address)
+        checkSelectorCollision(0xf8954818); // initialize(address,string,string,string,address,uint96)
+        checkSelectorCollision(0xe985e9c5); // isApprovedForAll(address,address)
+        checkSelectorCollision(0xfa4e12d7); // isValidSignature(address,bytes32,bytes,bytes)
+        checkSelectorCollision(0xa3d4926e); // metaSafeBatchTransferFrom(address,address,uint256[],uint256[],bool,bytes)
+        checkSelectorCollision(0xce0b514b); // metaSafeTransferFrom(address,address,uint256,uint256,bool,bytes)
+        checkSelectorCollision(0xf5d4c820); // metaSetApprovalForAll(address,address,bool,bool,bytes)
+        checkSelectorCollision(0x95be8bf4); // mint(address,uint256[],uint256[],bytes,bytes32[])
+        checkSelectorCollision(0x69e3e6e3); // mintAdmin(address,uint256[],uint256[],bytes)
+        checkSelectorCollision(0x06fdde03); // name()
+        checkSelectorCollision(0x3013ce29); // paymentToken()
+        checkSelectorCollision(0x36568abe); // renounceRole(bytes32,address)
+        checkSelectorCollision(0xd547741f); // revokeRole(bytes32,address)
+        checkSelectorCollision(0x2a55205a); // royaltyInfo(uint256,uint256)
+        checkSelectorCollision(0x2eb2c2d6); // safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)
+        checkSelectorCollision(0xf242432a); // safeTransferFrom(address,address,uint256,uint256,bytes)
+        checkSelectorCollision(0xa22cb465); // setApprovalForAll(address,bool)
+        checkSelectorCollision(0x7e518ec8); // setBaseMetadataURI(string)
+        checkSelectorCollision(0x0b5ee006); // setContractName(string)
+        checkSelectorCollision(0x938e3d7b); // setContractURI(string)
+        checkSelectorCollision(0x04634d8d); // setDefaultRoyalty(address,uint96)
+        checkSelectorCollision(0x43d3f88b); // setGlobalSaleDetails(uint256,uint256,address,uint64,uint64,bytes32)
+        checkSelectorCollision(0x5944c753); // setTokenRoyalty(uint256,address,uint96)
+        checkSelectorCollision(0x4f651ccd); // setTokenSaleDetails(uint256,uint256,uint256,uint64,uint64,bytes32)
+        checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
+        checkSelectorCollision(0x0869678c); // tokenSaleDetails(uint256)
+        checkSelectorCollision(0x2693ebf2); // tokenSupply(uint256)
+        checkSelectorCollision(0x18160ddd); // totalSupply()
+        checkSelectorCollision(0x0e89341c); // uri(uint256)
+        checkSelectorCollision(0x44004cc1); // withdrawERC20(address,address,uint256)
+        checkSelectorCollision(0x4782f779); // withdrawETH(address,uint256)
     }
 
     //

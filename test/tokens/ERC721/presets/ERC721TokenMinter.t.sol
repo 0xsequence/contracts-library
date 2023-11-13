@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-import "forge-std/Test.sol";
+import {TestHelper} from "../../../TestHelper.sol";
+
 import {ERC721TokenMinter} from "src/tokens/ERC721/presets/minter/ERC721TokenMinter.sol";
 import {IERC721TokenMinterSignals} from "src/tokens/ERC721/presets/minter/IERC721TokenMinter.sol";
 import {ERC721TokenMinterFactory} from "src/tokens/ERC721/presets/minter/ERC721TokenMinterFactory.sol";
@@ -13,7 +14,7 @@ import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC721A} from "erc721a/contracts/interfaces/IERC721A.sol";
 import {IERC721AQueryable} from "erc721a/contracts/extensions/IERC721AQueryable.sol";
 
-contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
+contract ERC721TokenMinterTest is TestHelper, IERC721TokenMinterSignals {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
@@ -30,7 +31,9 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
         vm.deal(owner, 100 ether);
 
         ERC721TokenMinterFactory factory = new ERC721TokenMinterFactory(address(this));
-        token = ERC721TokenMinter(factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", "contractURI", address(this), 0));
+        token = ERC721TokenMinter(
+            factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", "contractURI", address(this), 0)
+        );
     }
 
     function testReinitializeFails() public {
@@ -44,6 +47,49 @@ contract ERC721TokenMinterTest is Test, IERC721TokenMinterSignals {
         assertTrue(token.supportsInterface(type(IERC721AQueryable).interfaceId));
         assertTrue(token.supportsInterface(0x80ac58cd)); // ERC721
         assertTrue(token.supportsInterface(0x5b5e139f)); // ERC721Metadata
+    }
+
+    /**
+     * Test all public selectors for collisions against the proxy admin functions.
+     * @dev yarn ts-node scripts/outputSelectors.ts
+     */
+    function testSelectorCollision() public {
+        checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
+        checkSelectorCollision(0x19c1f93c); // METADATA_ADMIN_ROLE()
+        checkSelectorCollision(0xd5391393); // MINTER_ROLE()
+        checkSelectorCollision(0x31003ca4); // ROYALTY_ADMIN_ROLE()
+        checkSelectorCollision(0x095ea7b3); // approve(address,uint256)
+        checkSelectorCollision(0x70a08231); // balanceOf(address)
+        checkSelectorCollision(0xe8a3d485); // contractURI()
+        checkSelectorCollision(0xc23dc68f); // explicitOwnershipOf(uint256)
+        checkSelectorCollision(0x5bbb2177); // explicitOwnershipsOf(uint256[])
+        checkSelectorCollision(0x081812fc); // getApproved(uint256)
+        checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
+        checkSelectorCollision(0x2f2ff15d); // grantRole(bytes32,address)
+        checkSelectorCollision(0x91d14854); // hasRole(bytes32,address)
+        checkSelectorCollision(0x98dd69c8); // initialize(address,string,string,string,string,address,uint96)
+        checkSelectorCollision(0xe985e9c5); // isApprovedForAll(address,address)
+        checkSelectorCollision(0x40c10f19); // mint(address,uint256)
+        checkSelectorCollision(0x06fdde03); // name()
+        checkSelectorCollision(0x6352211e); // ownerOf(uint256)
+        checkSelectorCollision(0x36568abe); // renounceRole(bytes32,address)
+        checkSelectorCollision(0xd547741f); // revokeRole(bytes32,address)
+        checkSelectorCollision(0x2a55205a); // royaltyInfo(uint256,uint256)
+        checkSelectorCollision(0x42842e0e); // safeTransferFrom(address,address,uint256)
+        checkSelectorCollision(0xb88d4fde); // safeTransferFrom(address,address,uint256,bytes)
+        checkSelectorCollision(0xa22cb465); // setApprovalForAll(address,bool)
+        checkSelectorCollision(0x7e518ec8); // setBaseMetadataURI(string)
+        checkSelectorCollision(0x938e3d7b); // setContractURI(string)
+        checkSelectorCollision(0x04634d8d); // setDefaultRoyalty(address,uint96)
+        checkSelectorCollision(0x5a446215); // setNameAndSymbol(string,string)
+        checkSelectorCollision(0x5944c753); // setTokenRoyalty(uint256,address,uint96)
+        checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
+        checkSelectorCollision(0x95d89b41); // symbol()
+        checkSelectorCollision(0xc87b56dd); // tokenURI(uint256)
+        checkSelectorCollision(0x8462151c); // tokensOfOwner(address)
+        checkSelectorCollision(0x99a2557a); // tokensOfOwnerIn(address,uint256,uint256)
+        checkSelectorCollision(0x18160ddd); // totalSupply()
+        checkSelectorCollision(0x23b872dd); // transferFrom(address,address,uint256)
     }
 
     function testOwnerHasRoles() public {

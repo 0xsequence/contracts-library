@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-import "forge-std/Test.sol";
+import {TestHelper} from "../../../TestHelper.sol";
+
 import {ERC721Sale} from "src/tokens/ERC721/presets/sale/ERC721Sale.sol";
 import {IERC721SaleSignals} from "src/tokens/ERC721/presets/sale/IERC721Sale.sol";
 import {ERC721SaleFactory} from "src/tokens/ERC721/presets/sale/ERC721SaleFactory.sol";
@@ -9,7 +10,6 @@ import {ERC721SaleFactory} from "src/tokens/ERC721/presets/sale/ERC721SaleFactor
 import {Merkle} from "murky/Merkle.sol";
 import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {TestHelper} from "test/tokens/TestHelper.sol";
 import {IMerkleProofSingleUseSignals} from "@0xsequence/contracts-library/tokens/common/IMerkleProofSingleUse.sol";
 
 // Interfaces
@@ -21,7 +21,7 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 
 // solhint-disable not-rely-on-time
 
-contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleUseSignals {
+contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofSingleUseSignals {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
@@ -42,7 +42,8 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
 
     function setUpFromFactory() public {
         ERC721SaleFactory factory = new ERC721SaleFactory(address(this));
-        token = ERC721Sale(factory.deploy(proxyOwner, address(this), "test", "test", "ipfs://", "ipfs://", address(this), 0));
+        token =
+            ERC721Sale(factory.deploy(proxyOwner, address(this), "test", "test", "ipfs://", "ipfs://", address(this), 0));
     }
 
     function testSupportsInterface() public {
@@ -51,6 +52,56 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
         assertTrue(token.supportsInterface(type(IERC721A).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721AQueryable).interfaceId));
         assertTrue(token.supportsInterface(type(IAccessControl).interfaceId));
+    }
+
+    /**
+     * Test all public selectors for collisions against the proxy admin functions.
+     * @dev yarn ts-node scripts/outputSelectors.ts
+     */
+    function testSelectorCollision() public {
+        checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
+        checkSelectorCollision(0x19c1f93c); // METADATA_ADMIN_ROLE()
+        checkSelectorCollision(0x85a712af); // MINT_ADMIN_ROLE()
+        checkSelectorCollision(0x31003ca4); // ROYALTY_ADMIN_ROLE()
+        checkSelectorCollision(0xe02023a1); // WITHDRAW_ROLE()
+        checkSelectorCollision(0x095ea7b3); // approve(address,uint256)
+        checkSelectorCollision(0x70a08231); // balanceOf(address)
+        checkSelectorCollision(0xf8e4dec5); // checkMerkleProof(bytes32,bytes32[],address)
+        checkSelectorCollision(0xe8a3d485); // contractURI()
+        checkSelectorCollision(0xc23dc68f); // explicitOwnershipOf(uint256)
+        checkSelectorCollision(0x5bbb2177); // explicitOwnershipsOf(uint256[])
+        checkSelectorCollision(0x081812fc); // getApproved(uint256)
+        checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
+        checkSelectorCollision(0x2f2ff15d); // grantRole(bytes32,address)
+        checkSelectorCollision(0x91d14854); // hasRole(bytes32,address)
+        checkSelectorCollision(0x98dd69c8); // initialize(address,string,string,string,string,address,uint96)
+        checkSelectorCollision(0xe985e9c5); // isApprovedForAll(address,address)
+        checkSelectorCollision(0x641ce140); // mint(address,uint256,bytes32[])
+        checkSelectorCollision(0xc3a71999); // mintAdmin(address,uint256)
+        checkSelectorCollision(0x06fdde03); // name()
+        checkSelectorCollision(0x6352211e); // ownerOf(uint256)
+        checkSelectorCollision(0x36568abe); // renounceRole(bytes32,address)
+        checkSelectorCollision(0xd547741f); // revokeRole(bytes32,address)
+        checkSelectorCollision(0x2a55205a); // royaltyInfo(uint256,uint256)
+        checkSelectorCollision(0x42842e0e); // safeTransferFrom(address,address,uint256)
+        checkSelectorCollision(0xb88d4fde); // safeTransferFrom(address,address,uint256,bytes)
+        checkSelectorCollision(0x3474a4a6); // saleDetails()
+        checkSelectorCollision(0xa22cb465); // setApprovalForAll(address,bool)
+        checkSelectorCollision(0x7e518ec8); // setBaseMetadataURI(string)
+        checkSelectorCollision(0x938e3d7b); // setContractURI(string)
+        checkSelectorCollision(0x04634d8d); // setDefaultRoyalty(address,uint96)
+        checkSelectorCollision(0x5a446215); // setNameAndSymbol(string,string)
+        checkSelectorCollision(0x8c17030f); // setSaleDetails(uint256,uint256,address,uint64,uint64,bytes32)
+        checkSelectorCollision(0x5944c753); // setTokenRoyalty(uint256,address,uint96)
+        checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
+        checkSelectorCollision(0x95d89b41); // symbol()
+        checkSelectorCollision(0xc87b56dd); // tokenURI(uint256)
+        checkSelectorCollision(0x8462151c); // tokensOfOwner(address)
+        checkSelectorCollision(0x99a2557a); // tokensOfOwnerIn(address,uint256,uint256)
+        checkSelectorCollision(0x18160ddd); // totalSupply()
+        checkSelectorCollision(0x23b872dd); // transferFrom(address,address,uint256)
+        checkSelectorCollision(0x44004cc1); // withdrawERC20(address,address,uint256)
+        checkSelectorCollision(0x4782f779); // withdrawETH(address,uint256)
     }
 
     //
@@ -141,7 +192,9 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
         if (amount <= supplyCap) {
             amount = supplyCap + 1;
         }
-        token.setSaleDetails(supplyCap, perTokenCost, address(0), uint64(block.timestamp), uint64(block.timestamp + 1), "");
+        token.setSaleDetails(
+            supplyCap, perTokenCost, address(0), uint64(block.timestamp), uint64(block.timestamp + 1), ""
+        );
 
         vm.expectRevert(abi.encodeWithSelector(InsufficientSupply.selector, 0, amount, supplyCap));
         token.mint{value: amount * perTokenCost}(mintTo, amount, TestHelper.blankProof());
@@ -183,7 +236,9 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
         withFactory(useFactory)
         withERC20
     {
-        token.setSaleDetails(0, perTokenCost, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
+        token.setSaleDetails(
+            0, perTokenCost, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
         uint256 cost = amount * perTokenCost;
 
         uint256 balanace = erc20.balanceOf(address(this));
@@ -197,9 +252,7 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
     }
 
     // Minting with merkle success.
-    function testMerkleSuccess(address[] memory allowlist, uint256 senderIndex)
-        public
-    {
+    function testMerkleSuccess(address[] memory allowlist, uint256 senderIndex) public {
         // Construct a merkle tree with the allowlist.
         vm.assume(allowlist.length > 1);
         vm.assume(senderIndex < allowlist.length);
@@ -247,9 +300,7 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
     }
 
     // Minting with merkle fail no proof.
-    function testMerkleFailNoProof(address[] memory allowlist, address sender)
-        public
-    {
+    function testMerkleFailNoProof(address[] memory allowlist, address sender) public {
         // Construct a merkle tree with the allowlist.
         vm.assume(allowlist.length > 1);
         bytes32[] memory addrs = new bytes32[](allowlist.length);
@@ -268,9 +319,7 @@ contract ERC721SaleTest is Test, Merkle, IERC721SaleSignals, IMerkleProofSingleU
     }
 
     // Minting with merkle fail bad proof.
-    function testMerkleFailBadProof(address[] memory allowlist, address sender)
-        public
-    {
+    function testMerkleFailBadProof(address[] memory allowlist, address sender) public {
         // Construct a merkle tree with the allowlist.
         vm.assume(allowlist.length > 1);
         bytes32[] memory addrs = new bytes32[](allowlist.length);

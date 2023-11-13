@@ -10,6 +10,18 @@ interface ITransparentUpgradeableBeaconProxy {
 
 error InvalidInitialization();
 
+/**
+ * @dev As the underlying proxy implementation (TransparentUpgradeableProxy) allows the admin to call the implementation,
+ * care must be taken to avoid proxy selector collisions. Implementation selectors must not conflict with the proxy selectors.
+ * See https://medium.com/nomic-labs-blog/malicious-backdoors-in-ethereum-proxies-62629adf3357[proxy selector clashing].
+ * The proxy selectors are:
+ * - 0xcf7a1d77: initialize
+ * - 0x3659cfe6: upgradeTo (from TransparentUpgradeableProxy)
+ * - 0x4f1ef286: upgradeToAndCall (from TransparentUpgradeableProxy)
+ * - 0x8f283970: changeAdmin (from TransparentUpgradeableProxy)
+ * - 0xf851a440: admin (from TransparentUpgradeableProxy)
+ * - 0x5c60da1b: implementation (from TransparentUpgradeableProxy)
+ */
 contract TransparentUpgradeableBeaconProxy is TransparentUpgradeableProxy, BeaconProxy {
     /**
      * Decode the initialization data from the msg.data and call the initialize function.

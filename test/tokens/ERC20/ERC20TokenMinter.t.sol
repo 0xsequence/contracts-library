@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-import "forge-std/Test.sol";
+import {TestHelper} from "../../TestHelper.sol";
+
 import {ERC20TokenMinter} from "src/tokens/ERC20/presets/minter/ERC20TokenMinter.sol";
 import {IERC20TokenMinterSignals} from "src/tokens/ERC20/presets/minter/IERC20TokenMinter.sol";
 import {ERC20TokenMinterFactory} from "src/tokens/ERC20/presets/minter/ERC20TokenMinterFactory.sol";
@@ -13,7 +14,7 @@ import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-contract ERC20TokenMinterTest is Test, IERC20TokenMinterSignals {
+contract ERC20TokenMinterTest is TestHelper, IERC20TokenMinterSignals {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 value);
 
@@ -44,6 +45,35 @@ contract ERC20TokenMinterTest is Test, IERC20TokenMinterSignals {
         assertTrue(token.supportsInterface(type(IERC165).interfaceId));
         assertTrue(token.supportsInterface(type(IERC20).interfaceId));
         assertTrue(token.supportsInterface(type(IERC20Metadata).interfaceId));
+    }
+
+    /**
+     * Test all public selectors for collisions against the proxy admin functions.
+     * @dev yarn ts-node scripts/outputSelectors.ts
+     */
+    function testSelectorCollision() public {
+        checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
+        checkSelectorCollision(0xd5391393); // MINTER_ROLE()
+        checkSelectorCollision(0xdd62ed3e); // allowance(address,address)
+        checkSelectorCollision(0x095ea7b3); // approve(address,uint256)
+        checkSelectorCollision(0x70a08231); // balanceOf(address)
+        checkSelectorCollision(0x313ce567); // decimals()
+        checkSelectorCollision(0xa457c2d7); // decreaseAllowance(address,uint256)
+        checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
+        checkSelectorCollision(0x2f2ff15d); // grantRole(bytes32,address)
+        checkSelectorCollision(0x91d14854); // hasRole(bytes32,address)
+        checkSelectorCollision(0x39509351); // increaseAllowance(address,uint256)
+        checkSelectorCollision(0xf6d2ee86); // initialize(address,string,string,uint8)
+        checkSelectorCollision(0x40c10f19); // mint(address,uint256)
+        checkSelectorCollision(0x06fdde03); // name()
+        checkSelectorCollision(0x36568abe); // renounceRole(bytes32,address)
+        checkSelectorCollision(0xd547741f); // revokeRole(bytes32,address)
+        checkSelectorCollision(0x5a446215); // setNameAndSymbol(string,string)
+        checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
+        checkSelectorCollision(0x95d89b41); // symbol()
+        checkSelectorCollision(0x18160ddd); // totalSupply()
+        checkSelectorCollision(0xa9059cbb); // transfer(address,uint256)
+        checkSelectorCollision(0x23b872dd); // transferFrom(address,address,uint256)
     }
 
     function testOwnerHasRoles() public {

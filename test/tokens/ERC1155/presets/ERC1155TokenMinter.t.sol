@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.17;
 
-import "forge-std/Test.sol";
+import {TestHelper} from "../../../TestHelper.sol";
+
 import {ERC1155TokenMinter} from "src/tokens/ERC1155/presets/minter/ERC1155TokenMinter.sol";
 import {IERC1155TokenMinterSignals} from "src/tokens/ERC1155/presets/minter/IERC1155TokenMinter.sol";
 import {ERC1155TokenMinterFactory} from "src/tokens/ERC1155/presets/minter/ERC1155TokenMinterFactory.sol";
@@ -13,7 +14,7 @@ import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import {IERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 
-contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
+contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
     // Redeclare events
     event TransferSingle(
         address indexed _operator, address indexed _from, address indexed _to, uint256 _id, uint256 _amount
@@ -35,7 +36,8 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
         vm.deal(owner, 100 ether);
 
         ERC1155TokenMinterFactory factory = new ERC1155TokenMinterFactory(address(this));
-        token = ERC1155TokenMinter(factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0));
+        token =
+            ERC1155TokenMinter(factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0));
     }
 
     function testReinitializeFails() public {
@@ -47,6 +49,47 @@ contract ERC1155TokenMinterTest is Test, IERC1155TokenMinterSignals {
         assertTrue(token.supportsInterface(type(IERC165).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155Metadata).interfaceId));
+    }
+
+    /**
+     * Test all public selectors for collisions against the proxy admin functions.
+     * @dev yarn ts-node scripts/outputSelectors.ts
+     */
+    function testSelectorCollision() public {
+        checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
+        checkSelectorCollision(0x19c1f93c); // METADATA_ADMIN_ROLE()
+        checkSelectorCollision(0xd5391393); // MINTER_ROLE()
+        checkSelectorCollision(0x31003ca4); // ROYALTY_ADMIN_ROLE()
+        checkSelectorCollision(0x00fdd58e); // balanceOf(address,uint256)
+        checkSelectorCollision(0x4e1273f4); // balanceOfBatch(address[],uint256[])
+        checkSelectorCollision(0x6c0360eb); // baseURI()
+        checkSelectorCollision(0xb48ab8b6); // batchMint(address,uint256[],uint256[],bytes)
+        checkSelectorCollision(0xe8a3d485); // contractURI()
+        checkSelectorCollision(0x2d0335ab); // getNonce(address)
+        checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
+        checkSelectorCollision(0x2f2ff15d); // grantRole(bytes32,address)
+        checkSelectorCollision(0x91d14854); // hasRole(bytes32,address)
+        checkSelectorCollision(0xf8954818); // initialize(address,string,string,string,address,uint96)
+        checkSelectorCollision(0xe985e9c5); // isApprovedForAll(address,address)
+        checkSelectorCollision(0xfa4e12d7); // isValidSignature(address,bytes32,bytes,bytes)
+        checkSelectorCollision(0xa3d4926e); // metaSafeBatchTransferFrom(address,address,uint256[],uint256[],bool,bytes)
+        checkSelectorCollision(0xce0b514b); // metaSafeTransferFrom(address,address,uint256,uint256,bool,bytes)
+        checkSelectorCollision(0xf5d4c820); // metaSetApprovalForAll(address,address,bool,bool,bytes)
+        checkSelectorCollision(0x731133e9); // mint(address,uint256,uint256,bytes)
+        checkSelectorCollision(0x06fdde03); // name()
+        checkSelectorCollision(0x36568abe); // renounceRole(bytes32,address)
+        checkSelectorCollision(0xd547741f); // revokeRole(bytes32,address)
+        checkSelectorCollision(0x2a55205a); // royaltyInfo(uint256,uint256)
+        checkSelectorCollision(0x2eb2c2d6); // safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)
+        checkSelectorCollision(0xf242432a); // safeTransferFrom(address,address,uint256,uint256,bytes)
+        checkSelectorCollision(0xa22cb465); // setApprovalForAll(address,bool)
+        checkSelectorCollision(0x7e518ec8); // setBaseMetadataURI(string)
+        checkSelectorCollision(0x0b5ee006); // setContractName(string)
+        checkSelectorCollision(0x938e3d7b); // setContractURI(string)
+        checkSelectorCollision(0x04634d8d); // setDefaultRoyalty(address,uint96)
+        checkSelectorCollision(0x5944c753); // setTokenRoyalty(uint256,address,uint96)
+        checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
+        checkSelectorCollision(0x0e89341c); // uri(uint256)
     }
 
     function testOwnerHasRoles() public {

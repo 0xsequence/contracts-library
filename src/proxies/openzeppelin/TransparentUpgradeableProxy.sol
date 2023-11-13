@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.9.0) (proxy/transparent/TransparentUpgradeableProxy.sol)
 
-// Note: This implementation is an exact copy with the constructor removed, and pragma and imports updated.
+/// @notice This implementation is a copy of OpenZeppelin's with the following changes:
+/// - Pragma updated
+/// - Imports updated
+/// - Constructor removed
+/// - Allows admin to call implementation
 
 pragma solidity ^0.8.17;
 
@@ -28,23 +32,16 @@ interface ITransparentUpgradeableProxy is IERC1967 {
 /**
  * @dev This contract implements a proxy that is upgradeable by an admin.
  *
- * To avoid https://medium.com/nomic-labs-blog/malicious-backdoors-in-ethereum-proxies-62629adf3357[proxy selector
- * clashing], which can potentially be used in an attack, this contract uses the
- * https://blog.openzeppelin.com/the-transparent-proxy-pattern/[transparent proxy pattern]. This pattern implies two
- * things that go hand in hand:
- *
- * 1. If any account other than the admin calls the proxy, the call will be forwarded to the implementation, even if
- * that call matches one of the admin functions exposed by the proxy itself.
- * 2. If the admin calls the proxy, it can access the admin functions, but its calls will never be forwarded to the
- * implementation. If the admin tries to call a function on the implementation it will fail with an error that says
- * "admin cannot fallback to proxy target".
- *
- * These properties mean that the admin account can only be used for admin actions like upgrading the proxy or changing
- * the admin, so it's best if it's a dedicated account that is not used for anything else. This will avoid headaches due
- * to sudden errors when trying to call a function from the proxy implementation.
- *
- * Our recommendation is for the dedicated account to be an instance of the {ProxyAdmin} contract. If set up this way,
- * you should think of the `ProxyAdmin` instance as the real administrative interface of your proxy.
+ * Unlike the original OpenZeppelin implementation, this contract does not prevent the admin from calling the implementation.
+ * This potentially exposes the admin to a proxy selector attack. See
+ * https://medium.com/nomic-labs-blog/malicious-backdoors-in-ethereum-proxies-62629adf3357[proxy selector clashing].
+ * When using this contract, you must ensure that the implementation function selectors do not clash with the proxy selectors.
+ * The proxy selectors are:
+ * - 0x3659cfe6: upgradeTo
+ * - 0x4f1ef286: upgradeToAndCall
+ * - 0x8f283970: changeAdmin
+ * - 0xf851a440: admin
+ * - 0x5c60da1b: implementation
  *
  * NOTE: The real interface of this proxy is that defined in `ITransparentUpgradeableProxy`. This contract does not
  * inherit from that interface, and instead the admin functions are implicitly implemented using a custom dispatch
@@ -58,7 +55,6 @@ interface ITransparentUpgradeableProxy is IERC1967 {
  * render the admin operations inaccessible, which could prevent upgradeability. Transparency may also be compromised.
  */
 contract TransparentUpgradeableProxy is ERC1967Proxy {
-
     /**
      * @dev Modifier used internally that will delegate the call to the implementation unless the sender is the admin.
      *
@@ -91,7 +87,8 @@ contract TransparentUpgradeableProxy is ERC1967Proxy {
             } else if (selector == ITransparentUpgradeableProxy.implementation.selector) {
                 ret = _dispatchImplementation();
             } else {
-                revert("TransparentUpgradeableProxy: admin cannot fallback to proxy target");
+                // Call implementation
+                return super._fallback();
             }
             assembly {
                 return(add(ret, 0x20), mload(ret))
