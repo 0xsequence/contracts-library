@@ -1,5 +1,5 @@
 import { exec as execNonPromise } from 'child_process'
-import { copyFile, mkdir, readFile, rmdir, writeFile } from 'fs/promises'
+import { copyFile, mkdir, readFile, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
 import util from 'util'
 import { BUILD_DIR, DEPLOYABLE_CONTRACT_NAMES } from './constants'
@@ -8,7 +8,7 @@ const exec = util.promisify(execNonPromise)
 const main = async () => {
   // Clean
   try {
-    await rmdir(BUILD_DIR, { recursive: true })
+    await rm(BUILD_DIR, { recursive: true })
   } catch (err) {
     // Dir not found, ignore
   }
