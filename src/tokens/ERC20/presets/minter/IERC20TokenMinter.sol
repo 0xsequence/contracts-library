@@ -19,11 +19,10 @@ interface IERC20TokenMinterFunctions {
 }
 
 interface IERC20TokenMinterSignals {
-
     /**
      * Invalid initialization error.
      */
     error InvalidInitialization();
 }
 
-interface IERC20TokenMinter is IERC20TokenMinterSignals {}
+interface IERC20TokenMinter is IERC20TokenMinterFunctions, IERC20TokenMinterSignals {}
