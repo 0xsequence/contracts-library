@@ -25,3 +25,14 @@ This section of this repo utilitizes a factory pattern that deploys proxies cont
 ## Dependencies
 
 These contract relies on the OpenZeppelin Contracts library, particularly the ERC20, IERC20, IERC20Metadata, and AccessControl contracts, which provide core ERC-20 functionality and secure access control mechanisms.
+
+## Access Controls
+
+The contracts use the `AccessControl` contract from OpenZeppelin to provide role based access control.
+Role keys are defined as the `keccak256` value of the role name.
+The following roles are defined:
+
+| Role                 | Description        | Key                                                                  |
+| -------------------- | ------------------ | -------------------------------------------------------------------- |
+| `DEFAULT_ADMIN_ROLE` | Can updates roles. | `0x0`                                                                |
+| `MINTER_ROLE`        | Can mint tokens.   | `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` |

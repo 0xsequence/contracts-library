@@ -1,6 +1,6 @@
 # Proxies
 
-This subsection of the repository contains the implementation of proxy contracts. 
+This subsection of the repository contains the implementation of proxy contracts.
 These proxies delegate calls to an implementation contract, which allows the logic of the contract to be upgraded without changing the address of the contract.
 
 ## Features
@@ -10,6 +10,10 @@ These proxies delegate calls to an implementation contract, which allows the log
 This proxy follows the [Transparent Upgradeable Proxy](https://docs.openzeppelin.com/contracts/4.x/api/proxy#TransparentUpgradeableProxy) pattern from OpenZeppelin, unless the implementation is unset, then it uses the [Beacon Proxy](https://docs.openzeppelin.com/contracts/4.x/api/proxy#BeaconProxy) pattern.
 
 This allows multiple proxies to be upgraded simultaneously, while also allowing individual upgrades to contracts.
+
+**Note**: This implementation does NOT prevent the owner of the proxy from accessing the underlying implementation.
+This means that the owner may be succeptible to proxy selector attack.
+See this article about [proxy selector clashing](https://medium.com/nomic-labs-blog/malicious-backdoors-in-ethereum-proxies-62629adf3357) for more information.
 
 ### Sequence Proxy Factory
 
@@ -28,7 +32,7 @@ contract MyContractFactory is SequenceProxyFactory {
         MyImplementation impl = new MyImplementation();
         SequenceProxyFactory._initialize(address(impl), factoryOwner);
     }
-    
+
     function deploy(address proxyOwner, bytes32 salt) external returns (address) {
         return _createProxy(salt, proxyOwner, "");
     }

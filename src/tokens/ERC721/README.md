@@ -22,12 +22,12 @@ The `ERC721TokenSale` contract is a preset that configures the `ERC721Token` con
 
 Conditions may be set by the contract owner using the `setSaleDetails(uint256 supplyCap, uint256 cost, address paymentToken, uint64 startTime, uint64 endTime, bytes32 merkleRoot)` function that can only be called by accounts with the `MINT_ADMIN_ROLE`. The variables function as follows:
 
-* supplyCap: The maximum number of tokens that can be minted. 0 indicates unlimited supply.
-* cost: The amount of payment tokens to accept for each token minted.
-* paymentToken: The ERC20 token address to accept payment in. address(0) indicates ETH.
-* startTime: The start time of the sale. Tokens cannot be minted before this time.
-* endTime: The end time of the sale. Tokens cannot be minted after this time.
-* merkleRoot: The merkle root for allowlist minting.
+- supplyCap: The maximum number of tokens that can be minted. 0 indicates unlimited supply.
+- cost: The amount of payment tokens to accept for each token minted.
+- paymentToken: The ERC20 token address to accept payment in. address(0) indicates ETH.
+- startTime: The start time of the sale. Tokens cannot be minted before this time.
+- endTime: The end time of the sale. Tokens cannot be minted after this time.
+- merkleRoot: The merkle root for allowlist minting.
 
 ## Usage
 
@@ -40,3 +40,17 @@ This section of this repo utilitizes a factory pattern that deploys proxies cont
 ## Dependencies
 
 This repo relies on the ERC721A, IERC721A, ERC721AQueryable, and IERC721AQueryable contracts from Azuki for core ERC-721 functionality, AccessControl from OpenZeppelin for role base permissions and the ERC2981Controlled contract for handling of royalties.
+
+## Access Controls
+
+The contracts use the `AccessControl` contract from OpenZeppelin to provide role based access control.
+Role keys are defined as the `keccak256` value of the role name.
+The following roles are defined:
+
+| Role                  | Description                        | Key                                                                  |
+| --------------------- | ---------------------------------- | -------------------------------------------------------------------- |
+| `DEFAULT_ADMIN_ROLE`  | Can updates roles.                 | `0x0`                                                                |
+| `METADATA_ADMIN_ROLE` | Can update metadata.               | `0xe02a0315b383857ac496e9d2b2546a699afaeb4e5e83a1fdef64376d0b74e5a5` |
+| `MINTER_ROLE`         | Can mint tokens.                   | `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` |
+| `MINT_ADMIN_ROLE`     | Can set minting logic.             | `0x4c02318d8c3aadc98ccf18aebbf3126f651e0c3f6a1de5ff8edcf6724a2ad5c2` |
+| `WITHDRAW_ROLE`       | Withdraw tokens from the contract. | `0x5d8e12c39142ff96d79d04d15d1ba1269e4fe57bb9d26f43523628b34ba108ec` |
