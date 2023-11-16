@@ -2,7 +2,11 @@ import { exec as execNonPromise } from 'child_process'
 import { copyFile, mkdir, readFile, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
 import util from 'util'
-import { BUILD_DIR, DEPLOYABLE_CONTRACT_NAMES } from './constants'
+import {
+  BUILD_DIR,
+  DEPLOYABLE_CONTRACT_NAMES,
+  TOKEN_CONTRACT_NAMES,
+} from './constants'
 const exec = util.promisify(execNonPromise)
 
 const main = async () => {
@@ -21,7 +25,12 @@ const main = async () => {
   await mkdir(BUILD_DIR, { recursive: true })
 
   // Create the compiler input files
-  for (const solFile of DEPLOYABLE_CONTRACT_NAMES) {
+  for (const solFile of [
+    ...DEPLOYABLE_CONTRACT_NAMES,
+    ...TOKEN_CONTRACT_NAMES,
+    'TransparentUpgradeableBeaconProxy',
+    'UpgradeableBeacon',
+  ]) {
     const forgeOutputDir = `out/${solFile}.sol`
     const compilerDetails = JSON.parse(
       await readFile(join(forgeOutputDir, `${solFile}.metadata.json`), 'utf8'),
