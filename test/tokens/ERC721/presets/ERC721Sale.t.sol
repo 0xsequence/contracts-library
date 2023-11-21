@@ -362,8 +362,39 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
         token.grantRole(keccak256("MINT_ADMIN_ROLE"), minter);
 
         uint256 count = token.balanceOf(mintTo);
+        vm.prank(minter);
         token.mintAdmin(mintTo, amount);
         assertEq(count + amount, token.balanceOf(mintTo));
+    }
+
+    //
+    // Burn
+    //
+
+    function testBurnSuccess(address caller) public {
+        vm.assume(caller != address(this));
+        vm.assume(caller != address(0));
+
+        token.mintAdmin(caller, 1);
+
+        vm.expectEmit(true, true, true, false, address(token));
+        emit Transfer(caller, address(0), 0);
+
+        vm.prank(caller);
+        token.burn(0);
+
+        vm.expectRevert(IERC721A.OwnerQueryForNonexistentToken.selector);
+        token.ownerOf(0);
+    }
+
+    function testBurnInvalidOwnership(address caller) public {
+        vm.assume(caller != address(this));
+        vm.assume(caller != address(0));
+
+        token.mintAdmin(caller, 1);
+
+        vm.expectRevert(IERC721A.TransferCallerNotOwnerNorApproved.selector);
+        token.burn(0);
     }
 
     //

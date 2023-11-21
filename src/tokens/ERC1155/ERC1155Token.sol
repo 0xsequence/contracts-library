@@ -76,6 +76,19 @@ abstract contract ERC1155Token is ERC1155MintBurn, ERC1155Meta, ERC1155Metadata,
     }
 
     //
+    // Burn
+    //
+
+    /**
+     * Allows the owner of the token to burn their tokens.
+     * @param tokenId Id of token to burn.
+     * @param amount Amount of tokens to burn.
+     */
+    function burn(uint256 tokenId, uint256 amount) public virtual {
+        _burn(msg.sender, tokenId, amount);
+    }
+
+    //
     // Views
     //
 

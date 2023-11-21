@@ -203,6 +203,38 @@ contract ERC721TokenMinterTest is TestHelper, IERC721TokenMinterSignals {
     }
 
     //
+    // Burn
+    //
+
+    function testBurnSuccess(address caller) public {
+        vm.assume(caller != address(this));
+        vm.assume(caller != address(0));
+
+        vm.prank(owner);
+        token.mint(caller, 1);
+
+        vm.expectEmit(true, true, true, false, address(token));
+        emit Transfer(caller, address(0), 0);
+
+        vm.prank(caller);
+        token.burn(0);
+
+        vm.expectRevert(IERC721A.OwnerQueryForNonexistentToken.selector);
+        token.ownerOf(0);
+    }
+
+    function testBurnInvalidOwnership(address caller) public {
+        vm.assume(caller != address(this));
+        vm.assume(caller != address(0));
+
+        vm.prank(owner);
+        token.mint(caller, 1);
+
+        vm.expectRevert(IERC721A.TransferCallerNotOwnerNorApproved.selector);
+        token.burn(0);
+    }
+
+    //
     // Metadata
     //
     function testMetadataOwner() public {

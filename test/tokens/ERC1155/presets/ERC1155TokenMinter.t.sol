@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
+import {stdError} from "forge-std/StdError.sol";
 import {TestHelper} from "../../../TestHelper.sol";
 
 import {ERC1155TokenMinter} from "src/tokens/ERC1155/presets/minter/ERC1155TokenMinter.sol";
@@ -231,6 +232,42 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
         emit TransferBatch(minter, address(0), owner, tokenIds, amounts);
         vm.prank(minter);
         token.batchMint(owner, tokenIds, amounts, "");
+    }
+
+    //
+    // Burn
+    //
+
+    function testBurnSuccess(address caller, uint256 tokenId, uint256 amount, uint256 burnAmount) public {
+        vm.assume(caller != owner);
+        vm.assume(caller != proxyOwner);
+        vm.assume(caller != address(0));
+        vm.assume(amount >= burnAmount);
+        vm.assume(amount > 0);
+
+        vm.prank(owner);
+        token.mint(caller, tokenId, amount, "");
+
+        vm.expectEmit(true, true, true, false, address(token));
+        emit TransferSingle(caller, caller, address(0), tokenId, amount);
+
+        vm.prank(caller);
+        token.burn(tokenId, burnAmount);
+
+        assertEq(token.balanceOf(caller, tokenId), amount - burnAmount);
+    }
+
+    function testBurnInvalidOwnership(address caller, uint256 tokenId, uint256 amount, uint256 burnAmount) public {
+        vm.assume(caller != owner);
+        vm.assume(caller != proxyOwner);
+        vm.assume(caller != address(0));
+        vm.assume(burnAmount > amount);
+
+        vm.prank(owner);
+        token.mint(caller, tokenId, amount, "");
+
+        vm.expectRevert(stdError.arithmeticError);
+        token.burn(tokenId, burnAmount);
     }
 
     //

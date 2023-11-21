@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {TestHelper} from "../../../TestHelper.sol";
+import {stdError} from "forge-std/stdError.sol";
 
 import {IERC1155SaleSignals, IERC1155SaleFunctions} from "src/tokens/ERC1155/presets/sale/IERC1155Sale.sol";
 import {ERC1155Sale} from "src/tokens/ERC1155/presets/sale/ERC1155Sale.sol";
@@ -23,6 +24,9 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 
 contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155SupplySignals, IMerkleProofSingleUseSignals {
     // Redeclare events
+    event TransferSingle(
+        address indexed _operator, address indexed _from, address indexed _to, uint256 _id, uint256 _amount
+    );
     event TransferBatch(
         address indexed _operator, address indexed _from, address indexed _to, uint256[] _ids, uint256[] _amounts
     );
@@ -561,8 +565,47 @@ contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155Sup
         uint256[] memory amounts = TestHelper.singleToArray(amount);
 
         uint256 count = token.balanceOf(mintTo, tokenId);
+        vm.prank(minter);
         token.mintAdmin(mintTo, tokenIds, amounts, "");
         assertEq(count + amount, token.balanceOf(mintTo, tokenId));
+    }
+
+    //
+    // Burn
+    //
+
+    function testBurnSuccess(address caller, uint256 tokenId, uint256 amount, uint256 burnAmount) public {
+        vm.assume(caller != address(this));
+        vm.assume(caller != proxyOwner);
+        vm.assume(caller != address(0));
+        vm.assume(amount >= burnAmount);
+        vm.assume(amount > 0);
+
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
+        token.mintAdmin(caller, tokenIds, amounts, "");
+
+        vm.expectEmit(true, true, true, false, address(token));
+        emit TransferSingle(caller, caller, address(0), tokenId, amount);
+
+        vm.prank(caller);
+        token.burn(tokenId, burnAmount);
+
+        assertEq(token.balanceOf(caller, tokenId), amount - burnAmount);
+    }
+
+    function testBurnInvalidOwnership(address caller, uint256 tokenId, uint256 amount, uint256 burnAmount) public {
+        vm.assume(caller != address(this));
+        vm.assume(caller != proxyOwner);
+        vm.assume(caller != address(0));
+        vm.assume(burnAmount > amount);
+
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
+        token.mintAdmin(caller, tokenIds, amounts, "");
+
+        vm.expectRevert(stdError.arithmeticError);
+        token.burn(tokenId, burnAmount);
     }
 
     //

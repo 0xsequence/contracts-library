@@ -12,7 +12,6 @@ error InvalidInitialization();
  * A standard base implementation of ERC-20 for use in Sequence library contracts.
  */
 abstract contract ERC20Token is ERC20, AccessControl {
-
     string internal _tokenName;
     string internal _tokenSymbol;
     uint8 private _tokenDecimals;
@@ -32,7 +31,10 @@ abstract contract ERC20Token is ERC20, AccessControl {
      * @param tokenDecimals Number of decimals
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, string memory tokenName, string memory tokenSymbol, uint8 tokenDecimals) public virtual {
+    function initialize(address owner, string memory tokenName, string memory tokenSymbol, uint8 tokenDecimals)
+        public
+        virtual
+    {
         if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }
@@ -44,6 +46,18 @@ abstract contract ERC20Token is ERC20, AccessControl {
         _setupRole(DEFAULT_ADMIN_ROLE, owner);
 
         _initialized = true;
+    }
+
+    //
+    // Burn
+    //
+
+    /**
+     * Allows the owner of the token to burn their tokens.
+     * @param amount Amount of tokens to burn.
+     */
+    function burn(uint256 amount) public virtual {
+        _burn(msg.sender, amount);
     }
 
     //

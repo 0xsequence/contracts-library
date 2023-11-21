@@ -91,8 +91,7 @@ contract ERC20TokenMinterTest is TestHelper, IERC20TokenMinterSignals {
     // Minting
     //
     function testMintInvalidRole(address caller, uint256 amount) public {
-        vm.assume(caller != owner);
-        vm.assume(caller != proxyOwner);
+        assumeSafeCaller(caller);
         vm.assume(amount > 0);
 
         vm.expectRevert(
@@ -120,10 +119,9 @@ contract ERC20TokenMinterTest is TestHelper, IERC20TokenMinterSignals {
     }
 
     function testMintWithRole(address minter, uint256 amount) public {
-        vm.assume(minter != owner);
-        vm.assume(minter != proxyOwner);
-        vm.assume(minter != address(0));
+        assumeSafeCaller(minter);
         vm.assume(amount > 0);
+
         // Give role
         vm.startPrank(owner);
         token.grantRole(keccak256("MINTER_ROLE"), minter);
@@ -136,5 +134,48 @@ contract ERC20TokenMinterTest is TestHelper, IERC20TokenMinterSignals {
         token.mint(owner, amount);
 
         assertEq(token.balanceOf(owner), amount);
+    }
+
+    //
+    // Burn
+    //
+
+    function testBurnSuccess(address caller, uint256 amount, uint256 burnAmount) public {
+        assumeSafeCaller(caller);
+        vm.assume(amount >= burnAmount);
+        vm.assume(amount > 0);
+
+        vm.prank(owner);
+        token.mint(caller, amount);
+
+        vm.expectEmit(true, true, true, false, address(token));
+        emit Transfer(caller, address(0), burnAmount);
+
+        vm.prank(caller);
+        token.burn(burnAmount);
+
+        assertEq(token.balanceOf(caller), amount - burnAmount);
+    }
+
+    function testBurnInsufficient(address caller, uint256 amount, uint256 burnAmount) public {
+        assumeSafeCaller(caller);
+        vm.assume(burnAmount > amount);
+
+        vm.prank(owner);
+        token.mint(caller, amount);
+
+        vm.expectRevert("ERC20: burn amount exceeds balance");
+        vm.prank(caller);
+        token.burn(burnAmount);
+    }
+
+    //
+    // Helpers
+    //
+
+    function assumeSafeCaller(address caller) private view {
+        vm.assume(caller != owner);
+        vm.assume(caller != proxyOwner);
+        vm.assume(caller != address(0));
     }
 }

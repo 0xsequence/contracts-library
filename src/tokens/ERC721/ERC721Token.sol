@@ -87,6 +87,18 @@ abstract contract ERC721Token is ERC721AQueryable, ERC2981Controlled {
     }
 
     //
+    // Burn
+    //
+
+    /**
+     * Allows the owner of the token to burn their tokens.
+     * @param tokenId Id of token to burn.
+     */
+    function burn(uint256 tokenId) public virtual {
+        _burn(tokenId, true);
+    }
+
+    //
     // Views
     //
 
