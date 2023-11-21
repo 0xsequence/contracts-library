@@ -239,9 +239,9 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
     //
 
     function testBurnSuccess(address caller, uint256 tokenId, uint256 amount, uint256 burnAmount) public {
+        assumeSafeAddress(caller);
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);
-        vm.assume(caller != address(0));
         vm.assume(amount >= burnAmount);
         vm.assume(amount > 0);
 
@@ -258,9 +258,9 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
     }
 
     function testBurnInvalidOwnership(address caller, uint256 tokenId, uint256 amount, uint256 burnAmount) public {
+        assumeSafeAddress(caller);
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);
-        vm.assume(caller != address(0));
         vm.assume(burnAmount > amount);
 
         vm.prank(owner);

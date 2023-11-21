@@ -255,6 +255,8 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
         // Construct a merkle tree with the allowlist.
         vm.assume(allowlist.length > 1);
         vm.assume(senderIndex < allowlist.length);
+        address sender = allowlist[senderIndex];
+        vm.assume(sender != address(0));
         bytes32[] memory addrs = new bytes32[](allowlist.length);
         for (uint256 i = 0; i < allowlist.length; i++) {
             addrs[i] = keccak256(abi.encodePacked(allowlist[i]));
@@ -264,7 +266,6 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
 
         bytes32[] memory proof = getProof(addrs, senderIndex);
 
-        address sender = allowlist[senderIndex];
         vm.prank(sender);
         token.mint(sender, 1, proof);
 
@@ -372,8 +373,7 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
     //
 
     function testBurnSuccess(address caller) public {
-        vm.assume(caller != address(this));
-        vm.assume(caller != address(0));
+        assumeSafeAddress(caller);
 
         token.mintAdmin(caller, 1);
 
@@ -388,8 +388,7 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
     }
 
     function testBurnInvalidOwnership(address caller) public {
-        vm.assume(caller != address(this));
-        vm.assume(caller != address(0));
+        assumeSafeAddress(caller);
 
         token.mintAdmin(caller, 1);
 

@@ -28,4 +28,12 @@ abstract contract TestHelper is Test {
         assertNotEq(selector, ITransparentUpgradeableProxy.implementation.selector);
         assertNotEq(selector, ITransparentUpgradeableBeaconProxy.initialize.selector);
     }
+
+    function assumeSafeAddress(address addr) internal view {
+        vm.assume(addr != address(0));
+        assumeNotPrecompile(addr);
+        assumeNotForgeAddress(addr);
+        vm.assume(addr.code.length == 0); // Non contract
+    }
+
 }

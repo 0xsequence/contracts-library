@@ -207,8 +207,7 @@ contract ERC721TokenMinterTest is TestHelper, IERC721TokenMinterSignals {
     //
 
     function testBurnSuccess(address caller) public {
-        vm.assume(caller != address(this));
-        vm.assume(caller != address(0));
+        assumeSafeAddress(caller);
 
         vm.prank(owner);
         token.mint(caller, 1);
@@ -224,8 +223,7 @@ contract ERC721TokenMinterTest is TestHelper, IERC721TokenMinterSignals {
     }
 
     function testBurnInvalidOwnership(address caller) public {
-        vm.assume(caller != address(this));
-        vm.assume(caller != address(0));
+        assumeSafeAddress(caller);
 
         vm.prank(owner);
         token.mint(caller, 1);
