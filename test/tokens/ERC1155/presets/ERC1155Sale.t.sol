@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
+import {stdError} from "forge-std/Test.sol";
 import {TestHelper} from "../../../TestHelper.sol";
-import {stdError} from "forge-std/stdError.sol";
 
 import {IERC1155SaleSignals, IERC1155SaleFunctions} from "src/tokens/ERC1155/presets/sale/IERC1155Sale.sol";
 import {ERC1155Sale} from "src/tokens/ERC1155/presets/sale/ERC1155Sale.sol";
