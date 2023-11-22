@@ -81,11 +81,20 @@ abstract contract ERC1155BaseToken is ERC1155MintBurn, ERC1155Meta, ERC1155Metad
 
     /**
      * Allows the owner of the token to burn their tokens.
-     * @param tokenId Id of token to burn.
-     * @param amount Amount of tokens to burn.
+     * @param tokenId Id of token to burn
+     * @param amount Amount of tokens to burn
      */
     function burn(uint256 tokenId, uint256 amount) public virtual {
         _burn(msg.sender, tokenId, amount);
+    }
+
+    /**
+     * Burn tokens of given token id for each (tokenIds[i], amounts[i]) pair.
+     * @param tokenIds Array of token ids to burn
+     * @param amounts Array of the amount to be burned
+     */
+    function batchBurn(uint256[] memory tokenIds, uint256[] memory amounts) public virtual {
+        _batchBurn(msg.sender, tokenIds, amounts);
     }
 
     //

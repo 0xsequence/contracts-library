@@ -605,6 +605,72 @@ contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155Sup
         token.burn(tokenId, burnAmount);
     }
 
+    function testBurnBatchSuccess(address caller, uint256[] memory tokenIds, uint256[] memory amounts, uint256[] memory burnAmounts) public {
+        assumeSafeAddress(caller);
+
+        uint256 nTokenIds = tokenIds.length > 3 ? 3 : tokenIds.length;
+        vm.assume(nTokenIds > 0);
+        vm.assume(nTokenIds <= amounts.length);
+        vm.assume(nTokenIds <= burnAmounts.length);
+        // Bind array sizes
+        assembly {
+            mstore(tokenIds, nTokenIds)
+            mstore(amounts, nTokenIds)
+            mstore(burnAmounts, nTokenIds)
+        }
+
+        for (uint256 i; i < nTokenIds; i++) {
+            // Lower the values
+            tokenIds[i] = tokenIds[i] % 256;
+            amounts[i] = amounts[i] % 256;
+
+            // Ensure we don't burn too many
+            if (burnAmounts[i] > amounts[i]) {
+                burnAmounts[i] = amounts[i];
+            }
+        }
+        assumeNoDuplicates(tokenIds);
+
+        token.mintAdmin(caller, tokenIds, amounts, "");
+
+        vm.expectEmit(true, true, true, false, address(token));
+        emit TransferBatch(caller, caller, address(0), tokenIds, burnAmounts);
+
+        vm.prank(caller);
+        token.batchBurn(tokenIds, burnAmounts);
+
+        for (uint256 i; i < nTokenIds; i++) {
+            assertEq(token.balanceOf(caller, tokenIds[i]), amounts[i] - burnAmounts[i]);
+        }
+    }
+
+    function testBurnBatchInvalidOwnership(address caller, uint256[] memory tokenIds, uint256[] memory amounts) public {
+        assumeSafeAddress(caller);
+
+        uint256 nTokenIds = tokenIds.length > 3 ? 3 : tokenIds.length;
+        vm.assume(nTokenIds > 0);
+        vm.assume(nTokenIds <= amounts.length);
+        // Bind array sizes
+        assembly {
+            mstore(tokenIds, nTokenIds)
+            mstore(amounts, nTokenIds)
+        }
+
+        for (uint256 i; i < nTokenIds; i++) {
+            // Lower the values
+            tokenIds[i] = tokenIds[i] % 256;
+            amounts[i] = amounts[i] % 256;
+        }
+        assumeNoDuplicates(tokenIds);
+
+        token.mintAdmin(caller, tokenIds, amounts, "");
+
+        amounts[0]++; // Now we burn too many
+
+        vm.expectRevert(stdError.arithmeticError);
+        token.batchBurn(tokenIds, amounts);
+    }
+
     //
     // Royalty
     //

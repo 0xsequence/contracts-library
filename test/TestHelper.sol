@@ -36,4 +36,11 @@ abstract contract TestHelper is Test {
         vm.assume(addr.code.length == 0); // Non contract
     }
 
+    function assumeNoDuplicates(uint256[] memory values) internal pure {
+        for (uint256 i = 0; i < values.length; i++) {
+            for (uint256 j = i + 1; j < values.length; j++) {
+                vm.assume(values[i] != values[j]);
+            }
+        }
+    }
 }

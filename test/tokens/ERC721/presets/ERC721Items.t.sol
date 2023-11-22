@@ -232,6 +232,42 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         token.burn(0);
     }
 
+    function testBurnBatchSuccess(address caller) public {
+        assumeSafeAddress(caller);
+
+        vm.prank(owner);
+        token.mint(caller, 2);
+
+        uint256[] memory ids = new uint256[](2);
+        ids[0] = 0;
+        ids[1] = 1;
+
+        vm.expectEmit(true, true, true, false, address(token));
+        emit Transfer(caller, address(0), 0);
+        vm.expectEmit(true, true, true, false, address(token));
+        emit Transfer(caller, address(0), 1);
+
+        vm.prank(caller);
+        token.batchBurn(ids);
+
+        vm.expectRevert(IERC721A.OwnerQueryForNonexistentToken.selector);
+        token.ownerOf(0);
+    }
+
+    function testBurnBatchInvalidOwnership(address caller) public {
+        assumeSafeAddress(caller);
+
+        vm.prank(owner);
+        token.mint(caller, 2);
+
+        uint256[] memory ids = new uint256[](2);
+        ids[0] = 0;
+        ids[1] = 1;
+
+        vm.expectRevert(IERC721A.TransferCallerNotOwnerNorApproved.selector);
+        token.batchBurn(ids);
+    }
+
     //
     // Metadata
     //

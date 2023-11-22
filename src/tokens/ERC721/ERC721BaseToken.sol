@@ -91,11 +91,22 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled {
     //
 
     /**
-     * Allows the owner of the token to burn their tokens.
-     * @param tokenId Id of token to burn.
+     * Allows the owner of the token to burn their token.
+     * @param tokenId Id of token to burn
      */
     function burn(uint256 tokenId) public virtual {
         _burn(tokenId, true);
+    }
+
+    /**
+     * Allows the owner of the tokens to burn their tokens.
+     * @param tokenIds Array of token ids to burn
+     */
+    function batchBurn(uint256[] memory tokenIds) public virtual {
+        uint256 nBurn = tokenIds.length;
+        for (uint256 i = 0; i < nBurn; i++) {
+            _burn(tokenIds[i], true);
+        }
     }
 
     //

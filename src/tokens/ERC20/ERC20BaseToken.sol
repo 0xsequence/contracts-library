@@ -54,7 +54,7 @@ abstract contract ERC20BaseToken is ERC20, AccessControl {
 
     /**
      * Allows the owner of the token to burn their tokens.
-     * @param amount Amount of tokens to burn.
+     * @param amount Amount of tokens to burn
      */
     function burn(uint256 amount) public virtual {
         _burn(msg.sender, amount);

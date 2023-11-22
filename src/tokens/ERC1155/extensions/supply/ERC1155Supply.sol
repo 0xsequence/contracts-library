@@ -98,13 +98,11 @@ abstract contract ERC1155Supply is ERC1155BaseToken, IERC1155Supply {
      * @param _amounts Array of the amount to be burned
      */
     function _batchBurn(address _from, uint256[] memory _ids, uint256[] memory _amounts) internal virtual override {
-        // Number of mints to execute
         uint256 nBurn = _ids.length;
         if (nBurn != _amounts.length) {
             revert InvalidArrayLength();
         }
 
-        // Executing all minting
         for (uint256 i = 0; i < nBurn; i++) {
             // Update balances
             balances[_from][_ids[i]] -= _amounts[i];
