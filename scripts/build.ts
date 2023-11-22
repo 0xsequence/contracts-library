@@ -19,7 +19,7 @@ const main = async () => {
 
   // Build with forge
   console.log('Building contracts')
-  await exec('forge build --extra-output-files metadata')
+  await exec('forge build --extra-output-files metadata --force')
   console.log('Contracts built')
 
   await mkdir(BUILD_DIR, { recursive: true })
