@@ -11,7 +11,7 @@ error InvalidInitialization();
 /**
  * A standard base implementation of ERC-20 for use in Sequence library contracts.
  */
-abstract contract ERC20Token is ERC20, AccessControl {
+abstract contract ERC20BaseToken is ERC20, AccessControl {
     string internal _tokenName;
     string internal _tokenSymbol;
     uint8 private _tokenDecimals;

@@ -2,7 +2,7 @@
 
 This subsection contains contracts related to the [ERC1155 token standard](https://eips.ethereum.org/EIPS/eip-1155).
 
-## ERC1155Token
+## ERC1155BaseToken
 
 This contract is a base implementation of the ERC-1155 token standard. It includes role based access control features from the [OpenZeppelin AccessControl](https://docs.openzeppelin.com/contracts/4.x/access-control) contract, to provide control over added features. Please refer to OpenZeppelin documentation for more information on AccessControl.
 
@@ -16,11 +16,11 @@ This folder contains contracts that are pre-configured for specific use cases.
 
 ### Items
 
-The `ERC1155Items` contract is a preset that configures the `ERC1155Token` contract to allow minting of tokens. It adds a `MINTER_ROLE` and a `mint(address to, uint256 amount)` function that can only be called by accounts with the `MINTER_ROLE`.
+The `ERC1155Items` contract is a preset that configures the `ERC1155BaseToken` contract to allow minting of tokens. It adds a `MINTER_ROLE` and a `mint(address to, uint256 amount)` function that can only be called by accounts with the `MINTER_ROLE`.
 
 ### Sale
 
-The `ERC1155TokenSale` contract is a preset that configures the `ERC1155Token` contract to allow for the sale of tokens. It adds a `mint(address to, , uint256[] memory tokenIds, uint256[] memory amounts, bytes memory data, bytes32[] calldata proof)` function allows for the minting of tokens under various conditions.
+The `ERC1155Sale` contract is a preset that configures the `ERC1155BaseToken` contract to allow for the sale of tokens. It adds a `mint(address to, , uint256[] memory tokenIds, uint256[] memory amounts, bytes memory data, bytes32[] calldata proof)` function allows for the minting of tokens under various conditions.
 
 Conditions may be set by the contract owner using either the `setTokenSaleDetails(uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot)` function for single token settings or the `setGlobalSaleDetails(uint256 cost, uint256 supplyCap, address paymentTokenAddr, uint64 startTime, uint64 endTime, bytes32 merkleRoot)` function for global settings. These functions can only be called by accounts with the `MINT_ADMIN_ROLE`.
 

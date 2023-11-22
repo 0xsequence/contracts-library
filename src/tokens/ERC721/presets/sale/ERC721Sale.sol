@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {IERC721Sale, IERC721SaleFunctions} from "@0xsequence/contracts-library/tokens/ERC721/presets/sale/IERC721Sale.sol";
-import {ERC721Token} from "@0xsequence/contracts-library/tokens/ERC721/ERC721Token.sol";
+import {ERC721BaseToken} from "@0xsequence/contracts-library/tokens/ERC721/ERC721BaseToken.sol";
 import {
     WithdrawControlled,
     AccessControl,
@@ -14,7 +14,7 @@ import {MerkleProofSingleUse} from "@0xsequence/contracts-library/tokens/common/
 /**
  * An ERC-721 token contract with primary sale mechanisms.
  */
-contract ERC721Sale is IERC721Sale, ERC721Token, WithdrawControlled, MerkleProofSingleUse {
+contract ERC721Sale is IERC721Sale, ERC721BaseToken, WithdrawControlled, MerkleProofSingleUse {
     bytes32 internal constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
     bytes4 private constant _ERC20_TRANSFERFROM_SELECTOR =
@@ -51,7 +51,7 @@ contract ERC721Sale is IERC721Sale, ERC721Token, WithdrawControlled, MerkleProof
             revert InvalidInitialization();
         }
 
-        ERC721Token._initialize(owner, tokenName, tokenSymbol, tokenBaseURI, tokenContractURI);
+        ERC721BaseToken._initialize(owner, tokenName, tokenSymbol, tokenBaseURI, tokenContractURI);
         _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
 
         _setupRole(MINT_ADMIN_ROLE, owner);
@@ -174,7 +174,7 @@ contract ERC721Sale is IERC721Sale, ERC721Token, WithdrawControlled, MerkleProof
         public
         view
         virtual
-        override (ERC721Token, AccessControl)
+        override (ERC721BaseToken, AccessControl)
         returns (bool)
     {
         return interfaceId == type(IERC721SaleFunctions).interfaceId || super.supportsInterface(interfaceId);

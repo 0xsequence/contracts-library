@@ -25,7 +25,7 @@ contract MyNFT is ERC721, ERC2981Controlled {
 
 After that, the royalty information can be set and updated by users with the `ROYALTY_ADMIN_ROLE`.
 
-Alternatively, use the `ERC721Token` or `ERC1155Token` implementations which already extend this contract.
+Alternatively, use the `ERC721BaseToken` or `ERC1155BaseToken` implementations which already extend this contract.
 
 ### Dependencies
 

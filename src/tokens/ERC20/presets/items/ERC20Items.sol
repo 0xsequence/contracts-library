@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {ERC20Token} from "@0xsequence/contracts-library/tokens/ERC20/ERC20Token.sol";
+import {ERC20BaseToken} from "@0xsequence/contracts-library/tokens/ERC20/ERC20BaseToken.sol";
 import {
     IERC20Items,
     IERC20ItemsFunctions
@@ -10,7 +10,7 @@ import {
 /**
  * A ready made implementation of ERC-20 capable of minting when role provided.
  */
-contract ERC20Items is ERC20Token, IERC20Items {
+contract ERC20Items is ERC20BaseToken, IERC20Items {
     bytes32 internal constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address private immutable _initializer;
@@ -37,7 +37,7 @@ contract ERC20Items is ERC20Token, IERC20Items {
             revert InvalidInitialization();
         }
 
-        ERC20Token.initialize(owner, tokenName, tokenSymbol, tokenDecimals);
+        ERC20BaseToken.initialize(owner, tokenName, tokenSymbol, tokenDecimals);
 
         _setupRole(MINTER_ROLE, owner);
 
@@ -85,7 +85,7 @@ contract ERC20Items is ERC20Token, IERC20Items {
      * @return True if supported
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return type(IERC20ItemsFunctions).interfaceId == interfaceId || ERC20Token.supportsInterface(interfaceId)
+        return type(IERC20ItemsFunctions).interfaceId == interfaceId || ERC20BaseToken.supportsInterface(interfaceId)
             || super.supportsInterface(interfaceId);
     }
 }

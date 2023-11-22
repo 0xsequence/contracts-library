@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {ERC1155Token} from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155Token.sol";
+import {ERC1155BaseToken} from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155BaseToken.sol";
 import {IERC1155Supply} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
 
 /**
  * An ERC-1155 extension that tracks token supply.
  */
-abstract contract ERC1155Supply is ERC1155Token, IERC1155Supply {
+abstract contract ERC1155Supply is ERC1155BaseToken, IERC1155Supply {
     // Maximum supply globaly and per token. 0 indicates unlimited supply
     uint256 internal totalSupplyCap;
     mapping(uint256 => uint256) internal tokenSupplyCap;

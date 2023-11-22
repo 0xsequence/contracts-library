@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import {IERC1155Sale, IERC1155SaleFunctions} from "@0xsequence/contracts-library/tokens/ERC1155/presets/sale/IERC1155Sale.sol";
 import {
     ERC1155Supply,
-    ERC1155Token
+    ERC1155BaseToken
 } from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
 import {
     WithdrawControlled,
@@ -53,7 +53,7 @@ contract ERC1155Sale is IERC1155Sale, ERC1155Supply, WithdrawControlled, MerkleP
             revert InvalidInitialization();
         }
 
-        ERC1155Token._initialize(owner, tokenName, tokenBaseURI, tokenContractURI);
+        ERC1155BaseToken._initialize(owner, tokenName, tokenBaseURI, tokenContractURI);
         _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
 
         _setupRole(MINT_ADMIN_ROLE, owner);
@@ -269,7 +269,7 @@ contract ERC1155Sale is IERC1155Sale, ERC1155Supply, WithdrawControlled, MerkleP
         public
         view
         virtual
-        override (ERC1155Token, AccessControl)
+        override (ERC1155BaseToken, AccessControl)
         returns (bool)
     {
         return type(IERC1155SaleFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);

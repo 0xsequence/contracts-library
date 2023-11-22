@@ -2,7 +2,7 @@
 
 This subsection contains contracts related to the [ERC20 token standard](https://eips.ethereum.org/EIPS/eip-20).
 
-## ERC20Token
+## ERC20BaseToken
 
 This contract is a base implementation of the ERC-20 token standard. It includes role based access control features from the [OpenZeppelin AccessControl](https://docs.openzeppelin.com/contracts/4.x/access-control) contract, to provide control over added features. Please refer to OpenZeppelin documentation for more information on AccessControl.
 
@@ -12,7 +12,7 @@ This folder contains contracts that are pre-configured for specific use cases.
 
 ### Items
 
-The `ERC20Items` contract is a preset that configures the `ERC20Token` contract to allow minting of tokens. It adds a `MINTER_ROLE` and a `mint(address to, uint256 amount)` function that can only be called by accounts with the `MINTER_ROLE`.
+The `ERC20Items` contract is a preset that configures the `ERC20BaseToken` contract to allow minting of tokens. It adds a `MINTER_ROLE` and a `mint(address to, uint256 amount)` function that can only be called by accounts with the `MINTER_ROLE`.
 
 ## Usage
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {ERC721Token} from "@0xsequence/contracts-library/tokens/ERC721/ERC721Token.sol";
+import {ERC721BaseToken} from "@0xsequence/contracts-library/tokens/ERC721/ERC721BaseToken.sol";
 import {
     IERC721Items,
     IERC721ItemsFunctions
@@ -10,7 +10,7 @@ import {
 /**
  * An implementation of ERC-721 capable of minting when role provided.
  */
-contract ERC721Items is ERC721Token, IERC721Items {
+contract ERC721Items is ERC721BaseToken, IERC721Items {
     bytes32 internal constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address private immutable _initializer;
@@ -19,7 +19,7 @@ contract ERC721Items is ERC721Token, IERC721Items {
     /**
      * Deploy contract.
      */
-    constructor() ERC721Token() {
+    constructor() ERC721BaseToken() {
         _initializer = msg.sender;
     }
 
@@ -50,7 +50,7 @@ contract ERC721Items is ERC721Token, IERC721Items {
             revert InvalidInitialization();
         }
 
-        ERC721Token._initialize(owner, tokenName, tokenSymbol, tokenBaseURI, tokenContractURI);
+        ERC721BaseToken._initialize(owner, tokenName, tokenSymbol, tokenBaseURI, tokenContractURI);
         _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
 
         _setupRole(MINTER_ROLE, owner);

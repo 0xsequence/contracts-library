@@ -6,13 +6,13 @@ import {
     IERC1155Items,
     IERC1155ItemsFunctions
 } from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
-import {ERC1155Token} from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155Token.sol";
+import {ERC1155BaseToken} from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155BaseToken.sol";
 import {ERC2981Controlled} from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
 
 /**
  * An implementation of ERC-1155 capable of minting when role provided.
  */
-contract ERC1155Items is ERC1155MintBurn, ERC1155Token, IERC1155Items {
+contract ERC1155Items is ERC1155MintBurn, ERC1155BaseToken, IERC1155Items {
     bytes32 internal constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address private immutable initializer;
@@ -47,7 +47,7 @@ contract ERC1155Items is ERC1155MintBurn, ERC1155Token, IERC1155Items {
             revert InvalidInitialization();
         }
 
-        ERC1155Token._initialize(owner, tokenName, tokenBaseURI, tokenContractURI);
+        ERC1155BaseToken._initialize(owner, tokenName, tokenBaseURI, tokenContractURI);
         _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
 
         _setupRole(MINTER_ROLE, owner);
@@ -93,7 +93,7 @@ contract ERC1155Items is ERC1155MintBurn, ERC1155Token, IERC1155Items {
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId) public view override (ERC1155Token, ERC1155) returns (bool) {
-        return type(IERC1155ItemsFunctions).interfaceId == interfaceId || ERC1155Token.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view override (ERC1155BaseToken, ERC1155) returns (bool) {
+        return type(IERC1155ItemsFunctions).interfaceId == interfaceId || ERC1155BaseToken.supportsInterface(interfaceId);
     }
 }
