@@ -3,9 +3,9 @@ pragma solidity ^0.8.19;
 
 import {TestHelper} from "../../TestHelper.sol";
 
-import {ERC20TokenMinter} from "src/tokens/ERC20/presets/minter/ERC20TokenMinter.sol";
-import {IERC20TokenMinter, IERC20TokenMinterSignals, IERC20TokenMinterFunctions} from "src/tokens/ERC20/presets/minter/IERC20TokenMinter.sol";
-import {ERC20TokenMinterFactory} from "src/tokens/ERC20/presets/minter/ERC20TokenMinterFactory.sol";
+import {ERC20Items} from "src/tokens/ERC20/presets/items/ERC20Items.sol";
+import {IERC20Items, IERC20ItemsSignals, IERC20ItemsFunctions} from "src/tokens/ERC20/presets/items/IERC20Items.sol";
+import {ERC20ItemsFactory} from "src/tokens/ERC20/presets/items/ERC20ItemsFactory.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -14,11 +14,11 @@ import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-contract ERC20TokenMinterTest is TestHelper, IERC20TokenMinterSignals {
+contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 value);
 
-    ERC20TokenMinter private token;
+    ERC20Items private token;
 
     uint8 private constant DECIMALS = 18;
 
@@ -32,8 +32,8 @@ contract ERC20TokenMinterTest is TestHelper, IERC20TokenMinterSignals {
         vm.deal(address(this), 100 ether);
         vm.deal(owner, 100 ether);
 
-        ERC20TokenMinterFactory factory = new ERC20TokenMinterFactory(address(this));
-        token = ERC20TokenMinter(factory.deploy(proxyOwner, owner, "name", "symbol", DECIMALS));
+        ERC20ItemsFactory factory = new ERC20ItemsFactory(address(this));
+        token = ERC20Items(factory.deploy(proxyOwner, owner, "name", "symbol", DECIMALS));
     }
 
     function testReinitializeFails() public {
@@ -45,7 +45,7 @@ contract ERC20TokenMinterTest is TestHelper, IERC20TokenMinterSignals {
         assertTrue(token.supportsInterface(type(IERC165).interfaceId));
         assertTrue(token.supportsInterface(type(IERC20).interfaceId));
         assertTrue(token.supportsInterface(type(IERC20Metadata).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC20TokenMinterFunctions).interfaceId));
+        assertTrue(token.supportsInterface(type(IERC20ItemsFunctions).interfaceId));
     }
 
     /**

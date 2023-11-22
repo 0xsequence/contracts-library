@@ -28,7 +28,7 @@ contract ERC1155SaleFactory is IERC1155SaleFactory, SequenceProxyFactory {
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @return proxyAddr The address of the ERC-1155 Sale Proxy
-     * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-1155 Sale Minter functions.
+     * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-1155 Sale functions.
      */
     function deploy(
         address proxyOwner,

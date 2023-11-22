@@ -3,14 +3,14 @@ pragma solidity ^0.8.19;
 
 import {ERC721Token} from "@0xsequence/contracts-library/tokens/ERC721/ERC721Token.sol";
 import {
-    IERC721TokenMinter,
-    IERC721TokenMinterFunctions
-} from "@0xsequence/contracts-library/tokens/ERC721/presets/minter/IERC721TokenMinter.sol";
+    IERC721Items,
+    IERC721ItemsFunctions
+} from "@0xsequence/contracts-library/tokens/ERC721/presets/items/IERC721Items.sol";
 
 /**
  * An implementation of ERC-721 capable of minting when role provided.
  */
-contract ERC721TokenMinter is ERC721Token, IERC721TokenMinter {
+contract ERC721Items is ERC721Token, IERC721Items {
     bytes32 internal constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address private immutable _initializer;
@@ -81,6 +81,6 @@ contract ERC721TokenMinter is ERC721Token, IERC721TokenMinter {
      * @return True if supported
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return type(IERC721TokenMinterFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
+        return type(IERC721ItemsFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
 }

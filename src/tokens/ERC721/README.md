@@ -12,9 +12,9 @@ The contract supports the [ERC2981 token royalty standard](https://eips.ethereum
 
 This folder contains contracts that are pre-configured for specific use cases.
 
-### Minter
+### Items
 
-The `ERC721TokenMinter` contract is a preset that configures the `ERC721Token` contract to allow minting of tokens. It adds a `MINTER_ROLE` and a `mint(address to, uint256 amount)` function that can only be called by accounts with the `MINTER_ROLE`.
+The `ERC721Items` contract is a preset that configures the `ERC721Token` contract to allow minting of tokens. It adds a `MINTER_ROLE` and a `mint(address to, uint256 amount)` function that can only be called by accounts with the `MINTER_ROLE`.
 
 ### Sale
 

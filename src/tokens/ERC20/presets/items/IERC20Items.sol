@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-interface IERC20TokenMinterFunctions {
+interface IERC20ItemsFunctions {
 
     /**
      * Mint tokens.
@@ -18,11 +18,11 @@ interface IERC20TokenMinterFunctions {
     function setNameAndSymbol(string memory tokenName, string memory tokenSymbol) external;
 }
 
-interface IERC20TokenMinterSignals {
+interface IERC20ItemsSignals {
     /**
      * Invalid initialization error.
      */
     error InvalidInitialization();
 }
 
-interface IERC20TokenMinter is IERC20TokenMinterFunctions, IERC20TokenMinterSignals {}
+interface IERC20Items is IERC20ItemsFunctions, IERC20ItemsSignals {}

@@ -3,9 +3,9 @@ pragma solidity ^0.8.19;
 
 import {TestHelper} from "../../../TestHelper.sol";
 
-import {ERC721TokenMinter} from "src/tokens/ERC721/presets/minter/ERC721TokenMinter.sol";
-import {IERC721TokenMinterSignals, IERC721TokenMinterFunctions, IERC721TokenMinter} from "src/tokens/ERC721/presets/minter/IERC721TokenMinter.sol";
-import {ERC721TokenMinterFactory} from "src/tokens/ERC721/presets/minter/ERC721TokenMinterFactory.sol";
+import {ERC721Items} from "src/tokens/ERC721/presets/items/ERC721Items.sol";
+import {IERC721ItemsSignals, IERC721ItemsFunctions, IERC721Items} from "src/tokens/ERC721/presets/items/IERC721Items.sol";
+import {ERC721ItemsFactory} from "src/tokens/ERC721/presets/items/ERC721ItemsFactory.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -16,11 +16,11 @@ import {IERC721AQueryable} from "erc721a/contracts/extensions/IERC721AQueryable.
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 
-contract ERC721TokenMinterTest is TestHelper, IERC721TokenMinterSignals {
+contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
-    ERC721TokenMinter private token;
+    ERC721Items private token;
 
     address private proxyOwner;
     address private owner;
@@ -32,8 +32,8 @@ contract ERC721TokenMinterTest is TestHelper, IERC721TokenMinterSignals {
         vm.deal(address(this), 100 ether);
         vm.deal(owner, 100 ether);
 
-        ERC721TokenMinterFactory factory = new ERC721TokenMinterFactory(address(this));
-        token = ERC721TokenMinter(
+        ERC721ItemsFactory factory = new ERC721ItemsFactory(address(this));
+        token = ERC721Items(
             factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", "contractURI", address(this), 0)
         );
     }
@@ -49,7 +49,7 @@ contract ERC721TokenMinterTest is TestHelper, IERC721TokenMinterSignals {
         assertTrue(token.supportsInterface(type(IERC721AQueryable).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721Metadata).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC721TokenMinterFunctions).interfaceId));
+        assertTrue(token.supportsInterface(type(IERC721ItemsFunctions).interfaceId));
     }
 
     /**

@@ -3,14 +3,14 @@ pragma solidity ^0.8.19;
 
 import {ERC20Token} from "@0xsequence/contracts-library/tokens/ERC20/ERC20Token.sol";
 import {
-    IERC20TokenMinter,
-    IERC20TokenMinterFunctions
-} from "@0xsequence/contracts-library/tokens/ERC20/presets/minter/IERC20TokenMinter.sol";
+    IERC20Items,
+    IERC20ItemsFunctions
+} from "@0xsequence/contracts-library/tokens/ERC20/presets/items/IERC20Items.sol";
 
 /**
  * A ready made implementation of ERC-20 capable of minting when role provided.
  */
-contract ERC20TokenMinter is ERC20Token, IERC20TokenMinter {
+contract ERC20Items is ERC20Token, IERC20Items {
     bytes32 internal constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address private immutable _initializer;
@@ -52,7 +52,7 @@ contract ERC20TokenMinter is ERC20Token, IERC20TokenMinter {
      * Mint tokens.
      * @param to Address to mint tokens to.
      * @param amount Amount of tokens to mint.
-     * @notice This function can only be called by a minter.
+     * @notice This function can only be called by a items.
      */
     function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
         _mint(to, amount);
@@ -85,7 +85,7 @@ contract ERC20TokenMinter is ERC20Token, IERC20TokenMinter {
      * @return True if supported
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return type(IERC20TokenMinterFunctions).interfaceId == interfaceId || ERC20Token.supportsInterface(interfaceId)
+        return type(IERC20ItemsFunctions).interfaceId == interfaceId || ERC20Token.supportsInterface(interfaceId)
             || super.supportsInterface(interfaceId);
     }
 }

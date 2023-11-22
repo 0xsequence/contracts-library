@@ -1,15 +1,15 @@
 export const BUILD_DIR = 'build'
 export const DEPLOYABLE_CONTRACT_NAMES = [
-  'ERC20TokenMinterFactory',
-  'ERC721TokenMinterFactory',
+  'ERC20ItemsFactory',
+  'ERC721ItemsFactory',
   'ERC721SaleFactory',
-  'ERC1155TokenMinterFactory',
+  'ERC1155ItemsFactory',
   'ERC1155SaleFactory',
 ]
 export const TOKEN_CONTRACT_NAMES = [
-  'ERC20TokenMinter',
-  'ERC721TokenMinter',
+  'ERC20Items',
+  'ERC721Items',
   'ERC721Sale',
-  'ERC1155TokenMinter',
+  'ERC1155Items',
   'ERC1155Sale',
 ]

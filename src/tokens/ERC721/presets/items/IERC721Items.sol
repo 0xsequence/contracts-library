@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-interface IERC721TokenMinterFunctions {
+interface IERC721ItemsFunctions {
     /**
      * Mint tokens.
      * @param to Address to mint tokens to.
@@ -10,11 +10,11 @@ interface IERC721TokenMinterFunctions {
     function mint(address to, uint256 amount) external;
 }
 
-interface IERC721TokenMinterSignals {
+interface IERC721ItemsSignals {
     /**
      * Invalid initialization error.
      */
     error InvalidInitialization();
 }
 
-interface IERC721TokenMinter is IERC721TokenMinterFunctions, IERC721TokenMinterSignals {}
+interface IERC721Items is IERC721ItemsFunctions, IERC721ItemsSignals {}

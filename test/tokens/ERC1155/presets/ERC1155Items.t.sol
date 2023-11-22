@@ -4,13 +4,13 @@ pragma solidity ^0.8.19;
 import {stdError} from "forge-std/Test.sol";
 import {TestHelper} from "../../../TestHelper.sol";
 
-import {ERC1155TokenMinter} from "src/tokens/ERC1155/presets/minter/ERC1155TokenMinter.sol";
+import {ERC1155Items} from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
 import {
-    IERC1155TokenMinterSignals,
-    IERC1155TokenMinterFunctions,
-    IERC1155TokenMinter
-} from "src/tokens/ERC1155/presets/minter/IERC1155TokenMinter.sol";
-import {ERC1155TokenMinterFactory} from "src/tokens/ERC1155/presets/minter/ERC1155TokenMinterFactory.sol";
+    IERC1155ItemsSignals,
+    IERC1155ItemsFunctions,
+    IERC1155Items
+} from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
+import {ERC1155ItemsFactory} from "src/tokens/ERC1155/presets/items/ERC1155ItemsFactory.sol";
 import {IERC1155Supply} from "src/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -20,7 +20,7 @@ import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import {IERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 
-contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
+contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
     // Redeclare events
     event TransferSingle(
         address indexed _operator, address indexed _from, address indexed _to, uint256 _id, uint256 _amount
@@ -29,7 +29,7 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
         address indexed _operator, address indexed _from, address indexed _to, uint256[] _ids, uint256[] _amounts
     );
 
-    ERC1155TokenMinter private token;
+    ERC1155Items private token;
 
     address private proxyOwner;
     address private owner;
@@ -41,9 +41,9 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
         vm.deal(address(this), 100 ether);
         vm.deal(owner, 100 ether);
 
-        ERC1155TokenMinterFactory factory = new ERC1155TokenMinterFactory(address(this));
+        ERC1155ItemsFactory factory = new ERC1155ItemsFactory(address(this));
         token =
-            ERC1155TokenMinter(factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0));
+            ERC1155Items(factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0));
     }
 
     function testReinitializeFails() public {
@@ -56,7 +56,7 @@ contract ERC1155TokenMinterTest is TestHelper, IERC1155TokenMinterSignals {
         assertTrue(token.supportsInterface(type(IERC1155).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155Metadata).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155Supply).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC1155TokenMinterFunctions).interfaceId));
+        assertTrue(token.supportsInterface(type(IERC1155ItemsFunctions).interfaceId));
     }
 
     /**

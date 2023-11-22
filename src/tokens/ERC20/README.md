@@ -10,9 +10,9 @@ This contract is a base implementation of the ERC-20 token standard. It includes
 
 This folder contains contracts that are pre-configured for specific use cases.
 
-### Minter
+### Items
 
-The `ERC20TokenMinter` contract is a preset that configures the `ERC20Token` contract to allow minting of tokens. It adds a `MINTER_ROLE` and a `mint(address to, uint256 amount)` function that can only be called by accounts with the `MINTER_ROLE`.
+The `ERC20Items` contract is a preset that configures the `ERC20Token` contract to allow minting of tokens. It adds a `MINTER_ROLE` and a `mint(address to, uint256 amount)` function that can only be called by accounts with the `MINTER_ROLE`.
 
 ## Usage
 
