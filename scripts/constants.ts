@@ -12,4 +12,5 @@ export const TOKEN_CONTRACT_NAMES = [
   'ERC721Sale',
   'ERC1155Items',
   'ERC1155Sale',
+  'ERC1155PermissiveMinter',
 ]
