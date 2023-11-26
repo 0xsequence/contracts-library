@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {IERC721Sale, IERC721SaleFunctions} from "@0xsequence/contracts-library/tokens/ERC721/presets/sale/IERC721Sale.sol";
-import {ERC721BaseToken} from "@0xsequence/contracts-library/tokens/ERC721/ERC721BaseToken.sol";
+import {
+    IERC721Sale, IERC721SaleFunctions
+} from "@0xsequence/contracts-library/tokens/ERC721/utility/sale/IERC721Sale.sol";
 import {
     WithdrawControlled,
     AccessControl,
@@ -11,49 +12,36 @@ import {
 } from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
 import {MerkleProofSingleUse} from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
 
+import {IERC721A} from "erc721a/contracts/extensions/ERC721AQueryable.sol";
+import {IERC721ItemsFunctions} from "@0xsequence/contracts-library/tokens/ERC721/presets/items/IERC721Items.sol";
+
 /**
  * An ERC-721 token contract with primary sale mechanisms.
  */
-contract ERC721Sale is IERC721Sale, ERC721BaseToken, WithdrawControlled, MerkleProofSingleUse {
+contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
     bytes32 internal constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
     bytes4 private constant _ERC20_TRANSFERFROM_SELECTOR =
         bytes4(keccak256(bytes("transferFrom(address,address,uint256)")));
 
     bool private _initialized;
-
+    address private _items;
     SaleDetails private _saleDetails;
 
     /**
      * Initialize the contract.
      * @param owner The owner of the contract
-     * @param tokenName Name of the token
-     * @param tokenSymbol Symbol of the token
-     * @param tokenBaseURI Base URI of the token
-     * @param tokenContractURI Contract URI of the token
-     * @param royaltyReceiver Address of who should be sent the royalty payment
-     * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
+     * @param items The ERC-721 Items contract address
      * @dev This should be called immediately after deployment.
      */
-    function initialize(
-        address owner,
-        string memory tokenName,
-        string memory tokenSymbol,
-        string memory tokenBaseURI,
-        string memory tokenContractURI,
-        address royaltyReceiver,
-        uint96 royaltyFeeNumerator
-    )
-        public
-        virtual
-    {
+    function initialize(address owner, address items) public virtual {
         if (_initialized) {
             revert InvalidInitialization();
         }
 
-        ERC721BaseToken._initialize(owner, tokenName, tokenSymbol, tokenBaseURI, tokenContractURI);
-        _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
+        _items = items;
 
+        _setupRole(DEFAULT_ADMIN_ROLE, owner);
         _setupRole(MINT_ADMIN_ROLE, owner);
         _setupRole(WITHDRAW_ROLE, owner);
 
@@ -109,23 +97,13 @@ contract ERC721Sale is IERC721Sale, ERC721BaseToken, WithdrawControlled, MerkleP
      * @dev An empty proof is supplied when no proof is required.
      */
     function mint(address to, uint256 amount, bytes32[] calldata proof) public payable {
-        uint256 currentSupply = totalSupply();
+        uint256 currentSupply = IERC721A(_items).totalSupply();
         uint256 supplyCap = _saleDetails.supplyCap;
         if (supplyCap > 0 && currentSupply + amount > supplyCap) {
             revert InsufficientSupply(currentSupply, amount, supplyCap);
         }
         _payForActiveMint(amount, proof);
-        _mint(to, amount);
-    }
-
-    /**
-     * Mint tokens as admin.
-     * @param to Address to mint tokens to.
-     * @param amount Amount of tokens to mint.
-     * @notice Only callable by mint admin.
-     */
-    function mintAdmin(address to, uint256 amount) public onlyRole(MINT_ADMIN_ROLE) {
-        _mint(to, amount);
+        IERC721ItemsFunctions(_items).mint(to, amount);
     }
 
     /**
@@ -157,6 +135,10 @@ contract ERC721Sale is IERC721Sale, ERC721BaseToken, WithdrawControlled, MerkleP
     // Views
     //
 
+    function itemsContract() external view returns (address) {
+        return address(_items);
+    }
+
     /**
      * Get sale details.
      * @return Sale details.
@@ -170,13 +152,7 @@ contract ERC721Sale is IERC721Sale, ERC721BaseToken, WithdrawControlled, MerkleP
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override (ERC721BaseToken, AccessControl)
-        returns (bool)
-    {
+    function supportsInterface(bytes4 interfaceId) public view virtual override (AccessControl) returns (bool) {
         return interfaceId == type(IERC721SaleFunctions).interfaceId || super.supportsInterface(interfaceId);
     }
 }

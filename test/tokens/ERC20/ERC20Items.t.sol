@@ -57,6 +57,7 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
         checkSelectorCollision(0xdd62ed3e); // allowance(address,address)
         checkSelectorCollision(0x095ea7b3); // approve(address,uint256)
         checkSelectorCollision(0x70a08231); // balanceOf(address)
+        checkSelectorCollision(0x42966c68); // burn(uint256)
         checkSelectorCollision(0x313ce567); // decimals()
         checkSelectorCollision(0xa457c2d7); // decreaseAllowance(address,uint256)
         checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
@@ -96,10 +97,7 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
 
         vm.expectRevert(
             abi.encodePacked(
-                "AccessControl: account ",
-                Strings.toHexString(caller),
-                " is missing role ",
-                vm.toString(keccak256("MINTER_ROLE"))
+                "AccessControl: account ", Strings.toHexString(caller), " is missing role ", vm.toString(keccak256("MINTER_ROLE"))
             )
         );
         vm.prank(caller);

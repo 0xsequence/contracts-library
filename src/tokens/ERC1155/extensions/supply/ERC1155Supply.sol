@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {ERC1155BaseToken} from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155BaseToken.sol";
-import {IERC1155Supply} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
+import {ERC1155} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155.sol";
+import {
+    IERC1155Supply,
+    IERC1155SupplyFunctions
+} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
 
 /**
  * An ERC-1155 extension that tracks token supply.
  */
-abstract contract ERC1155Supply is ERC1155BaseToken, IERC1155Supply {
-    // Maximum supply globaly and per token. 0 indicates unlimited supply
-    uint256 internal totalSupplyCap;
-    mapping(uint256 => uint256) internal tokenSupplyCap;
-
+abstract contract ERC1155Supply is ERC1155, IERC1155Supply {
     // Current supply
     uint256 public totalSupply;
     mapping(uint256 => uint256) public tokenSupply;
@@ -23,18 +22,14 @@ abstract contract ERC1155Supply is ERC1155BaseToken, IERC1155Supply {
      * @param _amount The amount to be minted
      * @param _data Data to pass if receiver is contract
      */
-    function _mint(address _to, uint256 _id, uint256 _amount, bytes memory _data) internal virtual override {
-        // Check supply cap
-        if (totalSupplyCap > 0 && totalSupply + _amount > totalSupplyCap) {
-            revert InsufficientSupply(totalSupply, _amount, totalSupplyCap);
-        }
+    function _mint(address _to, uint256 _id, uint256 _amount, bytes memory _data) internal virtual {
         totalSupply += _amount;
-        if (tokenSupplyCap[_id] > 0 && tokenSupply[_id] + _amount > tokenSupplyCap[_id]) {
-            revert InsufficientSupply(tokenSupply[_id], _amount, tokenSupplyCap[_id]);
-        }
         tokenSupply[_id] += _amount;
+        balances[_to][_id] += _amount;
 
-        _mint(_to, _id, _amount, _data);
+        emit TransferSingle(msg.sender, address(0x0), _to, _id, _amount);
+
+        _callonERC1155Received(address(0x0), _to, _id, _amount, gasleft(), _data);
     }
 
     /**
@@ -44,7 +39,10 @@ abstract contract ERC1155Supply is ERC1155BaseToken, IERC1155Supply {
      * @param _amounts Array of amount of tokens to mint per id
      * @param _data Data to pass if receiver is contract
      */
-    function _batchMint(address _to, uint256[] memory _ids, uint256[] memory _amounts, bytes memory _data) internal virtual override {
+    function _batchMint(address _to, uint256[] memory _ids, uint256[] memory _amounts, bytes memory _data)
+        internal
+        virtual
+    {
         uint256 nMint = _ids.length;
         if (nMint != _amounts.length) {
             revert InvalidArrayLength();
@@ -54,19 +52,12 @@ abstract contract ERC1155Supply is ERC1155BaseToken, IERC1155Supply {
         uint256 totalAmount = 0;
         for (uint256 i = 0; i < nMint; i++) {
             // Update storage balance
-            if (tokenSupplyCap[_ids[i]] > 0 && tokenSupply[_ids[i]] + _amounts[i] > tokenSupplyCap[_ids[i]]) {
-                revert InsufficientSupply(tokenSupply[_ids[i]], _amounts[i], tokenSupplyCap[_ids[i]]);
-            }
             balances[_to][_ids[i]] += _amounts[i];
             tokenSupply[_ids[i]] += _amounts[i];
             totalAmount += _amounts[i];
         }
-        if (totalSupplyCap > 0 && totalSupply + totalAmount > totalSupplyCap) {
-            revert InsufficientSupply(totalSupply, totalAmount, totalSupplyCap);
-        }
         totalSupply += totalAmount;
 
-        // Emit batch mint event
         emit TransferBatch(msg.sender, address(0x0), _to, _ids, _amounts);
 
         // Calling onReceive method if recipient is contract
@@ -79,7 +70,7 @@ abstract contract ERC1155Supply is ERC1155BaseToken, IERC1155Supply {
      * @param _id Token id to burn
      * @param _amount The amount to be burned
      */
-    function _burn(address _from, uint256 _id, uint256 _amount) internal virtual override {
+    function _burn(address _from, uint256 _id, uint256 _amount) internal virtual {
         // Supply
         totalSupply -= _amount;
         tokenSupply[_id] -= _amount;
@@ -97,20 +88,35 @@ abstract contract ERC1155Supply is ERC1155BaseToken, IERC1155Supply {
      * @param _ids Array of token ids to burn
      * @param _amounts Array of the amount to be burned
      */
-    function _batchBurn(address _from, uint256[] memory _ids, uint256[] memory _amounts) internal virtual override {
+    function _batchBurn(address _from, uint256[] memory _ids, uint256[] memory _amounts) internal virtual {
         uint256 nBurn = _ids.length;
         if (nBurn != _amounts.length) {
             revert InvalidArrayLength();
         }
 
+        uint256 totalAmount = 0;
         for (uint256 i = 0; i < nBurn; i++) {
             // Update balances
             balances[_from][_ids[i]] -= _amounts[i];
-            totalSupply -= _amounts[i];
             tokenSupply[_ids[i]] -= _amounts[i];
+            totalAmount += _amounts[i];
         }
+        totalSupply -= totalAmount;
 
         // Emit batch mint event
         emit TransferBatch(msg.sender, _from, address(0x0), _ids, _amounts);
+    }
+
+    //
+    // Views
+    //
+
+    /**
+     * Check interface support.
+     * @param interfaceId Interface id
+     * @return True if supported
+     */
+    function supportsInterface(bytes4 interfaceId) public view virtual override (ERC1155) returns (bool) {
+        return type(IERC1155SupplyFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
 }

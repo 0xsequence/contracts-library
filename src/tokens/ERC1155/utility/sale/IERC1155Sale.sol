@@ -85,6 +85,11 @@ interface IERC1155SaleSignals {
      * Invalid token IDs.
      */
     error InvalidTokenIds();
+
+    /**
+     * Insufficient supply of tokens.
+     */
+    error InsufficientSupply(uint256 currentSupply, uint256 requestedAmount, uint256 maxSupply);
 }
 
 interface IERC1155Sale is IERC1155SaleFunctions, IERC1155SaleSignals {}

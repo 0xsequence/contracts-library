@@ -6,27 +6,12 @@ interface IERC721SaleFactoryFunctions {
      * Creates an ERC-721 Sale for given token contract
      * @param proxyOwner The owner of the ERC-721 Sale proxy
      * @param tokenOwner The owner of the ERC-721 Sale implementation
-     * @param name The name of the ERC-721 Sale token
-     * @param symbol The symbol of the ERC-721 Sale token
-     * @param baseURI The base URI of the ERC-721 Sale token
-     * @param contractURI The contract URI of the ERC-721 Sale token
-     * @param royaltyReceiver Address of who should be sent the royalty payment
-     * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
+     * @param items The ERC-721 Items contract address
      * @return proxyAddr The address of the ERC-721 Sale Proxy
      * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-721 Sale functions.
+     * @notice The deployed contract must be granted the MINTER_ROLE on the ERC-721 Items contract.
      */
-    function deploy(
-        address proxyOwner,
-        address tokenOwner,
-        string memory name,
-        string memory symbol,
-        string memory baseURI,
-        string memory contractURI,
-        address royaltyReceiver,
-        uint96 royaltyFeeNumerator
-    )
-        external
-        returns (address proxyAddr);
+    function deploy(address proxyOwner, address tokenOwner, address items) external returns (address proxyAddr);
 }
 
 interface IERC721SaleFactorySignals {

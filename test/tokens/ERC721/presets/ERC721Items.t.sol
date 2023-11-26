@@ -4,7 +4,9 @@ pragma solidity ^0.8.19;
 import {TestHelper} from "../../../TestHelper.sol";
 
 import {ERC721Items} from "src/tokens/ERC721/presets/items/ERC721Items.sol";
-import {IERC721ItemsSignals, IERC721ItemsFunctions, IERC721Items} from "src/tokens/ERC721/presets/items/IERC721Items.sol";
+import {
+    IERC721ItemsSignals, IERC721ItemsFunctions, IERC721Items
+} from "src/tokens/ERC721/presets/items/IERC721Items.sol";
 import {ERC721ItemsFactory} from "src/tokens/ERC721/presets/items/ERC721ItemsFactory.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -33,9 +35,8 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         vm.deal(owner, 100 ether);
 
         ERC721ItemsFactory factory = new ERC721ItemsFactory(address(this));
-        token = ERC721Items(
-            factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", "contractURI", address(this), 0)
-        );
+        token =
+            ERC721Items(factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", "contractURI", address(this), 0));
     }
 
     function testReinitializeFails() public {
@@ -60,6 +61,8 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
         checkSelectorCollision(0x095ea7b3); // approve(address,uint256)
         checkSelectorCollision(0x70a08231); // balanceOf(address)
+        checkSelectorCollision(0xdc8e92ea); // batchBurn(uint256[])
+        checkSelectorCollision(0x42966c68); // burn(uint256)
         checkSelectorCollision(0xe8a3d485); // contractURI()
         checkSelectorCollision(0xc23dc68f); // explicitOwnershipOf(uint256)
         checkSelectorCollision(0x5bbb2177); // explicitOwnershipsOf(uint256[])
@@ -150,10 +153,7 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
 
         vm.expectRevert(
             abi.encodePacked(
-                "AccessControl: account ",
-                Strings.toHexString(caller),
-                " is missing role ",
-                vm.toString(keccak256("MINTER_ROLE"))
+                "AccessControl: account ", Strings.toHexString(caller), " is missing role ", vm.toString(keccak256("MINTER_ROLE"))
             )
         );
         vm.prank(caller);

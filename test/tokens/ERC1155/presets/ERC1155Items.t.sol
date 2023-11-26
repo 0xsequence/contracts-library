@@ -11,7 +11,7 @@ import {
     IERC1155Items
 } from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
 import {ERC1155ItemsFactory} from "src/tokens/ERC1155/presets/items/ERC1155ItemsFactory.sol";
-import {IERC1155Supply} from "src/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
+import {IERC1155SupplyFunctions} from "src/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -42,8 +42,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         vm.deal(owner, 100 ether);
 
         ERC1155ItemsFactory factory = new ERC1155ItemsFactory(address(this));
-        token =
-            ERC1155Items(factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0));
+        token = ERC1155Items(factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0));
     }
 
     function testReinitializeFails() public {
@@ -55,7 +54,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         assertTrue(token.supportsInterface(type(IERC165).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155Metadata).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC1155Supply).interfaceId));
+        assertTrue(token.supportsInterface(type(IERC1155SupplyFunctions).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155ItemsFunctions).interfaceId));
     }
 
@@ -68,7 +67,9 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         checkSelectorCollision(0x00fdd58e); // balanceOf(address,uint256)
         checkSelectorCollision(0x4e1273f4); // balanceOfBatch(address[],uint256[])
         checkSelectorCollision(0x6c0360eb); // baseURI()
+        checkSelectorCollision(0x20ec271b); // batchBurn(uint256[],uint256[])
         checkSelectorCollision(0xb48ab8b6); // batchMint(address,uint256[],uint256[],bytes)
+        checkSelectorCollision(0xb390c0ab); // burn(uint256,uint256)
         checkSelectorCollision(0xe8a3d485); // contractURI()
         checkSelectorCollision(0x2d0335ab); // getNonce(address)
         checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
@@ -94,6 +95,8 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         checkSelectorCollision(0x04634d8d); // setDefaultRoyalty(address,uint96)
         checkSelectorCollision(0x5944c753); // setTokenRoyalty(uint256,address,uint96)
         checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
+        checkSelectorCollision(0x2693ebf2); // tokenSupply(uint256)
+        checkSelectorCollision(0x18160ddd); // totalSupply()
         checkSelectorCollision(0x0e89341c); // uri(uint256)
     }
 
@@ -128,10 +131,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
 
         vm.expectRevert(
             abi.encodePacked(
-                "AccessControl: account ",
-                Strings.toHexString(caller),
-                " is missing role ",
-                vm.toString(keccak256("MINTER_ROLE"))
+                "AccessControl: account ", Strings.toHexString(caller), " is missing role ", vm.toString(keccak256("MINTER_ROLE"))
             )
         );
         vm.prank(caller);
@@ -143,10 +143,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         amounts[0] = 1;
         vm.expectRevert(
             abi.encodePacked(
-                "AccessControl: account ",
-                Strings.toHexString(caller),
-                " is missing role ",
-                vm.toString(keccak256("MINTER_ROLE"))
+                "AccessControl: account ", Strings.toHexString(caller), " is missing role ", vm.toString(keccak256("MINTER_ROLE"))
             )
         );
         vm.prank(caller);
@@ -166,19 +163,16 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
 
     function testBatchMintOwner(uint256[] memory tokenIds, uint256[] memory amounts) public {
         tokenIds = boundArrayLength(tokenIds, 10);
-        amounts = boundArrayLength(amounts, 10);
+        amounts = boundArrayLength(amounts, tokenIds.length);
         vm.assume(tokenIds.length == amounts.length);
         for (uint256 i; i < amounts.length; i++) {
-            vm.assume(amounts[i] > 0);
-        }
-        // Unique ids
-        for (uint256 i; i < tokenIds.length; i++) {
-            for (uint256 j; j < tokenIds.length; j++) {
-                if (i != j) {
-                    vm.assume(tokenIds[i] != tokenIds[j]);
-                }
+            if (amounts[i] == 0) {
+                amounts[i] = 1;
+            } else if (amounts[i] > 1e6) {
+                amounts[i] = 1e6;
             }
         }
+        assumeNoDuplicates(tokenIds);
 
         vm.expectEmit(true, true, true, true, address(token));
         emit TransferBatch(owner, address(0), owner, tokenIds, amounts);
@@ -209,19 +203,16 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         vm.assume(minter != proxyOwner);
         vm.assume(minter != address(0));
         tokenIds = boundArrayLength(tokenIds, 10);
-        amounts = boundArrayLength(amounts, 10);
+        amounts = boundArrayLength(amounts, tokenIds.length);
         vm.assume(tokenIds.length == amounts.length);
         for (uint256 i; i < amounts.length; i++) {
-            vm.assume(amounts[i] > 0);
-        }
-        // Unique ids
-        for (uint256 i; i < tokenIds.length; i++) {
-            for (uint256 j; j < tokenIds.length; j++) {
-                if (i != j) {
-                    vm.assume(tokenIds[i] != tokenIds[j]);
-                }
+            if (amounts[i] == 0) {
+                amounts[i] = 1;
+            } else if (amounts[i] > 1e6) {
+                amounts[i] = 1e6;
             }
         }
+        assumeNoDuplicates(tokenIds);
 
         // Give role
         vm.startPrank(owner);
@@ -255,6 +246,8 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         token.burn(tokenId, burnAmount);
 
         assertEq(token.balanceOf(caller, tokenId), amount - burnAmount);
+        assertEq(token.tokenSupply(tokenId), amount - burnAmount);
+        assertEq(token.totalSupply(), amount - burnAmount);
     }
 
     function testBurnInvalidOwnership(address caller, uint256 tokenId, uint256 amount, uint256 burnAmount) public {
@@ -270,7 +263,14 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         token.burn(tokenId, burnAmount);
     }
 
-    function testBurnBatchSuccess(address caller, uint256[] memory tokenIds, uint256[] memory amounts, uint256[] memory burnAmounts) public {
+    function testBurnBatchSuccess(
+        address caller,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts,
+        uint256[] memory burnAmounts
+    )
+        public
+    {
         assumeSafeAddress(caller);
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);
@@ -307,12 +307,20 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         vm.prank(caller);
         token.batchBurn(tokenIds, burnAmounts);
 
+        uint256 totalAmount;
+        uint256 totalBurnAmount;
         for (uint256 i; i < nTokenIds; i++) {
             assertEq(token.balanceOf(caller, tokenIds[i]), amounts[i] - burnAmounts[i]);
+            assertEq(token.tokenSupply(tokenIds[i]), amounts[i] - burnAmounts[i]);
+            totalAmount += amounts[i];
+            totalBurnAmount += burnAmounts[i];
         }
+        assertEq(token.totalSupply(), totalAmount - totalBurnAmount);
     }
 
-    function testBurnBatchInvalidOwnership(address caller, uint256[] memory tokenIds, uint256[] memory amounts) public {
+    function testBurnBatchInvalidOwnership(address caller, uint256[] memory tokenIds, uint256[] memory amounts)
+        public
+    {
         assumeSafeAddress(caller);
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);
@@ -491,10 +499,10 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         if (arr.length <= maxSize) {
             return arr;
         }
-        uint256[] memory result = new uint256[](maxSize);
-        for (uint256 i; i < maxSize; i++) {
-            result[i] = arr[i];
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            mstore(arr, maxSize)
         }
-        return result;
+        return arr;
     }
 }

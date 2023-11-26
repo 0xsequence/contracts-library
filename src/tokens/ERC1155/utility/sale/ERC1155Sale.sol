@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {IERC1155Sale, IERC1155SaleFunctions} from "@0xsequence/contracts-library/tokens/ERC1155/presets/sale/IERC1155Sale.sol";
 import {
-    ERC1155Supply,
-    ERC1155BaseToken
-} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
+    IERC1155Sale,
+    IERC1155SaleFunctions
+} from "@0xsequence/contracts-library/tokens/ERC1155/utility/sale/IERC1155Sale.sol";
+import {ERC1155Supply} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
 import {
     WithdrawControlled,
     AccessControl,
@@ -14,13 +14,19 @@ import {
 } from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
 import {MerkleProofSingleUse} from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
 
-contract ERC1155Sale is IERC1155Sale, ERC1155Supply, WithdrawControlled, MerkleProofSingleUse {
+import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
+import {IERC1155SupplyFunctions} from
+    "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
+import {IERC1155ItemsFunctions} from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
+
+contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
     bytes32 internal constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
     bytes4 private constant _ERC20_TRANSFERFROM_SELECTOR =
         bytes4(keccak256(bytes("transferFrom(address,address,uint256)")));
 
     bool private _initialized;
+    address private _items;
 
     // ERC20 token address for payment. address(0) indicated payment in ETH.
     address private _paymentToken;
@@ -28,34 +34,24 @@ contract ERC1155Sale is IERC1155Sale, ERC1155Supply, WithdrawControlled, MerkleP
     SaleDetails private _globalSaleDetails;
     mapping(uint256 => SaleDetails) private _tokenSaleDetails;
 
+    // Maximum supply globaly and per token. 0 indicates unlimited supply
+    uint256 internal totalSupplyCap;
+    mapping(uint256 => uint256) internal tokenSupplyCap;
+
     /**
      * Initialize the contract.
      * @param owner Owner address
-     * @param tokenName Token name
-     * @param tokenBaseURI Base URI for token metadata
-     * @param tokenContractURI Contract URI for token metadata
-     * @param royaltyReceiver Address of who should be sent the royalty payment
-     * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
+     * @param items The ERC-1155 Items contract address
      * @dev This should be called immediately after deployment.
      */
-    function initialize(
-        address owner,
-        string memory tokenName,
-        string memory tokenBaseURI,
-        string memory tokenContractURI,
-        address royaltyReceiver,
-        uint96 royaltyFeeNumerator
-    )
-        public
-        virtual
-    {
+    function initialize(address owner, address items) public virtual {
         if (_initialized) {
             revert InvalidInitialization();
         }
 
-        ERC1155BaseToken._initialize(owner, tokenName, tokenBaseURI, tokenContractURI);
-        _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
+        _items = items;
 
+        _setupRole(DEFAULT_ADMIN_ROLE, owner);
         _setupRole(MINT_ADMIN_ROLE, owner);
         _setupRole(WITHDRAW_ROLE, owner);
 
@@ -155,22 +151,24 @@ contract ERC1155Sale is IERC1155Sale, ERC1155Supply, WithdrawControlled, MerkleP
         payable
     {
         _payForActiveMint(tokenIds, amounts, proof);
-        _batchMint(to, tokenIds, amounts, data);
-    }
 
-    /**
-     * Mint tokens as admin.
-     * @param to Address to mint tokens to.
-     * @param tokenIds Token IDs to mint.
-     * @param amounts Amounts of tokens to mint.
-     * @param data Data to pass if receiver is contract.
-     * @notice Only callable by mint admin.
-     */
-    function mintAdmin(address to, uint256[] memory tokenIds, uint256[] memory amounts, bytes memory data)
-        public
-        onlyRole(MINT_ADMIN_ROLE)
-    {
-        _batchMint(to, tokenIds, amounts, data);
+        IERC1155SupplyFunctions items = IERC1155SupplyFunctions(_items);
+        uint256 totalAmount = 0;
+        uint256 nMint = tokenIds.length;
+        for (uint256 i = 0; i < nMint; i++) {
+            // Update storage balance
+            if (
+                tokenSupplyCap[tokenIds[i]] > 0 && items.tokenSupply(tokenIds[i]) + amounts[i] > tokenSupplyCap[tokenIds[i]]
+            ) {
+                revert InsufficientSupply(items.tokenSupply(tokenIds[i]), amounts[i], tokenSupplyCap[tokenIds[i]]);
+            }
+            totalAmount += amounts[i];
+        }
+        if (totalSupplyCap > 0 && items.totalSupply() + totalAmount > totalSupplyCap) {
+            revert InsufficientSupply(items.totalSupply(), totalAmount, totalSupplyCap);
+        }
+
+        IERC1155ItemsFunctions(_items).batchMint(to, tokenIds, amounts, data);
     }
 
     /**
@@ -265,13 +263,7 @@ contract ERC1155Sale is IERC1155Sale, ERC1155Supply, WithdrawControlled, MerkleP
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override (ERC1155BaseToken, AccessControl)
-        returns (bool)
-    {
+    function supportsInterface(bytes4 interfaceId) public view virtual override (AccessControl) returns (bool) {
         return type(IERC1155SaleFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
 }
