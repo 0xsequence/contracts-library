@@ -4,13 +4,12 @@ pragma solidity ^0.8.19;
 interface IERC1155PermissiveMinterFunctions {
     /**
      * Mint tokens.
-     * @param items The items contract.
      * @param to Address to mint tokens to.
      * @param tokenId Token ID to mint.
      * @param amount Amount of tokens to mint.
      * @param data Data to pass if receiver is contract.
      */
-    function mint(address items, address to, uint256 tokenId, uint256 amount, bytes memory data) external;
+    function mint(address to, uint256 tokenId, uint256 amount, bytes memory data) external;
 }
 
 interface IERC1155PermissiveMinterSignals {

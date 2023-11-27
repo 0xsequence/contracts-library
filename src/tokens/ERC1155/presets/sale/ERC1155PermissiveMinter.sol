@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {IERC1155PermissiveMinter} from "@0xsequence/contracts-library/tokens/ERC1155/presets/sale/IERC1155PermissiveMinter.sol";
-import {IERC1155ItemsFunctions} from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
+import {ERC1155MintBurn, ERC1155} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
+import {
+    IERC1155PermissiveMinter, 
+    IERC1155PermissiveMinterFunctions
+} from "@0xsequence/contracts-library/tokens/ERC1155/presets/sale/IERC1155PermissiveMinter.sol";
 import {ERC1155BaseToken} from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155BaseToken.sol";
 
 /**
  * An ERC-1155 contract that allows permissive minting.
  */
-contract ERC1155PermissiveMinter is ERC1155BaseToken, IERC1155PermissiveMinter {
+contract ERC1155PermissiveMinter is ERC1155MintBurn, ERC1155BaseToken, IERC1155PermissiveMinter {
 
     address private immutable initializer;
     bool private initialized;
@@ -50,14 +53,26 @@ contract ERC1155PermissiveMinter is ERC1155BaseToken, IERC1155PermissiveMinter {
 
     /**
      * Mint tokens.
-     * @param items The items contract.
      * @param to Address to mint tokens to.
      * @param tokenId Token ID to mint.
      * @param amount Amount of tokens to mint.
      * @param data Data to pass if receiver is contract.
      */
-    function mint(address items, address to, uint256 tokenId, uint256 amount, bytes memory data) public {
-        IERC1155ItemsFunctions(items).mint(to, tokenId, amount, data);
+    function mint(address to, uint256 tokenId, uint256 amount, bytes memory data) public {
+        _mint(to, tokenId, amount, data);
+    }
+
+    //
+    // Views
+    //
+
+    /**
+     * Check interface support.
+     * @param interfaceId Interface id
+     * @return True if supported
+     */
+    function supportsInterface(bytes4 interfaceId) public view override (ERC1155BaseToken, ERC1155) returns (bool) {
+        return type(IERC1155PermissiveMinterFunctions).interfaceId == interfaceId || ERC1155BaseToken.supportsInterface(interfaceId);
     }
 
 }
