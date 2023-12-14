@@ -73,6 +73,8 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         checkSelectorCollision(0xe8a3d485); // contractURI()
         checkSelectorCollision(0x2d0335ab); // getNonce(address)
         checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
+        checkSelectorCollision(0x9010d07c); // getRoleMember(bytes32,uint256)
+        checkSelectorCollision(0xca15c873); // getRoleMemberCount(bytes32)
         checkSelectorCollision(0x2f2ff15d); // grantRole(bytes32,address)
         checkSelectorCollision(0x91d14854); // hasRole(bytes32,address)
         checkSelectorCollision(0xf8954818); // initialize(address,string,string,string,address,uint96)

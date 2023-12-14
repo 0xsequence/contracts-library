@@ -68,6 +68,8 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
         checkSelectorCollision(0xf8e4dec5); // checkMerkleProof(bytes32,bytes32[],address)
         checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
+        checkSelectorCollision(0x9010d07c); // getRoleMember(bytes32,uint256)
+        checkSelectorCollision(0xca15c873); // getRoleMemberCount(bytes32)
         checkSelectorCollision(0x2f2ff15d); // grantRole(bytes32,address)
         checkSelectorCollision(0x91d14854); // hasRole(bytes32,address)
         checkSelectorCollision(0x485cc955); // initialize(address,address)

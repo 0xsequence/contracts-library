@@ -61,6 +61,8 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
         checkSelectorCollision(0x313ce567); // decimals()
         checkSelectorCollision(0xa457c2d7); // decreaseAllowance(address,uint256)
         checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
+        checkSelectorCollision(0x9010d07c); // getRoleMember(bytes32,uint256)
+        checkSelectorCollision(0xca15c873); // getRoleMemberCount(bytes32)
         checkSelectorCollision(0x2f2ff15d); // grantRole(bytes32,address)
         checkSelectorCollision(0x91d14854); // hasRole(bytes32,address)
         checkSelectorCollision(0x39509351); // increaseAllowance(address,uint256)

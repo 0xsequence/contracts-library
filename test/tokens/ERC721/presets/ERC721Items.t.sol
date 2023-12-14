@@ -68,6 +68,8 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         checkSelectorCollision(0x5bbb2177); // explicitOwnershipsOf(uint256[])
         checkSelectorCollision(0x081812fc); // getApproved(uint256)
         checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
+        checkSelectorCollision(0x9010d07c); // getRoleMember(bytes32,uint256)
+        checkSelectorCollision(0xca15c873); // getRoleMemberCount(bytes32)
         checkSelectorCollision(0x2f2ff15d); // grantRole(bytes32,address)
         checkSelectorCollision(0x91d14854); // hasRole(bytes32,address)
         checkSelectorCollision(0x98dd69c8); // initialize(address,string,string,string,string,address,uint96)

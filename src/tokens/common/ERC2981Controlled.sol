@@ -3,12 +3,12 @@ pragma solidity ^0.8.19;
 
 import {IERC2981Controlled} from "@0xsequence/contracts-library/tokens/common/IERC2981Controlled.sol";
 import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {AccessControlEnumerable} from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
 /**
  * An implementation of ERC-2981 that allows updates by roles.
  */
-abstract contract ERC2981Controlled is ERC2981, AccessControl, IERC2981Controlled {
+abstract contract ERC2981Controlled is ERC2981, AccessControlEnumerable, IERC2981Controlled {
     bytes32 internal constant ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
 
     //
@@ -51,10 +51,10 @@ abstract contract ERC2981Controlled is ERC2981, AccessControl, IERC2981Controlle
         public
         view
         virtual
-        override (ERC2981, AccessControl)
+        override (ERC2981, AccessControlEnumerable)
         returns (bool)
     {
-        return ERC2981.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId)
+        return ERC2981.supportsInterface(interfaceId) || AccessControlEnumerable.supportsInterface(interfaceId)
             || type(IERC2981Controlled).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
 }

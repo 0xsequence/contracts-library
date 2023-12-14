@@ -4,14 +4,14 @@ pragma solidity ^0.8.19;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {AccessControlEnumerable} from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 
 error InvalidInitialization();
 
 /**
  * A standard base implementation of ERC-20 for use in Sequence library contracts.
  */
-abstract contract ERC20BaseToken is ERC20, AccessControl {
+abstract contract ERC20BaseToken is ERC20, AccessControlEnumerable {
     string internal _tokenName;
     string internal _tokenSymbol;
     uint8 private _tokenDecimals;
@@ -71,7 +71,7 @@ abstract contract ERC20BaseToken is ERC20, AccessControl {
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return interfaceId == type(IERC20).interfaceId || interfaceId == type(IERC20Metadata).interfaceId
-            || AccessControl.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
+            || AccessControlEnumerable.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
     }
 
     //

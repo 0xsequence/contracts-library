@@ -6,7 +6,7 @@ import {
 } from "@0xsequence/contracts-library/tokens/ERC721/utility/sale/IERC721Sale.sol";
 import {
     WithdrawControlled,
-    AccessControl,
+    AccessControlEnumerable,
     SafeERC20,
     IERC20
 } from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
@@ -152,7 +152,7 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override (AccessControl) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override (AccessControlEnumerable) returns (bool) {
         return interfaceId == type(IERC721SaleFunctions).interfaceId || super.supportsInterface(interfaceId);
     }
 }
