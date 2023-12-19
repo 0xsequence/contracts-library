@@ -29,7 +29,7 @@ Alternatively, use the `ERC721BaseToken` or `ERC1155BaseToken` implementations w
 
 ### Dependencies
 
-The `ERC2981Controlled` contract depends on OpenZeppelin's `ERC2981` and `AccessControl` contracts. `ERC2981` provides the basic royalty-related functionality according to the standard, while `AccessControl` provides a flexible system of access control based on roles.
+The `ERC2981Controlled` contract depends on OpenZeppelin's `ERC2981` and `AccessControlEnumberable` contracts. `ERC2981` provides the basic royalty-related functionality according to the standard, while `AccessControlEnumberable` provides a flexible system of access control based on roles.
 
 ## MerkleProofSingleUse
 
@@ -82,4 +82,4 @@ contract MyNFT is ERC721, WithdrawControlled {
 
 ### Dependencies
 
-The `WithdrawControlled` contract depends on OpenZeppelin's `AccessControl` contract. `AccessControl` provides a flexible system of access control based on roles.
+The `WithdrawControlled` contract depends on OpenZeppelin's `AccessControlEnumberable` contract. `AccessControlEnumberable` provides a flexible system of access control based on roles.

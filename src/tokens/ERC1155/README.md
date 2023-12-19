@@ -4,7 +4,7 @@ This subsection contains contracts related to the [ERC1155 token standard](https
 
 ## ERC1155BaseToken
 
-This contract is a base implementation of the ERC-1155 token standard. It includes role based access control features from the [OpenZeppelin AccessControl](https://docs.openzeppelin.com/contracts/4.x/access-control) contract, to provide control over added features. Please refer to OpenZeppelin documentation for more information on AccessControl.
+This contract is a base implementation of the ERC-1155 token standard. It includes role based access control features from the [OpenZeppelin AccessControlEnumberable](https://docs.openzeppelin.com/contracts/4.x/access-control) contract, to provide control over added features. Please refer to OpenZeppelin documentation for more information on `AccessControlEnumberable`.
 
 This contracts provide minting capabilities, support for meta transactions, and metadata functionality. It includes additional features from the ERC1155MintBurn, ERC1155Meta, and ERC1155Metadata contracts. Meta transactions are provided by the [0xSequence ERC1155 library](https://github.com/0xsequence/erc-1155/blob/master/SPECIFICATIONS.md#meta-transactions). Please refer to library documentation for more information on meta transactions.
 
@@ -36,11 +36,11 @@ This section of this repo utilitizes a factory pattern that deploys proxies cont
 
 ## Dependencies
 
-This repository relies on the ERC1155, ERC1155MintBurn, ERC1155Meta, ERC1155Metadata contracts from 0xSequence for core ERC-1155 functionality, AccessControl from OpenZeppelin for role base permissions and the ERC2981Controlled contract for handling of royalties.
+This repository relies on the ERC1155, ERC1155MintBurn, ERC1155Meta, ERC1155Metadata contracts from 0xSequence for core ERC-1155 functionality, `AccessControlEnumberable` from OpenZeppelin for role base permissions and the ERC2981Controlled contract for handling of royalties.
 
 ## Access Controls
 
-The contracts use the `AccessControl` contract from OpenZeppelin to provide role based access control.
+The contracts use the `AccessControlEnumberable` contract from OpenZeppelin to provide role based access control.
 Role keys are defined as the `keccak256` value of the role name.
 The following roles are defined:
 

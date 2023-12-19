@@ -4,7 +4,7 @@ This subsection contains contracts related to the [ERC20 token standard](https:/
 
 ## ERC20BaseToken
 
-This contract is a base implementation of the ERC-20 token standard. It includes role based access control features from the [OpenZeppelin AccessControl](https://docs.openzeppelin.com/contracts/4.x/access-control) contract, to provide control over added features. Please refer to OpenZeppelin documentation for more information on AccessControl.
+This contract is a base implementation of the ERC-20 token standard. It includes role based access control features from the [OpenZeppelin AccessControlEnumberable](https://docs.openzeppelin.com/contracts/4.x/access-control) contract, to provide control over added features. Please refer to OpenZeppelin documentation for more information on `AccessControlEnumberable`.
 
 ## Presets
 
@@ -24,11 +24,11 @@ This section of this repo utilitizes a factory pattern that deploys proxies cont
 
 ## Dependencies
 
-These contract relies on the OpenZeppelin Contracts library, particularly the ERC20, IERC20, IERC20Metadata, and AccessControl contracts, which provide core ERC-20 functionality and secure access control mechanisms.
+These contract relies on the OpenZeppelin Contracts library, particularly the `ERC20`, `IERC20`, `IERC20Metadata`, and `AccessControlEnumberable` contracts, which provide core ERC-20 functionality and secure access control mechanisms.
 
 ## Access Controls
 
-The contracts use the `AccessControl` contract from OpenZeppelin to provide role based access control.
+The contracts use the `AccessControlEnumberable` contract from OpenZeppelin to provide role based access control.
 Role keys are defined as the `keccak256` value of the role name.
 The following roles are defined:
 
