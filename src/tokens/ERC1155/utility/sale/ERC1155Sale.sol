@@ -73,9 +73,17 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
      * Checks the sale is active and takes payment.
      * @param _tokenIds Token IDs to mint.
      * @param _amounts Amounts of tokens to mint.
+     * @param _expectedPaymentToken ERC20 token address to accept payment in. address(0) indicates ETH.
+     * @param _maxTotal Maximum amount of payment tokens.
      * @param _proof Merkle proof for allowlist minting.
      */
-    function _payForActiveMint(uint256[] memory _tokenIds, uint256[] memory _amounts, bytes32[] calldata _proof)
+    function _payForActiveMint(
+        uint256[] memory _tokenIds,
+        uint256[] memory _amounts,
+        address _expectedPaymentToken,
+        uint256 _maxTotal,
+        bytes32[] calldata _proof
+    )
         private
     {
         uint256 lastTokenId;
@@ -114,14 +122,23 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
             totalAmount += amount;
         }
 
-        if (_paymentToken == address(0)) {
+        if (_expectedPaymentToken != _paymentToken) {
+            // Caller expected different payment token
+            revert InsufficientPayment(_paymentToken, totalCost, 0);
+        }
+        if (_maxTotal < totalCost) {
+            // Caller expected to pay less
+            revert InsufficientPayment(_expectedPaymentToken, totalCost, _maxTotal);
+        }
+        if (_expectedPaymentToken == address(0)) {
             // Paid in ETH
             if (msg.value != totalCost) {
-                revert InsufficientPayment(totalCost, msg.value);
+                // We expect exact value match
+                revert InsufficientPayment(_expectedPaymentToken, totalCost, msg.value);
             }
         } else {
             // Paid in ERC20
-            SafeERC20.safeTransferFrom(IERC20(_paymentToken), msg.sender, address(this), totalCost);
+            SafeERC20.safeTransferFrom(IERC20(_expectedPaymentToken), msg.sender, address(this), totalCost);
         }
     }
 
@@ -135,6 +152,8 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
      * @param tokenIds Token IDs to mint.
      * @param amounts Amounts of tokens to mint.
      * @param data Data to pass if receiver is contract.
+     * @param expectedPaymentToken ERC20 token address to accept payment in. address(0) indicates ETH.
+     * @param maxTotal Maximum amount of payment tokens.
      * @param proof Merkle proof for allowlist minting.
      * @notice Sale must be active for all tokens.
      * @dev tokenIds must be sorted ascending without duplicates.
@@ -145,12 +164,14 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         uint256[] memory tokenIds,
         uint256[] memory amounts,
         bytes memory data,
+        address expectedPaymentToken,
+        uint256 maxTotal,
         bytes32[] calldata proof
     )
         public
         payable
     {
-        _payForActiveMint(tokenIds, amounts, proof);
+        _payForActiveMint(tokenIds, amounts, expectedPaymentToken, maxTotal, proof);
 
         IERC1155SupplyFunctions items = IERC1155SupplyFunctions(_items);
         uint256 totalAmount = 0;
@@ -263,7 +284,13 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override (AccessControlEnumerable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override (AccessControlEnumerable)
+        returns (bool)
+    {
         return type(IERC1155SaleFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
 }

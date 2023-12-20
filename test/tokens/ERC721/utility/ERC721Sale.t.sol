@@ -74,7 +74,7 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
         checkSelectorCollision(0x91d14854); // hasRole(bytes32,address)
         checkSelectorCollision(0x485cc955); // initialize(address,address)
         checkSelectorCollision(0xa971e842); // itemsContract()
-        checkSelectorCollision(0x641ce140); // mint(address,uint256,bytes32[])
+        checkSelectorCollision(0x0668d0bb); // mint(address,uint256,address,uint256,bytes32[])
         checkSelectorCollision(0x36568abe); // renounceRole(bytes32,address)
         checkSelectorCollision(0xd547741f); // revokeRole(bytes32,address)
         checkSelectorCollision(0x3474a4a6); // saleDetails()
@@ -94,8 +94,9 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
         assumeSafe(mintTo, amount)
         withFactory(useFactory)
     {
+        uint256 cost = amount * perTokenCost;
         vm.expectRevert(SaleInactive.selector);
-        sale.mint{value: amount * perTokenCost}(mintTo, amount, TestHelper.blankProof());
+        sale.mint{value: cost}(mintTo, amount, address(0), cost, TestHelper.blankProof());
     }
 
     // Minting denied when sale is expired.
@@ -113,9 +114,10 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
             vm.warp(uint256(endTime) + 1);
         }
         sale.setSaleDetails(0, perTokenCost, address(0), uint64(startTime), uint64(endTime), "");
+        uint256 cost = amount * perTokenCost;
 
         vm.expectRevert(SaleInactive.selector);
-        sale.mint{value: amount * perTokenCost}(mintTo, amount, TestHelper.blankProof());
+        sale.mint{value: cost}(mintTo, amount, address(0), cost, TestHelper.blankProof());
     }
 
     // Minting denied when supply exceeded.
@@ -133,9 +135,10 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
         sale.setSaleDetails(
             supplyCap, perTokenCost, address(0), uint64(block.timestamp), uint64(block.timestamp + 1), ""
         );
+        uint256 cost = amount * perTokenCost;
 
         vm.expectRevert(abi.encodeWithSelector(InsufficientSupply.selector, 0, amount, supplyCap));
-        sale.mint{value: amount * perTokenCost}(mintTo, amount, TestHelper.blankProof());
+        sale.mint{value: cost}(mintTo, amount, address(0), cost, TestHelper.blankProof());
     }
 
     // Minting allowed when sale is active.
@@ -146,9 +149,10 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
         withSaleActive
     {
         uint256 count = token.balanceOf(mintTo);
+        uint256 cost = amount * perTokenCost;
         vm.expectEmit(true, true, true, true, address(token));
         emit Transfer(address(0), mintTo, 0);
-        sale.mint{value: amount * perTokenCost}(mintTo, amount, TestHelper.blankProof());
+        sale.mint{value: cost}(mintTo, amount, address(0), cost, TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo));
     }
 
@@ -163,7 +167,7 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
         uint256 count = token.balanceOf(mintTo);
         vm.expectEmit(true, true, true, true, address(token));
         emit Transfer(address(0), mintTo, 0);
-        sale.mint(mintTo, amount, TestHelper.blankProof());
+        sale.mint(mintTo, amount, address(0), 0, TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo));
     }
 
@@ -179,14 +183,62 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
         );
         uint256 cost = amount * perTokenCost;
 
-        uint256 balanace = erc20.balanceOf(address(this));
+        uint256 balance = erc20.balanceOf(address(this));
         uint256 count = token.balanceOf(mintTo);
         vm.expectEmit(true, true, true, true, address(token));
         emit Transfer(address(0), mintTo, 0);
-        sale.mint(mintTo, amount, TestHelper.blankProof());
+        sale.mint(mintTo, amount, address(erc20), cost, TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo));
-        assertEq(balanace - cost, erc20.balanceOf(address(this)));
+        assertEq(balance - cost, erc20.balanceOf(address(this)));
         assertEq(cost, erc20.balanceOf(address(sale)));
+    }
+
+    // Minting fails with invalid maxTotal.
+    function testERC20MintFailMaxTotal(bool useFactory, address mintTo, uint256 amount)
+        public
+        assumeSafe(mintTo, amount)
+        withFactory(useFactory)
+        withERC20
+    {
+        sale.setSaleDetails(
+            0, perTokenCost, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
+        uint256 cost = amount * perTokenCost;
+
+        vm.expectRevert(abi.encodeWithSelector(InsufficientPayment.selector, address(erc20), cost, cost - 1));
+        sale.mint(mintTo, amount, address(erc20), cost - 1, TestHelper.blankProof());
+    }
+
+    // Minting fails with invalid maxTotal.
+    function testETHMintFailMaxTotal(bool useFactory, address mintTo, uint256 amount)
+        public
+        assumeSafe(mintTo, amount)
+        withFactory(useFactory)
+    {
+        sale.setSaleDetails(
+            0, perTokenCost, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
+        uint256 cost = amount * perTokenCost;
+        vm.deal(address(this), cost);
+
+        vm.expectRevert(abi.encodeWithSelector(InsufficientPayment.selector, address(0), cost, cost - 1));
+        sale.mint(mintTo, amount, address(0), cost - 1, TestHelper.blankProof());
+    }
+
+    // Minting fails with invalid payment token.
+    function testMintFailWrongPaymentToken(bool useFactory, address mintTo, uint256 amount, address wrongToken)
+        public
+        assumeSafe(mintTo, amount)
+        withFactory(useFactory)
+        withERC20
+    {
+        address paymentToken = wrongToken == address(0) ? address(erc20) : address(0);
+        sale.setSaleDetails(
+            0, 0, paymentToken, uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
+
+        vm.expectRevert(abi.encodeWithSelector(InsufficientPayment.selector, paymentToken, 0, 0));
+        sale.mint(mintTo, amount, wrongToken, 0, TestHelper.blankProof());
     }
 
     // Minting with merkle success.
@@ -206,7 +258,7 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
         bytes32[] memory proof = getProof(addrs, senderIndex);
 
         vm.prank(sender);
-        sale.mint(sender, 1, proof);
+        sale.mint(sender, 1, address(0), 0, proof);
 
         assertEq(1, token.balanceOf(sender));
     }
@@ -228,14 +280,14 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
         bytes32[] memory proof = getProof(addrs, senderIndex);
 
         vm.prank(sender);
-        sale.mint(sender, 1, proof);
+        sale.mint(sender, 1, address(0), 0, proof);
 
         assertEq(1, token.balanceOf(sender));
         // End copy
 
         vm.expectRevert(abi.encodeWithSelector(MerkleProofInvalid.selector, root, proof, sender));
         vm.prank(sender);
-        sale.mint(sender, 1, proof);
+        sale.mint(sender, 1, address(0), 0, proof);
     }
 
     // Minting with merkle fail no proof.
@@ -254,7 +306,7 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
 
         vm.expectRevert(abi.encodeWithSelector(MerkleProofInvalid.selector, root, proof, sender));
         vm.prank(sender);
-        sale.mint(sender, 1, TestHelper.blankProof());
+        sale.mint(sender, 1, address(0), 0, TestHelper.blankProof());
     }
 
     // Minting with merkle fail bad proof.
@@ -273,7 +325,7 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
 
         vm.expectRevert(abi.encodeWithSelector(MerkleProofInvalid.selector, root, proof, sender));
         vm.prank(sender);
-        sale.mint(sender, 1, proof);
+        sale.mint(sender, 1, address(0), 0, proof);
     }
 
     //

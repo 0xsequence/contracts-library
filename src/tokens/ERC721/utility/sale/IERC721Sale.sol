@@ -16,11 +16,19 @@ interface IERC721SaleFunctions {
      * Mint tokens.
      * @param to Address to mint tokens to.
      * @param amount Amount of tokens to mint.
+     * @param paymentToken ERC20 token address to accept payment in. address(0) indicates ETH.
+     * @param maxTotal Maximum amount of payment tokens.
      * @param proof Merkle proof for allowlist minting.
      * @notice Sale must be active for all tokens.
      * @dev An empty proof is supplied when no proof is required.
      */
-    function mint(address to, uint256 amount, bytes32[] memory proof) external payable;
+    function mint(
+        address to,
+        uint256 amount,
+        address paymentToken,
+        uint256 maxTotal,
+        bytes32[] memory proof
+    ) external payable;
 
     /**
      * Set the sale details.
@@ -70,10 +78,11 @@ interface IERC721SaleSignals {
 
     /**
      * Insufficient tokens for payment.
+     * @param currency Currency address. address(0) indicates ETH.
      * @param expected Expected amount of tokens.
      * @param actual Actual amount of tokens.
      */
-    error InsufficientPayment(uint256 expected, uint256 actual);
+    error InsufficientPayment(address currency, uint256 expected, uint256 actual);
 }
 
 interface IERC721Sale is IERC721SaleFunctions, IERC721SaleSignals {}

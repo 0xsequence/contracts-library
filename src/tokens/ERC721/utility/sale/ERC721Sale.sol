@@ -62,9 +62,18 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
     /**
      * Checks the sale is active and takes payment.
      * @param _amount Amount of tokens to mint.
+     * @param _expectedPaymentToken ERC20 token address to accept payment in. address(0) indicates ETH.
+     * @param _maxTotal Maximum amount of payment tokens.
      * @param _proof Merkle proof for allowlist minting.
      */
-    function _payForActiveMint(uint256 _amount, bytes32[] calldata _proof) private {
+    function _payForActiveMint(
+        uint256 _amount,
+        address _expectedPaymentToken,
+        uint256 _maxTotal,
+        bytes32[] calldata _proof
+    )
+        private
+    {
         // Active sale test
         if (_blockTimeOutOfBounds(_saleDetails.startTime, _saleDetails.endTime)) {
             revert SaleInactive();
@@ -72,15 +81,23 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
         requireMerkleProof(_saleDetails.merkleRoot, _proof, msg.sender);
 
         uint256 total = _saleDetails.cost * _amount;
-        address paymentToken = _saleDetails.paymentToken;
-        if (paymentToken == address(0)) {
+        if (_expectedPaymentToken != _saleDetails.paymentToken) {
+            // Caller expected different payment token
+            revert InsufficientPayment(_saleDetails.paymentToken, total, 0);
+        }
+        if (_maxTotal < total) {
+            // Caller expected to pay less
+            revert InsufficientPayment(_expectedPaymentToken, total, _maxTotal);
+        }
+        if (_expectedPaymentToken == address(0)) {
             // Paid in ETH
             if (msg.value != total) {
-                revert InsufficientPayment(total, msg.value);
+                // We expect exact value match
+                revert InsufficientPayment(_expectedPaymentToken, total, msg.value);
             }
         } else {
             // Paid in ERC20
-            SafeERC20.safeTransferFrom(IERC20(paymentToken), msg.sender, address(this), total);
+            SafeERC20.safeTransferFrom(IERC20(_expectedPaymentToken), msg.sender, address(this), total);
         }
     }
 
@@ -92,17 +109,23 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
      * Mint tokens.
      * @param to Address to mint tokens to.
      * @param amount Amount of tokens to mint.
+     * @param paymentToken ERC20 token address to accept payment in. address(0) indicates ETH.
+     * @param maxTotal Maximum amount of payment tokens.
      * @param proof Merkle proof for allowlist minting.
      * @notice Sale must be active for all tokens.
      * @dev An empty proof is supplied when no proof is required.
+     * @dev `paymentToken` must match the `paymentToken` in the sale details.
      */
-    function mint(address to, uint256 amount, bytes32[] calldata proof) public payable {
+    function mint(address to, uint256 amount, address paymentToken, uint256 maxTotal, bytes32[] calldata proof)
+        public
+        payable
+    {
         uint256 currentSupply = IERC721A(_items).totalSupply();
         uint256 supplyCap = _saleDetails.supplyCap;
         if (supplyCap > 0 && currentSupply + amount > supplyCap) {
             revert InsufficientSupply(currentSupply, amount, supplyCap);
         }
-        _payForActiveMint(amount, proof);
+        _payForActiveMint(amount, paymentToken, maxTotal, proof);
         IERC721ItemsFunctions(_items).mint(to, amount);
     }
 
@@ -152,7 +175,13 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override (AccessControlEnumerable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override (AccessControlEnumerable)
+        returns (bool)
+    {
         return interfaceId == type(IERC721SaleFunctions).interfaceId || super.supportsInterface(interfaceId);
     }
 }

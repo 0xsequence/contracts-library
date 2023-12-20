@@ -39,14 +39,20 @@ interface IERC1155SaleFunctions {
      * @param tokenIds Token IDs to mint.
      * @param amounts Amounts of tokens to mint.
      * @param data Data to pass if receiver is contract.
+     * @param paymentToken ERC20 token address to accept payment in. address(0) indicates ETH.
+     * @param maxTotal Maximum amount of payment tokens.
      * @param proof Merkle proof for allowlist minting.
      * @notice Sale must be active for all tokens.
+     * @dev tokenIds must be sorted ascending without duplicates.
+     * @dev An empty proof is supplied when no proof is required.
      */
     function mint(
         address to,
         uint256[] memory tokenIds,
         uint256[] memory amounts,
         bytes memory data,
+        address paymentToken,
+        uint256 maxTotal,
         bytes32[] calldata proof
     )
         external
@@ -76,10 +82,11 @@ interface IERC1155SaleSignals {
 
     /**
      * Insufficient tokens for payment.
+     * @param currency Currency address. address(0) indicates ETH.
      * @param expected Expected amount of tokens.
      * @param actual Actual amount of tokens.
      */
-    error InsufficientPayment(uint256 expected, uint256 actual);
+    error InsufficientPayment(address currency, uint256 expected, uint256 actual);
 
     /**
      * Invalid token IDs.
