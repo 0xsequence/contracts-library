@@ -241,6 +241,21 @@ contract ERC721SaleTest is TestHelper, Merkle, IERC721SaleSignals, IMerkleProofS
         sale.mint(mintTo, amount, wrongToken, 0, TestHelper.blankProof());
     }
 
+    // Minting fails with invalid payment token.
+    function testERC20MintFailPaidETH(bool useFactory, address mintTo, uint256 amount)
+        public
+        assumeSafe(mintTo, amount)
+        withFactory(useFactory)
+        withERC20
+    {
+        sale.setSaleDetails(
+            0, 0, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
+
+        vm.expectRevert(abi.encodeWithSelector(InsufficientPayment.selector, address(0), 0, 1));
+        sale.mint{value: 1}(mintTo, amount, address(erc20), 0, TestHelper.blankProof());
+    }
+
     // Minting with merkle success.
     function testMerkleSuccess(address[] memory allowlist, uint256 senderIndex) public {
         // Construct a merkle tree with the allowlist.

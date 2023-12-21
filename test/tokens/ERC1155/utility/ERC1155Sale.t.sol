@@ -557,6 +557,31 @@ contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155Sup
         sale.mint(mintTo, tokenIds, amounts, "", wrongToken, 0, TestHelper.blankProof());
     }
 
+    // Minting fails with invalid payment token.
+    function testERC20MintFailPaidETH(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
+        public
+        assumeSafe(mintTo, tokenId, amount)
+        withFactory(useFactory)
+        withERC20
+    {
+        // sale.setGlobalSaleDetails(
+        //     0, 0, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        // );
+        // uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        // uint256[] memory amounts = TestHelper.singleToArray(amount);
+
+        // {
+        //     bytes memory err = abi.encodeWithSelector(InsufficientPayment.selector, address(0), 0, 1);
+        //     vm.expectRevert(err);
+        //     sale.mint{value: 1}(mintTo, tokenIds, amounts, "", address(erc20), 0, TestHelper.blankProof());
+        
+        //     sale.setTokenSaleDetails(tokenId, 0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
+
+        //     vm.expectRevert(err);
+        //     sale.mint{value: 1}(mintTo, tokenIds, amounts, "", address(erc20), 0, TestHelper.blankProof());
+        // }
+    }
+
     //
     // Withdraw
     //

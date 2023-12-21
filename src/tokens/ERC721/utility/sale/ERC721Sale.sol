@@ -95,6 +95,9 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
                 // We expect exact value match
                 revert InsufficientPayment(_expectedPaymentToken, total, msg.value);
             }
+        } else if (msg.value > 0) {
+            // Paid in ERC20, but sent ETH
+            revert InsufficientPayment(address(0), 0, msg.value);
         } else {
             // Paid in ERC20
             SafeERC20.safeTransferFrom(IERC20(_expectedPaymentToken), msg.sender, address(this), total);
