@@ -10,7 +10,6 @@ interface IERC20ItemsFactoryFunctions {
      * @param symbol The symbol of the ERC-20 Items proxy
      * @param decimals The decimals of the ERC-20 Items proxy
      * @return proxyAddr The address of the ERC-20 Items Proxy
-     * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-20 Items functions.
      */
     function deploy(address proxyOwner, address tokenOwner, string memory name, string memory symbol, uint8 decimals)
         external

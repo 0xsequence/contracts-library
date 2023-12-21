@@ -29,7 +29,6 @@ contract ERC1155ItemsFactory is IERC1155ItemsFactory, SequenceProxyFactory {
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @return proxyAddr The address of the ERC-1155 Items Proxy
-     * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-1155 Items functions.
      */
     function deploy(
         address proxyOwner,

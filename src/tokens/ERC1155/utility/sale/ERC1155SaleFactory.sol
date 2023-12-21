@@ -24,7 +24,6 @@ contract ERC1155SaleFactory is IERC1155SaleFactory, SequenceProxyFactory {
      * @param tokenOwner The owner of the ERC-1155 Sale implementation
      * @param items The ERC-1155 Items contract address
      * @return proxyAddr The address of the ERC-1155 Sale Proxy
-     * @dev As `proxyOwner` owns the proxy, it will be unable to call the ERC-1155 Sale functions.
      * @notice The deployed contract must be granted the MINTER_ROLE on the ERC-1155 Items contract.
      */
     function deploy(address proxyOwner, address tokenOwner, address items) external returns (address proxyAddr) {
