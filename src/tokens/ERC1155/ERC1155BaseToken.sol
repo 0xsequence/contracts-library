@@ -41,9 +41,9 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Meta, ERC1155Metadat
         baseURI = tokenBaseURI;
         _contractURI = tokenContractURI;
 
-        _setupRole(DEFAULT_ADMIN_ROLE, owner);
-        _setupRole(ROYALTY_ADMIN_ROLE, owner);
-        _setupRole(METADATA_ADMIN_ROLE, owner);
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
+        _grantRole(ROYALTY_ADMIN_ROLE, owner);
+        _grantRole(METADATA_ADMIN_ROLE, owner);
     }
 
     //

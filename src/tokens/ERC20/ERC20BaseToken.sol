@@ -43,7 +43,7 @@ abstract contract ERC20BaseToken is ERC20, AccessControlEnumerable {
         _tokenSymbol = tokenSymbol;
         _tokenDecimals = tokenDecimals;
 
-        _setupRole(DEFAULT_ADMIN_ROLE, owner);
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
 
         _initialized = true;
     }

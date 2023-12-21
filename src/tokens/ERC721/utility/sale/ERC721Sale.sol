@@ -41,9 +41,9 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
 
         _items = items;
 
-        _setupRole(DEFAULT_ADMIN_ROLE, owner);
-        _setupRole(MINT_ADMIN_ROLE, owner);
-        _setupRole(WITHDRAW_ROLE, owner);
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
+        _grantRole(MINT_ADMIN_ROLE, owner);
+        _grantRole(WITHDRAW_ROLE, owner);
 
         _initialized = true;
     }

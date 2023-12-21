@@ -39,7 +39,7 @@ contract ERC20Items is ERC20BaseToken, IERC20Items {
 
         ERC20BaseToken.initialize(owner, tokenName, tokenSymbol, tokenDecimals);
 
-        _setupRole(MINTER_ROLE, owner);
+        _grantRole(MINTER_ROLE, owner);
 
         _initialized = true;
     }

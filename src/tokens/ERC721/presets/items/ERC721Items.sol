@@ -53,7 +53,7 @@ contract ERC721Items is ERC721BaseToken, IERC721Items {
         ERC721BaseToken._initialize(owner, tokenName, tokenSymbol, tokenBaseURI, tokenContractURI);
         _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
 
-        _setupRole(MINTER_ROLE, owner);
+        _grantRole(MINTER_ROLE, owner);
 
         _initialized = true;
     }

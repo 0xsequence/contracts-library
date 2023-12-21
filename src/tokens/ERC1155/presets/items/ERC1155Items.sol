@@ -49,7 +49,7 @@ contract ERC1155Items is ERC1155BaseToken, IERC1155Items {
         ERC1155BaseToken._initialize(owner, tokenName, tokenBaseURI, tokenContractURI);
         _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
 
-        _setupRole(MINTER_ROLE, owner);
+        _grantRole(MINTER_ROLE, owner);
 
         initialized = true;
     }

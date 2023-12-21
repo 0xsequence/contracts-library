@@ -47,9 +47,9 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled {
         _tokenBaseURI = tokenBaseURI;
         _contractURI = tokenContractURI;
 
-        _setupRole(DEFAULT_ADMIN_ROLE, owner);
-        _setupRole(METADATA_ADMIN_ROLE, owner);
-        _setupRole(ROYALTY_ADMIN_ROLE, owner);
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
+        _grantRole(METADATA_ADMIN_ROLE, owner);
+        _grantRole(ROYALTY_ADMIN_ROLE, owner);
     }
 
     //
