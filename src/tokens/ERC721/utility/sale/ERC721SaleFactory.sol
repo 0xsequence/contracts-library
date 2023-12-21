@@ -28,7 +28,7 @@ contract ERC721SaleFactory is IERC721SaleFactory, SequenceProxyFactory {
      * @notice The deployed contract must be granted the MINTER_ROLE on the ERC-721 Items contract.
      */
     function deploy(address proxyOwner, address tokenOwner, address items) external returns (address proxyAddr) {
-        bytes32 salt = keccak256(abi.encodePacked(tokenOwner, items));
+        bytes32 salt = keccak256(abi.encode(tokenOwner, items));
         proxyAddr = _createProxy(salt, proxyOwner, "");
         ERC721Sale(proxyAddr).initialize(tokenOwner, items);
         emit ERC721SaleDeployed(proxyAddr);

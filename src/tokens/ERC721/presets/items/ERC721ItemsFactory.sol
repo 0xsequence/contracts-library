@@ -46,7 +46,7 @@ contract ERC721ItemsFactory is IERC721ItemsFactory, SequenceProxyFactory {
         returns (address proxyAddr)
     {
         bytes32 salt =
-            keccak256(abi.encodePacked(tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
+            keccak256(abi.encode(tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
         proxyAddr = _createProxy(salt, proxyOwner, "");
         ERC721Items(proxyAddr).initialize(tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator);
         emit ERC721ItemsDeployed(proxyAddr);

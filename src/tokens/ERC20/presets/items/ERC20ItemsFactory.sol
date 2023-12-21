@@ -33,7 +33,7 @@ contract ERC20ItemsFactory is IERC20ItemsFactory, SequenceProxyFactory {
         external
         returns (address proxyAddr)
     {
-        bytes32 salt = keccak256(abi.encodePacked(tokenOwner, name, symbol, decimals));
+        bytes32 salt = keccak256(abi.encode(tokenOwner, name, symbol, decimals));
         proxyAddr = _createProxy(salt, proxyOwner, "");
         ERC20Items(proxyAddr).initialize(tokenOwner, name, symbol, decimals);
         emit ERC20ItemsDeployed(proxyAddr);

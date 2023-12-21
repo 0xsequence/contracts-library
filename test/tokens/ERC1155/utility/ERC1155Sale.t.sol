@@ -533,7 +533,7 @@ contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155Sup
         sale.mint(mintTo, tokenIds, amounts, "", address(erc20), cost - 1, TestHelper.blankProof());
     }
 
-    // // Minting fails with invalid payment token.
+    // Minting fails with invalid payment token.
     function testMintFailWrongPaymentToken(bool useFactory, address mintTo, uint256 tokenId, uint256 amount, address wrongToken)
         public
         assumeSafe(mintTo, tokenId, amount)

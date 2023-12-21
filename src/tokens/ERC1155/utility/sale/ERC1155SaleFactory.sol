@@ -28,7 +28,7 @@ contract ERC1155SaleFactory is IERC1155SaleFactory, SequenceProxyFactory {
      * @notice The deployed contract must be granted the MINTER_ROLE on the ERC-1155 Items contract.
      */
     function deploy(address proxyOwner, address tokenOwner, address items) external returns (address proxyAddr) {
-        bytes32 salt = keccak256(abi.encodePacked(tokenOwner, items));
+        bytes32 salt = keccak256(abi.encode(tokenOwner, items));
         proxyAddr = _createProxy(salt, proxyOwner, "");
         ERC1155Sale(proxyAddr).initialize(tokenOwner, items);
         emit ERC1155SaleDeployed(proxyAddr);

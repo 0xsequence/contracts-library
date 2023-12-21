@@ -43,7 +43,7 @@ contract ERC1155ItemsFactory is IERC1155ItemsFactory, SequenceProxyFactory {
         external
         returns (address proxyAddr)
     {
-        bytes32 salt = keccak256(abi.encodePacked(tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
+        bytes32 salt = keccak256(abi.encode(tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
         proxyAddr = _createProxy(salt, proxyOwner, "");
         ERC1155Items(proxyAddr).initialize(tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator);
         emit ERC1155ItemsDeployed(proxyAddr);
