@@ -89,6 +89,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
 
         SaleDetails memory gSaleDetails = _globalSaleDetails;
         bool globalSaleInactive = blockTimeOutOfBounds(gSaleDetails.startTime, gSaleDetails.endTime);
+        bool globalMerkleCheckRequired = false;
         for (uint256 i; i < _tokenIds.length; i++) {
             uint256 tokenId = _tokenIds[i];
             // Test tokenIds ordering
@@ -109,7 +110,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
                     revert SaleInactive(tokenId);
                 }
                 // Use global sale details
-                requireMerkleProof(gSaleDetails.merkleRoot, _proof, msg.sender);
+                globalMerkleCheckRequired = true;
                 totalCost += gSaleDetails.cost * amount;
             } else {
                 // Use token sale details
@@ -117,6 +118,11 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
                 totalCost += saleDetails.cost * amount;
             }
             totalAmount += amount;
+        }
+
+        if (globalMerkleCheckRequired) {
+            // Check it once outside the loop only when required
+            requireMerkleProof(gSaleDetails.merkleRoot, _proof, msg.sender);
         }
 
         if (_expectedPaymentToken != _paymentToken) {

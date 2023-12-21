@@ -417,6 +417,45 @@ contract ERC1155SaleTest is TestHelper, Merkle, IERC1155SaleSignals, IERC1155Sup
         assertEq(1, token.balanceOf(sender, tokenId));
     }
 
+    // Minting with merkle success.
+    function testMerkleSuccessGlobalMultiple(address[] memory allowlist, uint256 senderIndex, uint256[] memory tokenIds)
+        public
+    {
+        uint256 tokenIdLen = tokenIds.length;
+        vm.assume(tokenIdLen > 1);
+        vm.assume(tokenIds[0] != tokenIds[1]);
+        if (tokenIds[0] > tokenIds[1]) {
+            // Must be ordered
+            (tokenIds[1], tokenIds[0]) = (tokenIds[0], tokenIds[1]);
+        }
+        assembly { // solhint-disable-line no-inline-assembly
+            mstore(tokenIds, 2) // Exactly 2 unique tokenIds
+        }
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 1;
+        amounts[1] = 1;
+
+        // Construct a merkle tree with the allowlist.
+        vm.assume(allowlist.length > 1);
+        vm.assume(senderIndex < allowlist.length);
+        address sender = allowlist[senderIndex];
+        vm.assume(sender != address(0));
+        bytes32[] memory addrs = new bytes32[](allowlist.length);
+        for (uint256 i = 0; i < allowlist.length; i++) {
+            addrs[i] = keccak256(abi.encodePacked(allowlist[i]));
+        }
+        bytes32 root = getRoot(addrs);
+        sale.setGlobalSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+
+        bytes32[] memory proof = getProof(addrs, senderIndex);
+
+        vm.prank(sender);
+        sale.mint(sender, tokenIds, amounts, "", address(0), 0, proof);
+
+        assertEq(1, token.balanceOf(sender, tokenIds[0]));
+        assertEq(1, token.balanceOf(sender, tokenIds[1]));
+    }
+
     // Minting with merkle reuse fail.
     function testMerkleReuseFail(address[] memory allowlist, uint256 senderIndex, uint256 tokenId, bool globalActive)
         public
