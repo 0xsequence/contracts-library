@@ -21,9 +21,6 @@ import {IERC721ItemsFunctions} from "@0xsequence/contracts-library/tokens/ERC721
 contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
     bytes32 internal constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
-    bytes4 private constant _ERC20_TRANSFERFROM_SELECTOR =
-        bytes4(keccak256(bytes("transferFrom(address,address,uint256)")));
-
     bool private _initialized;
     address private _items;
     SaleDetails private _saleDetails;
