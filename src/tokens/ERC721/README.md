@@ -29,6 +29,9 @@ Conditions may be set by the contract owner using the `setSaleDetails(uint256 su
 - endTime: The end time of the sale. Tokens cannot be minted after this time.
 - merkleRoot: The merkle root for allowlist minting.
 
+When using a merkle proof, each caller may only use each root once. To prevent collisions ensure the same root is not used for multiple sale details.
+Leaves are defined as `keccak256(abi.encodePacked(caller, uint256(0))`. The `caller` is the message sender, who will also receive the tokens.
+
 ## Usage
 
 This section of this repo utilitizes a factory pattern that deploys proxies contracts. This allows for a single deployment of each `Factory` contract, and subsequent deployments of the contracts with minimal gas costs.

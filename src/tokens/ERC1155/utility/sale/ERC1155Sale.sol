@@ -114,7 +114,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
                 totalCost += gSaleDetails.cost * amount;
             } else {
                 // Use token sale details
-                requireMerkleProof(saleDetails.merkleRoot, _proof, msg.sender);
+                requireMerkleProof(saleDetails.merkleRoot, _proof, msg.sender, bytes32(tokenId));
                 totalCost += saleDetails.cost * amount;
             }
             totalAmount += amount;
@@ -122,7 +122,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
 
         if (globalMerkleCheckRequired) {
             // Check it once outside the loop only when required
-            requireMerkleProof(gSaleDetails.merkleRoot, _proof, msg.sender);
+            requireMerkleProof(gSaleDetails.merkleRoot, _proof, msg.sender, bytes32(type(uint256).max));
         }
 
         if (_expectedPaymentToken != _paymentToken) {

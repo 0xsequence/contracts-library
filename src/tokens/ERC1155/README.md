@@ -25,6 +25,7 @@ The `ERC1155Sale` contract is a preset that configures the `ERC1155BaseToken` co
 Conditions may be set by the contract owner using either the `setTokenSaleDetails(uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot)` function for single token settings or the `setGlobalSaleDetails(uint256 cost, uint256 supplyCap, address paymentTokenAddr, uint64 startTime, uint64 endTime, bytes32 merkleRoot)` function for global settings. These functions can only be called by accounts with the `MINT_ADMIN_ROLE`.
 
 When using a merkle proof, each caller may only use each root once. To prevent collisions ensure the same root is not used for multiple sale details.
+Leaves are defined as `keccak256(abi.encodePacked(caller, tokenId))`. The `caller` is the message sender, who will also receive the tokens. The `tokenId` is the id of the token that will be minted, (for global sales `type(uint256).max` is used).
 
 For information about the function parameters, please refer to the function specification in `presets/sale/IERC1155Sale.sol`.
 

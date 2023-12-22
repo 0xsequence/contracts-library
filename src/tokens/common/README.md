@@ -38,8 +38,8 @@ This is useful for verifying that a given token ID has not been used before, for
 
 ### Functions
 
-* `checkMerkleProof(bytes32 root, bytes32[] calldata proof, address addr)`: An internal function that allows a contract to verify that a given value is included in a Merkle tree. The `root` is the Merkle root, the `proof` is the Merkle proof, and the `addr` is the value to verify. If the value is not included in the Merkle tree or if the proof has already been used, the function will return false.
-* `requireMerkleProof(bytes32 root, bytes32[] calldata proof, address addr)`: An internal function that does the same as above, and also marks the proof has having been used by the address.
+* `checkMerkleProof(bytes32 root, bytes32[] calldata proof, address addr, bytes32 salt)`: An internal function that allows a contract to verify that a given value is included in a Merkle tree. The `root` is the Merkle root, the `proof` is the Merkle proof, and the `addr` is the value to verify. If the value is not included in the Merkle tree or if the proof has already been used, the function will return false.
+* `requireMerkleProof(bytes32 root, bytes32[] calldata proof, address addr, bytes32 salt)`: An internal function that does the same as above, and also marks the proof has having been used by the address.
 
 ### Usage
 
@@ -49,7 +49,7 @@ To use this contract, it should be inherited by the main token contract and func
 contract MyNFT is ERC721, MerkleProofSingleUse {
     
     function mint(address to, bytes32 root, bytes32[] calldata proof) public {
-        requireMerkleProof(root, proof, to);
+        requireMerkleProof(root, proof, to, "");
         _mint(to, tokenId);
     }
 

@@ -6,7 +6,9 @@ import "forge-std/Test.sol";
 import {ITransparentUpgradeableBeaconProxy} from "src/proxies/TransparentUpgradeableBeaconProxy.sol";
 import {ITransparentUpgradeableProxy} from "src/proxies/openzeppelin/TransparentUpgradeableProxy.sol";
 
-abstract contract TestHelper is Test {
+import {Merkle} from "murky/Merkle.sol";
+
+abstract contract TestHelper is Test, Merkle {
     function singleToArray(uint256 value) internal pure returns (uint256[] memory) {
         uint256[] memory values = new uint256[](1);
         values[0] = value;
@@ -42,5 +44,14 @@ abstract contract TestHelper is Test {
                 vm.assume(values[i] != values[j]);
             }
         }
+    }
+
+    function getMerkleParts(address[] memory allowlist, uint256 salt, uint256 leafIndex) internal pure returns (bytes32 root, bytes32[] memory proof) {
+        bytes32[] memory leaves = new bytes32[](allowlist.length);
+        for (uint256 i = 0; i < allowlist.length; i++) {
+            leaves[i] = keccak256(abi.encodePacked(allowlist[i], salt));
+        }
+        root = getRoot(leaves);
+        proof = getProof(leaves, leafIndex);
     }
 }

@@ -75,7 +75,7 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
         if (_blockTimeOutOfBounds(_saleDetails.startTime, _saleDetails.endTime)) {
             revert SaleInactive();
         }
-        requireMerkleProof(_saleDetails.merkleRoot, _proof, msg.sender);
+        requireMerkleProof(_saleDetails.merkleRoot, _proof, msg.sender, "");
 
         uint256 total = _saleDetails.cost * _amount;
         if (_expectedPaymentToken != _saleDetails.paymentToken) {
