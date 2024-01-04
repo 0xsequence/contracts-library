@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {ERC1155Supply, ERC1155} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
-import {ERC1155Meta} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Meta.sol";
+import {
+    ERC1155Supply, ERC1155
+} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
 import {ERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 import {ERC2981Controlled} from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
 
@@ -11,7 +12,7 @@ error InvalidInitialization();
 /**
  * A standard base implementation of ERC-1155 for use in Sequence library contracts.
  */
-abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Meta, ERC1155Metadata, ERC2981Controlled {
+abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Controlled {
     bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
     string private _contractURI;
@@ -119,11 +120,10 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Meta, ERC1155Metadat
         public
         view
         virtual
-        override (ERC1155Supply, ERC1155Metadata, ERC2981Controlled, ERC1155)
+        override (ERC1155Supply, ERC1155Metadata, ERC2981Controlled)
         returns (bool)
     {
         return ERC1155Supply.supportsInterface(interfaceId) || ERC1155Metadata.supportsInterface(interfaceId)
-            || ERC1155.supportsInterface(interfaceId) || ERC2981Controlled.supportsInterface(interfaceId)
-            || super.supportsInterface(interfaceId);
+            || ERC2981Controlled.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
     }
 }
