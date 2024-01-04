@@ -150,6 +150,10 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
         public
         onlyRole(MINT_ADMIN_ROLE)
     {
+        // solhint-disable-next-line not-rely-on-time
+        if (endTime < startTime || endTime <= block.timestamp) {
+            revert InvalidSaleDetails();
+        }
         _saleDetails = SaleDetails(supplyCap, cost, paymentToken, startTime, endTime, merkleRoot);
         emit SaleDetailsUpdated(supplyCap, cost, paymentToken, startTime, endTime, merkleRoot);
     }

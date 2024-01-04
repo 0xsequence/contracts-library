@@ -60,7 +60,7 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
         sale.mint{value: cost}(mintTo, amount, address(0), cost, TestHelper.blankProof());
     }
 
-    // Minting denied when sale is expired.
+    // Minting denied when sale is expired or not started.
     function testMintExpiredFail(bool useFactory, address mintTo, uint256 amount, uint64 startTime, uint64 endTime)
         public
         assumeSafe(mintTo, amount)
@@ -71,10 +71,14 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
             startTime = endTime;
             endTime = temp;
         }
-        if (block.timestamp >= startTime && block.timestamp <= endTime) {
-            vm.warp(uint256(endTime) + 1);
+        if (endTime == 0) {
+            endTime++;
         }
+
+        vm.warp(uint256(endTime) - 1);
         sale.setSaleDetails(0, perTokenCost, address(0), uint64(startTime), uint64(endTime), "");
+        vm.warp(uint256(endTime) + 1);
+
         uint256 cost = amount * perTokenCost;
 
         vm.expectRevert(SaleInactive.selector);

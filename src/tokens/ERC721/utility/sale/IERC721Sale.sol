@@ -64,6 +64,11 @@ interface IERC721SaleSignals {
     error InvalidInitialization();
 
     /**
+     * Sale details supplied are invalid.
+     */
+    error InvalidSaleDetails();
+
+    /**
      * Sale is not active.
      */
     error SaleInactive();

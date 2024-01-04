@@ -101,10 +101,13 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
             startTime = endTime;
             endTime = temp;
         }
-        if (block.timestamp >= startTime && block.timestamp <= endTime) {
-            vm.warp(uint256(endTime) + 1);
+        if (endTime == 0) {
+            endTime++;
         }
+
+        vm.warp(uint256(endTime) - 1);
         sale.setTokenSaleDetails(tokenId, perTokenCost, 0, startTime, endTime, "");
+        vm.warp(uint256(endTime) + 1);
 
         uint256 cost = amount * perTokenCost;
 
@@ -130,10 +133,13 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
             startTime = endTime;
             endTime = temp;
         }
-        if (block.timestamp >= startTime && block.timestamp <= endTime) {
-            vm.warp(uint256(endTime) + 1);
+        if (endTime == 0) {
+            endTime++;
         }
+
+        vm.warp(uint256(endTime) - 1);
         sale.setGlobalSaleDetails(perTokenCost, 0, address(0), startTime, endTime, "");
+        vm.warp(uint256(endTime) + 1);
 
         uint256 cost = amount * perTokenCost;
 

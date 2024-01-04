@@ -70,6 +70,11 @@ interface IERC1155SaleSignals {
     error InvalidInitialization();
 
     /**
+     * Sale details supplied are invalid.
+     */
+    error InvalidSaleDetails();
+
+    /**
      * Sale is not active globally.
      */
     error GlobalSaleInactive();

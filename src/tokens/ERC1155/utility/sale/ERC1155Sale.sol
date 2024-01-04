@@ -219,6 +219,10 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         public
         onlyRole(MINT_ADMIN_ROLE)
     {
+        // solhint-disable-next-line not-rely-on-time
+        if (endTime < startTime || endTime <= block.timestamp) {
+            revert InvalidSaleDetails();
+        }
         _paymentToken = paymentTokenAddr;
         _globalSaleDetails = SaleDetails(cost, startTime, endTime, merkleRoot);
         totalSupplyCap = supplyCap;
@@ -247,6 +251,10 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         public
         onlyRole(MINT_ADMIN_ROLE)
     {
+        // solhint-disable-next-line not-rely-on-time
+        if (endTime < startTime || endTime <= block.timestamp) {
+            revert InvalidSaleDetails();
+        }
         _tokenSaleDetails[tokenId] = SaleDetails(cost, startTime, endTime, merkleRoot);
         tokenSupplyCap[tokenId] = supplyCap;
         emit TokenSaleDetailsUpdated(tokenId, cost, supplyCap, startTime, endTime, merkleRoot);
