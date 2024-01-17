@@ -39,6 +39,10 @@ yarn deploy
 
 The contracts in this repository are built with Solidity ^0.8.19 and use 0xSequence, OpenZeppelin and Azuki contracts for standards implementation and additional functionalities such as access control.
 
+## Audits
+
+The contracts in this repository have been audited by [Quantstamp](https://quantstamp.com). Audit reports are available in the [audits](./audits) folder.
+
 ## License
 
 All contracts in this repository are released under the Apache-2.0 license.
