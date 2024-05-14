@@ -18,7 +18,6 @@ interface IERC721SaleFactoryFunctions {
      * @param tokenOwner The owner of the ERC-721 Sale implementation
      * @param items The ERC-721 Items contract address
      * @return proxyAddr The address of the ERC-721 Sale Proxy
-     * @notice The deployed contract must be granted the MINTER_ROLE on the ERC-721 Items contract.
      */
     function determineAddress(address proxyOwner, address tokenOwner, address items) external returns (address proxyAddr);
 }
