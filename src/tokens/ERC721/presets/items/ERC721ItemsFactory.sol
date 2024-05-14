@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {IERC721ItemsFactory} from
+import {IERC721ItemsFactory, IERC721ItemsFactoryFunctions} from
     "@0xsequence/contracts-library/tokens/ERC721/presets/items/IERC721ItemsFactory.sol";
 import {ERC721Items} from "@0xsequence/contracts-library/tokens/ERC721/presets/items/ERC721Items.sol";
 import {SequenceProxyFactory} from "@0xsequence/contracts-library/proxies/SequenceProxyFactory.sol";
@@ -19,18 +19,7 @@ contract ERC721ItemsFactory is IERC721ItemsFactory, SequenceProxyFactory {
         SequenceProxyFactory._initialize(address(impl), factoryOwner);
     }
 
-    /**
-     * Creates an ERC-721 Items proxy.
-     * @param proxyOwner The owner of the ERC-721 Items proxy
-     * @param tokenOwner The owner of the ERC-721 Items implementation
-     * @param name The name of the ERC-721 Items proxy
-     * @param symbol The symbol of the ERC-721 Items proxy
-     * @param baseURI The base URI of the ERC-721 Items proxy
-     * @param contractURI The contract URI of the ERC-721 Items proxy
-     * @param royaltyReceiver Address of who should be sent the royalty payment
-     * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
-     * @return proxyAddr The address of the ERC-721 Items Proxy
-     */
+    /// @inheritdoc IERC721ItemsFactoryFunctions
     function deploy(
         address proxyOwner,
         address tokenOwner,
@@ -50,5 +39,22 @@ contract ERC721ItemsFactory is IERC721ItemsFactory, SequenceProxyFactory {
         ERC721Items(proxyAddr).initialize(tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator);
         emit ERC721ItemsDeployed(proxyAddr);
         return proxyAddr;
+    }
+
+    /// @inheritdoc IERC721ItemsFactoryFunctions
+    function determineAddress(
+        address proxyOwner,
+        address tokenOwner,
+        string memory name,
+        string memory symbol,
+        string memory baseURI,
+        string memory contractURI,
+        address royaltyReceiver,
+        uint96 royaltyFeeNumerator
+    ) external view returns (address proxyAddr)
+    {
+        bytes32 salt =
+            keccak256(abi.encode(tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
+        return _computeProxyAddress(salt, proxyOwner, "");
     }
 }

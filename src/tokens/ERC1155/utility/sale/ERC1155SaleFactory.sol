@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {ERC1155Sale} from "@0xsequence/contracts-library/tokens/ERC1155/utility/sale/ERC1155Sale.sol";
-import {IERC1155SaleFactory} from "@0xsequence/contracts-library/tokens/ERC1155/utility/sale/IERC1155SaleFactory.sol";
+import {IERC1155SaleFactory, IERC1155SaleFactoryFunctions} from "@0xsequence/contracts-library/tokens/ERC1155/utility/sale/IERC1155SaleFactory.sol";
 import {SequenceProxyFactory} from "@0xsequence/contracts-library/proxies/SequenceProxyFactory.sol";
 
 /**
@@ -18,19 +18,18 @@ contract ERC1155SaleFactory is IERC1155SaleFactory, SequenceProxyFactory {
         SequenceProxyFactory._initialize(address(impl), factoryOwner);
     }
 
-    /**
-     * Creates an ERC-1155 Sale proxy contract
-     * @param proxyOwner The owner of the ERC-1155 Sale proxy
-     * @param tokenOwner The owner of the ERC-1155 Sale implementation
-     * @param items The ERC-1155 Items contract address
-     * @return proxyAddr The address of the ERC-1155 Sale Proxy
-     * @notice The deployed contract must be granted the MINTER_ROLE on the ERC-1155 Items contract.
-     */
+    /// @inheritdoc IERC1155SaleFactoryFunctions
     function deploy(address proxyOwner, address tokenOwner, address items) external returns (address proxyAddr) {
         bytes32 salt = keccak256(abi.encode(tokenOwner, items));
         proxyAddr = _createProxy(salt, proxyOwner, "");
         ERC1155Sale(proxyAddr).initialize(tokenOwner, items);
         emit ERC1155SaleDeployed(proxyAddr);
         return proxyAddr;
+    }
+
+    /// @inheritdoc IERC1155SaleFactoryFunctions
+    function determineAddress(address proxyOwner, address tokenOwner, address items) external view returns (address proxyAddr) {
+        bytes32 salt = keccak256(abi.encode(tokenOwner, items));
+        return _computeProxyAddress(salt, proxyOwner, "");
     }
 }

@@ -35,7 +35,10 @@ abstract contract SequenceProxyFactory is Ownable {
      * @param _data The initialization data.
      * @return proxyAddress The address of the deployed proxy.
      */
-    function _createProxy(bytes32 _salt, address _proxyOwner, bytes memory _data) internal returns (address proxyAddress) {
+    function _createProxy(bytes32 _salt, address _proxyOwner, bytes memory _data)
+        internal
+        returns (address proxyAddress)
+    {
         bytes32 saltedHash = keccak256(abi.encodePacked(_salt, _proxyOwner, address(beacon), _data));
         bytes memory bytecode = type(TransparentUpgradeableBeaconProxy).creationCode;
 
@@ -49,7 +52,11 @@ abstract contract SequenceProxyFactory is Ownable {
      * @param _proxyOwner The owner of the proxy.
      * @return proxy The expected address of the deployed proxy.
      */
-    function _computeProxyAddress(bytes32 _salt, address _proxyOwner, bytes memory _data) internal view returns (address) {
+    function _computeProxyAddress(bytes32 _salt, address _proxyOwner, bytes memory _data)
+        internal
+        view
+        returns (address)
+    {
         bytes32 saltedHash = keccak256(abi.encodePacked(_salt, _proxyOwner, address(beacon), _data));
         bytes32 bytecodeHash = keccak256(type(TransparentUpgradeableBeaconProxy).creationCode);
 

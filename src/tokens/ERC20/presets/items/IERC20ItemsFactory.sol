@@ -14,6 +14,23 @@ interface IERC20ItemsFactoryFunctions {
     function deploy(address proxyOwner, address tokenOwner, string memory name, string memory symbol, uint8 decimals)
         external
         returns (address proxyAddr);
+
+    /**
+     * Computes the address of a proxy instance.
+     * @param proxyOwner The owner of the ERC-20 Items proxy
+     * @param tokenOwner The owner of the ERC-20 Items implementation
+     * @param name The name of the ERC-20 Items proxy
+     * @param symbol The symbol of the ERC-20 Items proxy
+     * @param decimals The decimals of the ERC-20 Items proxy
+     * @return proxyAddr The address of the ERC-20 Items Proxy
+     */
+    function determineAddress(
+        address proxyOwner,
+        address tokenOwner,
+        string memory name,
+        string memory symbol,
+        uint8 decimals
+    ) external view returns (address proxyAddr);
 }
 
 interface IERC20ItemsFactorySignals {
