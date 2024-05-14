@@ -1,9 +1,14 @@
 import { MerkleTree } from 'merkletreejs'
-import { utils } from 'ethers'
+import { BigNumberish, utils } from 'ethers'
 import keccak256 from 'keccak256'
 
-const generateTree = (elements: string[]) => {
-  const hashed = elements.map(e => utils.solidityKeccak256(['uint256'], [e]))
+export type TreeElement = {
+  address: string
+  tokenId: BigNumberish
+}
+
+const generateTree = (elements: TreeElement[]) => {
+  const hashed = elements.map(e => getLeaf(e))
 
   const merkleTree = new MerkleTree(hashed, keccak256, {
     sort: true,
@@ -17,7 +22,13 @@ const generateTree = (elements: string[]) => {
   }
 }
 
-const generateProof = (tree: MerkleTree, element: string) =>
-  tree.getHexProof(utils.solidityKeccak256(['uint256'], [element]))
+const getLeaf = (element: TreeElement) =>
+  utils.solidityKeccak256(
+    ['address', 'uint256'],
+    [element.address.toLowerCase(), element.tokenId],
+  )
 
-export { generateTree, generateProof }
+const generateProof = (tree: MerkleTree, element: TreeElement) =>
+  tree.getHexProof(getLeaf(element))
+
+export { generateTree, generateProof, getLeaf }
