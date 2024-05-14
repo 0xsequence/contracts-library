@@ -81,6 +81,15 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals {
         checkSelectorCollision(0x4782f779); // withdrawETH(address,uint256)
     }
 
+    function testFactoryDetermineAddress(address _proxyOwner, address tokenOwner, address items) public {
+        vm.assume(_proxyOwner != address(0));
+        vm.assume(tokenOwner != address(0));
+        ERC721SaleFactory factory = new ERC721SaleFactory(address(this));
+        address deployedAddr = factory.deploy(_proxyOwner, tokenOwner, items);
+        address predictedAddr = factory.determineAddress(_proxyOwner, tokenOwner, items);
+        assertEq(deployedAddr, predictedAddr);
+    }
+
     //
     // Withdraw
     //

@@ -88,6 +88,15 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         checkSelectorCollision(0x4782f779); // withdrawETH(address,uint256)
     }
 
+    function testFactoryDetermineAddress(address _proxyOwner, address tokenOwner, address items) public {
+        vm.assume(_proxyOwner != address(0));
+        vm.assume(tokenOwner != address(0));
+        ERC1155SaleFactory factory = new ERC1155SaleFactory(address(this));
+        address deployedAddr = factory.deploy(_proxyOwner, tokenOwner, items);
+        address predictedAddr = factory.determineAddress(_proxyOwner, tokenOwner, items);
+        assertEq(deployedAddr, predictedAddr);
+    }
+
     //
     // Withdraw
     //
@@ -113,10 +122,7 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
     }
 
     // Withdraw success ETH
-    function testWithdrawETH(bool useFactory, address withdrawTo, uint256 amount)
-        public
-        withFactory(useFactory)
-    {
+    function testWithdrawETH(bool useFactory, address withdrawTo, uint256 amount) public withFactory(useFactory) {
         assumeSafeAddress(withdrawTo);
 
         address _sale = address(sale);
@@ -131,10 +137,7 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
     }
 
     // Withdraw success ERC20
-    function testWithdrawERC20(bool useFactory, address withdrawTo, uint256 amount)
-        public
-        withFactory(useFactory)
-    {
+    function testWithdrawERC20(bool useFactory, address withdrawTo, uint256 amount) public withFactory(useFactory) {
         assumeSafeAddress(withdrawTo);
 
         address _sale = address(sale);

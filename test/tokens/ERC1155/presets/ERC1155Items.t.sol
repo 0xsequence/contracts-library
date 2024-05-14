@@ -104,6 +104,28 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         assertTrue(token.hasRole(keccak256("ROYALTY_ADMIN_ROLE"), owner));
     }
 
+    function testFactoryDetermineAddress(
+        address _proxyOwner,
+        address tokenOwner,
+        string memory name,
+        string memory baseURI,
+        string memory contractURI,
+        address royaltyReceiver,
+        uint96 royaltyFeeNumerator
+    ) public {
+        vm.assume(_proxyOwner != address(0));
+        vm.assume(tokenOwner != address(0));
+        vm.assume(royaltyReceiver != address(0));
+        royaltyFeeNumerator = uint96(bound(royaltyFeeNumerator, 0, 10_000));
+        ERC1155ItemsFactory factory = new ERC1155ItemsFactory(address(this));
+        address deployedAddr =
+            factory.deploy(_proxyOwner, tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator);
+        address predictedAddr = factory.determineAddress(
+            _proxyOwner, tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator
+        );
+        assertEq(deployedAddr, predictedAddr);
+    }
+
     //
     // Metadata
     //
@@ -128,7 +150,10 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
 
         vm.expectRevert(
             abi.encodePacked(
-                "AccessControl: account ", Strings.toHexString(caller), " is missing role ", vm.toString(keccak256("MINTER_ROLE"))
+                "AccessControl: account ",
+                Strings.toHexString(caller),
+                " is missing role ",
+                vm.toString(keccak256("MINTER_ROLE"))
             )
         );
         vm.prank(caller);
@@ -140,7 +165,10 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         amounts[0] = 1;
         vm.expectRevert(
             abi.encodePacked(
-                "AccessControl: account ", Strings.toHexString(caller), " is missing role ", vm.toString(keccak256("MINTER_ROLE"))
+                "AccessControl: account ",
+                Strings.toHexString(caller),
+                " is missing role ",
+                vm.toString(keccak256("MINTER_ROLE"))
             )
         );
         vm.prank(caller);
@@ -265,9 +293,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         uint256[] memory tokenIds,
         uint256[] memory amounts,
         uint256[] memory burnAmounts
-    )
-        public
-    {
+    ) public {
         assumeSafeAddress(caller);
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);
@@ -426,9 +452,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         address receiver,
         uint96 feeNumerator,
         uint256 salePrice
-    )
-        public
-    {
+    ) public {
         vm.assume(feeNumerator <= 10000);
         vm.assume(receiver != address(0));
         vm.assume(caller != owner);
@@ -460,9 +484,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         address receiver,
         uint96 feeNumerator,
         uint256 salePrice
-    )
-        public
-    {
+    ) public {
         vm.assume(feeNumerator <= 10000);
         vm.assume(receiver != address(0));
         vm.assume(caller != owner);

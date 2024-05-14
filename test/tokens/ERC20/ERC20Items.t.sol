@@ -90,6 +90,21 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
         assertEq(token.decimals(), DECIMALS);
     }
 
+    function testFactoryDetermineAddress(
+        address _proxyOwner,
+        address tokenOwner,
+        string memory name,
+        string memory symbol,
+        uint8 decimals
+    ) public {
+        vm.assume(_proxyOwner != address(0));
+        vm.assume(tokenOwner != address(0));
+        ERC20ItemsFactory factory = new ERC20ItemsFactory(address(this));
+        address deployedAddr = factory.deploy(_proxyOwner, tokenOwner, name, symbol, decimals);
+        address predictedAddr = factory.determineAddress(_proxyOwner, tokenOwner, name, symbol, decimals);
+        assertEq(deployedAddr, predictedAddr);
+    }
+
     //
     // Minting
     //
@@ -99,7 +114,10 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
 
         vm.expectRevert(
             abi.encodePacked(
-                "AccessControl: account ", Strings.toHexString(caller), " is missing role ", vm.toString(keccak256("MINTER_ROLE"))
+                "AccessControl: account ",
+                Strings.toHexString(caller),
+                " is missing role ",
+                vm.toString(keccak256("MINTER_ROLE"))
             )
         );
         vm.prank(caller);
