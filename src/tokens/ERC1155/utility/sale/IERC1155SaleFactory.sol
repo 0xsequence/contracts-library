@@ -11,6 +11,16 @@ interface IERC1155SaleFactoryFunctions {
      * @notice The deployed contract must be granted the MINTER_ROLE on the ERC-1155 Items contract.
      */
     function deploy(address proxyOwner, address tokenOwner, address items) external returns (address proxyAddr);
+
+    /**
+     * Computes the address of a proxy instance.
+     * @param proxyOwner The owner of the ERC-1155 Sale proxy
+     * @param tokenOwner The owner of the ERC-1155 Sale implementation
+     * @param items The ERC-1155 Items contract address
+     * @return proxyAddr The address of the ERC-1155 Sale Proxy
+     * @notice The deployed contract must be granted the MINTER_ROLE on the ERC-1155 Items contract.
+     */
+    function determineAddress(address proxyOwner, address tokenOwner, address items) external returns (address proxyAddr);
 }
 
 interface IERC1155SaleFactorySignals {
