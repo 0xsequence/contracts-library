@@ -59,9 +59,9 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
     // Minting denied when no sale active.
     function testMintInactiveFail(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
         uint256[] memory amounts = TestHelper.singleToArray(amount);
         uint256 cost = amount * perTokenCost;
@@ -73,10 +73,10 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
     // Minting denied when sale is active but not for the token.
     function testMintInactiveSingleFail(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
-        withTokenSaleActive(tokenId + 1)
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
+        setTokenSaleActive(tokenId + 1);
         uint256 cost = amount * perTokenCost;
 
         vm.expectRevert(abi.encodeWithSelector(SaleInactive.selector, tokenId));
@@ -93,9 +93,9 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         uint64 endTime
     )
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         if (startTime > endTime) {
             uint64 temp = startTime;
             startTime = endTime;
@@ -125,9 +125,9 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         uint64 endTime
     )
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         if (startTime > endTime) {
             uint64 temp = startTime;
             startTime = endTime;
@@ -150,10 +150,10 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
     // Minting denied when sale is active but not for all tokens in the group.
     function testMintInactiveInGroupFail(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
-        withTokenSaleActive(tokenId)
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
+        setTokenSaleActive(tokenId);
         uint256[] memory tokenIds = new uint256[](2);
         tokenIds[0] = tokenId;
         tokenIds[1] = tokenId + 1;
@@ -175,9 +175,9 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         uint256 supplyCap
     )
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         if (supplyCap == 0 || supplyCap > 20) {
             supplyCap = 1;
         }
@@ -203,9 +203,9 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         uint256 supplyCap
     )
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         if (supplyCap == 0 || supplyCap > 20) {
             supplyCap = 1;
         }
@@ -225,10 +225,10 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
     // Minting allowed when sale is active globally.
     function testMintGlobalSuccess(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
         withGlobalSaleActive
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         uint256 cost = amount * perTokenCost;
 
         uint256 count = token.balanceOf(mintTo, tokenId);
@@ -245,10 +245,10 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
     // Minting allowed when sale is active for the token.
     function testMintSingleSuccess(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
-        withTokenSaleActive(tokenId)
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
+        setTokenSaleActive(tokenId);
         uint256 cost = amount * perTokenCost;
 
         uint256 count = token.balanceOf(mintTo, tokenId);
@@ -265,9 +265,9 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
     // Minting allowed when sale is active for both tokens individually.
     function testMintGroupSuccess(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         setTokenSaleActive(tokenId);
         setTokenSaleActive(tokenId + 1);
         uint256[] memory tokenIds = new uint256[](2);
@@ -290,9 +290,9 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
     // Minting allowed when global sale is free.
     function testFreeGlobalMint(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         sale.setGlobalSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
         uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
         uint256[] memory amounts = TestHelper.singleToArray(amount);
@@ -307,10 +307,10 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
     // Minting allowed when token sale is free and global is not.
     function testFreeTokenMint(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
         withGlobalSaleActive
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         sale.setTokenSaleDetails(tokenId, 0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
         uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
         uint256[] memory amounts = TestHelper.singleToArray(amount);
@@ -325,10 +325,10 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
     // Minting allowed when mint charged with ERC20.
     function testERC20Mint(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
         withERC20
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         sale.setGlobalSaleDetails(
             perTokenCost, 0, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
         );
@@ -470,10 +470,10 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
     // Minting fails with invalid maxTotal.
     function testMintFailMaxTotal(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
         withGlobalSaleActive
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
         uint256[] memory amounts = TestHelper.singleToArray(amount);
         uint256 cost = amount * perTokenCost;
@@ -497,10 +497,10 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
     // Minting fails with invalid payment token.
     function testMintFailWrongPaymentToken(bool useFactory, address mintTo, uint256 tokenId, uint256 amount, address wrongToken)
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
         withERC20
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         address paymentToken = wrongToken == address(0) ? address(erc20) : address(0);
         sale.setGlobalSaleDetails(
             0, 0, paymentToken, uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
@@ -519,10 +519,10 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
     // Minting fails with invalid payment token.
     function testERC20MintFailPaidETH(bool useFactory, address mintTo, uint256 tokenId, uint256 amount)
         public
-        assumeSafe(mintTo, tokenId, amount)
         withFactory(useFactory)
         withERC20
     {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         sale.setGlobalSaleDetails(
             0, 0, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
         );
@@ -547,12 +547,12 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         _;
     }
 
-    modifier assumeSafe(address nonContract, uint256 tokenId, uint256 amount) {
+    function assumeSafe(address nonContract, uint256 tokenId, uint256 amount) private returns (uint256 boundTokenId, uint256 boundAmount) {
         assumeSafeAddress(nonContract);
         vm.assume(nonContract != proxyOwner);
-        vm.assume(tokenId < 100);
-        vm.assume(amount > 0 && amount < 20);
-        _;
+        tokenId = bound(tokenId, 0, 100);
+        amount = bound(amount, 1, 19);
+        return (tokenId, amount);
     }
 
     // Create ERC20. Give this contract 1000 ERC20 tokens. Approve token to spend 100 ERC20 tokens.
@@ -567,11 +567,6 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         sale.setGlobalSaleDetails(
             perTokenCost, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
         );
-        _;
-    }
-
-    modifier withTokenSaleActive(uint256 tokenId) {
-        setTokenSaleActive(tokenId);
         _;
     }
 
