@@ -37,7 +37,7 @@ yarn deploy
 
 ## Dependencies
 
-The contracts in this repository are built with Solidity ^0.8.19 and use 0xSequence, OpenZeppelin and Azuki contracts for standards implementation and additional functionalities such as access control.
+The contracts in this repository are built with Solidity ^0.8.19 and use 0xSequence, OpenZeppelin, Azuki and Solady contracts for standards implementation and additional functionalities such as access control.
 
 ## Audits
 
