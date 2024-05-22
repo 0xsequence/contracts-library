@@ -673,6 +673,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         clawback.updateTemplate(result.templateId, duration, true, false);
         clawback.updateTemplateOperator(result.templateId, operator, true);
 
+        address burnAddress = clawback.BURN_ADDRESS();
+
         vm.expectEmit(true, true, true, true, address(clawback));
         emit ClawedBack(
             result.wrappedTokenId,
@@ -682,21 +684,16 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
             amount,
             operator,
             address(this),
-            address(0)
+            burnAddress
         );
         vm.prank(operator);
-        clawback.clawback(result.wrappedTokenId, address(this), address(0), amount);
+        clawback.clawback(result.wrappedTokenId, address(this), burnAddress, amount);
 
-        address altBurnAddress = clawback.ALTERNATIVE_BURN_ADDRESS();
-        uint256 burnAddressBalance = IGenericToken(result.tokenAddr).balanceOf(address(0), tokenId)
-            | IGenericToken(result.tokenAddr).balanceOf(altBurnAddress, tokenId);
-        assertEq(burnAddressBalance, amount, "Token balance of burn");
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(burnAddress, tokenId), amount, "Token balance of burn");
         assertEq(IGenericToken(result.tokenAddr).balanceOf(address(this), tokenId), 0, "Token balance of owner");
         assertEq(IGenericToken(result.tokenAddr).balanceOf(address(clawback), tokenId), 0, "Token balance of clawback");
         assertEq(clawback.balanceOf(address(0), result.wrappedTokenId), 0, "Clawback balance of address(0)"); // Burned
-        assertEq(clawback.balanceOf(altBurnAddress, result.wrappedTokenId), 0, "Clawback balance of alt burn"); // Burned
-            // not sent
-            // here
+        assertEq(clawback.balanceOf(burnAddress, result.wrappedTokenId), 0, "Clawback balance of alt burn"); // Burned
         assertEq(clawback.balanceOf(address(this), result.wrappedTokenId), 0, "Clawback balance of owner");
         assertEq(clawback.balanceOf(address(clawback), result.wrappedTokenId), 0, "Clawback balance of clawback"); // Burned
     }
