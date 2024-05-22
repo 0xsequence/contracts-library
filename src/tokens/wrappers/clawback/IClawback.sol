@@ -32,9 +32,10 @@ interface IClawbackFunctions {
      * @param tokenAddr The token address.
      * @param tokenId The token ID.
      * @param amount The amount to wrap.
+     * @param receiver The receiver of the wrapped token.
      * @return wrappedTokenId The wrapped token ID.
      */
-    function wrap(uint24 templateId, TokenType tokenType, address tokenAddr, uint256 tokenId, uint256 amount)
+    function wrap(uint24 templateId, TokenType tokenType, address tokenAddr, uint256 tokenId, uint256 amount, address receiver)
         external
         returns (uint256 wrappedTokenId);
 
@@ -156,7 +157,8 @@ interface IClawbackSignals {
         address tokenAddr,
         uint256 tokenId,
         uint256 amount,
-        address sender
+        address sender,
+        address receiver
     );
 
     /// @notice Emits when a token is unwrapped
