@@ -276,7 +276,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
     //
     // Wrap
     //
-    function testWrap(address templateAdmin, uint8 tokenTypeNum, uint256 tokenId, uint256 amount) public {
+    function testWrap(address templateAdmin, uint8 tokenTypeNum, uint256 tokenId, uint256 amount, address receiver) public safeAddress(receiver) {
         IClawbackFunctions.TokenType tokenType = _toTokenType(tokenTypeNum);
         address tokenAddr;
         (tokenAddr, tokenId, amount) = _validParams(tokenType, tokenId, amount);
@@ -287,13 +287,15 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint24 templateId = testAddTemplate(templateAdmin, 1, false, false);
 
         vm.expectEmit(true, true, true, true, address(clawback));
-        emit Wrapped(0, templateId, tokenAddr, tokenId, amount, address(this));
-        clawback.wrap(templateId, tokenType, tokenAddr, tokenId, amount);
+        emit Wrapped(0, templateId, tokenAddr, tokenId, amount, address(this), receiver);
+        uint256 wrappedTokenId = clawback.wrap(templateId, tokenType, tokenAddr, tokenId, amount, receiver);
 
+        assertEq(IGenericToken(tokenAddr).balanceOf(receiver, tokenId), 0);
         assertEq(IGenericToken(tokenAddr).balanceOf(address(this), tokenId), 0);
         assertEq(IGenericToken(tokenAddr).balanceOf(address(clawback), tokenId), amount);
         IClawbackFunctions.TokenDetails memory details = clawback.getTokenDetails(0);
-        assertEq(clawback.balanceOf(address(this), 0), amount);
+        assertEq(clawback.balanceOf(receiver, wrappedTokenId), amount);
+        assertEq(clawback.balanceOf(address(this), wrappedTokenId), 0);
         assertEq(details.templateId, templateId);
         assertEq(details.lockedAt, uint96(block.timestamp));
         assertEq(uint8(details.tokenType), uint8(tokenType));
@@ -326,7 +328,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         assertFalse(success);
     }
 
-    function testWrapInvalidAmount(address templateAdmin, uint8 tokenTypeNum, uint256 tokenId, uint256 amount) public {
+    function testWrapInvalidAmount(address templateAdmin, uint8 tokenTypeNum, uint256 tokenId, uint256 amount, address receiver) public {
         IClawbackFunctions.TokenType tokenType = _toTokenType(tokenTypeNum);
         address tokenAddr;
         (tokenAddr, tokenId, amount) = _validParams(tokenType, tokenId, amount);
@@ -343,10 +345,10 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         amount = 0;
 
         vm.expectRevert(InvalidTokenTransfer.selector);
-        clawback.wrap(templateId, tokenType, tokenAddr, tokenId, amount);
+        clawback.wrap(templateId, tokenType, tokenAddr, tokenId, amount, receiver);
     }
 
-    function testWrapInvalidTemplate(uint24 templateId, uint8 tokenTypeNum, uint256 tokenId, uint256 amount) public {
+    function testWrapInvalidTemplate(uint24 templateId, uint8 tokenTypeNum, uint256 tokenId, uint256 amount, address receiver) public {
         IClawbackFunctions.TokenType tokenType = _toTokenType(tokenTypeNum);
         address tokenAddr;
         (tokenAddr, tokenId, amount) = _validParams(tokenType, tokenId, amount);
@@ -355,7 +357,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         IGenericToken(tokenAddr).approve(address(this), address(clawback), tokenId, amount);
 
         vm.expectRevert(InvalidTemplate.selector);
-        clawback.wrap(templateId, tokenType, tokenAddr, tokenId, amount);
+        clawback.wrap(templateId, tokenType, tokenAddr, tokenId, amount, receiver);
     }
 
     //
@@ -385,7 +387,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         IGenericToken(result.tokenAddr).approve(address(this), address(clawback), result.tokenId, result.amount);
 
         result.wrappedTokenId =
-            clawback.wrap(result.templateId, tokenType, result.tokenAddr, result.tokenId, result.amount);
+            clawback.wrap(result.templateId, tokenType, result.tokenAddr, result.tokenId, result.amount, address(this));
 
         // struct here prevents stack too deep during coverage reporting
         return result;

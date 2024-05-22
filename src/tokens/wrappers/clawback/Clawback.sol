@@ -39,7 +39,7 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IClawbackFunctions
-    function wrap(uint24 templateId, TokenType tokenType, address tokenAddr, uint256 tokenId, uint256 amount)
+    function wrap(uint24 templateId, TokenType tokenType, address tokenAddr, uint256 tokenId, uint256 amount, address receiver)
         public
         returns (uint256 wrappedTokenId)
     {
@@ -56,9 +56,9 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
 
         // solhint-disable-next-line not-rely-on-time
         _tokenDetails[wrappedTokenId] = TokenDetails(templateId, uint96(block.timestamp), tokenType, tokenAddr, tokenId);
-        _mint(sender, wrappedTokenId, amount, "");
+        _mint(receiver, wrappedTokenId, amount, "");
 
-        emit Wrapped(wrappedTokenId, templateId, tokenAddr, tokenId, amount, sender);
+        emit Wrapped(wrappedTokenId, templateId, tokenAddr, tokenId, amount, sender, receiver);
     }
 
     /// @inheritdoc IClawbackFunctions
