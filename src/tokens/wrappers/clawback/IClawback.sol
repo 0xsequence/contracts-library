@@ -154,7 +154,7 @@ interface IClawbackSignals {
     event Wrapped(
         uint256 indexed wrappedTokenId,
         uint24 indexed templateId,
-        address tokenAddr,
+        address indexed tokenAddr,
         uint256 tokenId,
         uint256 amount,
         address sender,
@@ -165,7 +165,7 @@ interface IClawbackSignals {
     event Unwrapped(
         uint256 indexed wrappedTokenId,
         uint24 indexed templateId,
-        address tokenAddr,
+        address indexed tokenAddr,
         uint256 tokenId,
         uint256 amount,
         address sender
@@ -175,7 +175,7 @@ interface IClawbackSignals {
     event ClawedBack(
         uint256 indexed wrappedTokenId,
         uint24 indexed templateId,
-        address tokenAddr,
+        address indexed tokenAddr,
         uint256 tokenId,
         uint256 amount,
         address operator,
