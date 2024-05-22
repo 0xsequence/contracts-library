@@ -4,3 +4,18 @@
 [submodule "lib/murky"]
 	path = lib/murky
 	url = https://github.com/dmfxyz/murky
+[submodule "lib/0xsequence/erc-1155"]
+	path = lib/0xsequence/erc-1155
+	url = https://github.com/0xsequence/erc-1155
+[submodule "lib/0xsequence/erc20-meta-token"]
+	path = lib/0xsequence/erc20-meta-token
+	url = https://github.com/0xsequence/erc20-meta-token
+[submodule "lib/openzeppelin"]
+	path = lib/openzeppelin
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "lib/chiru-labs/erc721a"]
+	path = lib/chiru-labs/erc721a
+	url = https://github.com/chiru-labs/ERC721A
+[submodule "lib/chiru-labs/erc721a-upgradeable"]
+	path = lib/chiru-labs/erc721a-upgradeable
+	url = https://github.com/chiru-labs/ERC721A-upgradeable
