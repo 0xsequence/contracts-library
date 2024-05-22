@@ -51,7 +51,7 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals {
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
     }
 
-    function testSupportsInterface() public {
+    function testSupportsInterface() public view {
         assertTrue(sale.supportsInterface(type(IERC165).interfaceId));
         assertTrue(sale.supportsInterface(type(IAccessControl).interfaceId));
         assertTrue(sale.supportsInterface(type(IERC721SaleFunctions).interfaceId));
@@ -61,7 +61,7 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals {
      * Test all public selectors for collisions against the proxy admin functions.
      * @dev yarn ts-node scripts/outputSelectors.ts
      */
-    function testSelectorCollision() public {
+    function testSelectorCollision() public pure {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
         checkSelectorCollision(0xbad43661); // checkMerkleProof(bytes32,bytes32[],address,bytes32)
         checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)

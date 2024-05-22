@@ -56,7 +56,7 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
     }
 
-    function testSupportsInterface() public {
+    function testSupportsInterface() public view {
         assertTrue(sale.supportsInterface(type(IERC165).interfaceId));
         assertTrue(sale.supportsInterface(type(IAccessControl).interfaceId));
         assertTrue(sale.supportsInterface(type(IERC1155SaleFunctions).interfaceId));
@@ -66,7 +66,7 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
      * Test all public selectors for collisions against the proxy admin functions.
      * @dev yarn ts-node scripts/outputSelectors.ts
      */
-    function testSelectorCollision() public {
+    function testSelectorCollision() public pure {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
         checkSelectorCollision(0xbad43661); // checkMerkleProof(bytes32,bytes32[],address,bytes32)
         checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
