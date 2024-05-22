@@ -16,7 +16,7 @@ Base and preset **implementations of common token standards**:
 
 ## Usage
 
-1. Clone the repository
+1. Clone the repository, including git submodules
 2. Install dependencies with `yarn`
 3. Compile the contracts with `yarn build`
 4. Run tests with `yarn test`
