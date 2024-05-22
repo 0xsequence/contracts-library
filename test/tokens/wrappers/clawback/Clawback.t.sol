@@ -301,6 +301,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         assertEq(details.tokenId, tokenId);
     }
 
+    // Note forge coverage misreports this as not covered
     function testWrapInvalidTokenType(address templateAdmin, uint8 tokenTypeNum, uint256 tokenId, uint256 amount)
         public
     {
@@ -319,6 +320,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
             IClawbackFunctions.wrap.selector, templateId, tokenTypeNum, tokenAddr, tokenId, amount
         );
         vm.expectRevert(InvalidTokenTransfer.selector);
+        // solhint-disable-next-line avoid-low-level-calls
         (bool success,) = address(clawback).call(data);
 
         assertFalse(success);

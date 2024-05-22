@@ -16,6 +16,7 @@
     "build": "ts-node scripts/build.ts",
     "deploy": "ts-node scripts/deploy.ts",
     "test": "forge test",
+    "coverage": "forge coverage --report lcov",
     "lint:init": "husky install",
     "lint:sol": "solhint \"./src/**/*.sol\" \"./tests/**/*.sol\"",
     "format:sol": "forge fmt"
