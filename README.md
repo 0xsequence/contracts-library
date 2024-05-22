@@ -20,6 +20,8 @@ Base and preset **implementations of common token standards**:
 2. Install dependencies with `yarn`
 3. Compile the contracts with `yarn build`
 4. Run tests with `yarn test`
+5. Run coverage report with `yarn coverage`
+6. View coverage report with `genhtml -o report --branch-coverage --ignore-errors category lcov.info && py -m http.server`
 
 ### Deployment
 
