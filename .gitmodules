@@ -19,3 +19,6 @@
 [submodule "lib/chiru-labs/erc721a-upgradeable"]
 	path = lib/chiru-labs/erc721a-upgradeable
 	url = https://github.com/chiru-labs/ERC721A-upgradeable
+[submodule "lib/solady"]
+	path = lib/solady
+	url = https://github.com/vectorized/solady
