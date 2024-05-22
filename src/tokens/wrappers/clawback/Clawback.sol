@@ -12,8 +12,8 @@ import {ERC1155, ERC1155MintBurn} from "@0xsequence/erc-1155/contracts/tokens/ER
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
 contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
-    //FIXME Arg in template?
-    address public constant ALTERNATIVE_BURN_ADDRESS = address(0x000000000000000000000000000000000000dEaD);
+    // Do not use address(0) as burn address due to common transfer restrictions.
+    address public constant BURN_ADDRESS = address(0x000000000000000000000000000000000000dEaD);
 
     mapping(uint24 => Template) internal _templates;
     mapping(uint256 => TokenDetails) internal _tokenDetails;
@@ -95,7 +95,7 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
             // Must be locked
             revert TokenUnlocked();
         }
-        if (template.destructionOnly && receiver != address(0)) {
+        if (template.destructionOnly && receiver != BURN_ADDRESS) {
             revert InvalidReceiver();
         }
 
@@ -230,41 +230,19 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
                 revert InvalidTokenTransfer();
             }
             // ERC-1155
-            try IERC1155(tokenAddr).safeTransferFrom(from, to, tokenId, amount, "") {}
-            catch {
-                if (to == address(0)) {
-                    // Transfer to address(0) may be blocked. Send to alternative burn address instead
-                    IERC1155(tokenAddr).safeTransferFrom(from, ALTERNATIVE_BURN_ADDRESS, tokenId, amount, "");
-                } else {
-                    revert InvalidTokenTransfer();
-                }
-            }
+            IERC1155(tokenAddr).safeTransferFrom(from, to, tokenId, amount, "");
         } else if (tokenType == TokenType.ERC721) {
             // ERC721
             if (amount != 1) {
                 revert InvalidTokenTransfer();
             }
-            try IERC721Transfer(tokenAddr).safeTransferFrom(from, to, tokenId) {}
-            catch {
-                if (to == address(0)) {
-                    // Transfer to address(0) may be blocked. Send to alternative burn address instead
-                    IERC721Transfer(tokenAddr).safeTransferFrom(from, ALTERNATIVE_BURN_ADDRESS, tokenId);
-                } else {
-                    revert InvalidTokenTransfer();
-                }
-            }
+            IERC721Transfer(tokenAddr).safeTransferFrom(from, to, tokenId);
         } else if (tokenType == TokenType.ERC20) {
             if (tokenId != 0 || amount == 0) {
                 revert InvalidTokenTransfer();
             }
             if (from == address(this)) {
-                if (to == address(0)) {
-                    //FIXME Update this to try address(0) first
-                    // Burn
-                    SafeTransferLib.safeTransfer(tokenAddr, ALTERNATIVE_BURN_ADDRESS, amount);
-                } else {
-                    SafeTransferLib.safeTransfer(tokenAddr, to, amount);
-                }
+                SafeTransferLib.safeTransfer(tokenAddr, to, amount);
             } else {
                 SafeTransferLib.safeTransferFrom(tokenAddr, from, to, amount);
             }
