@@ -276,7 +276,10 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
     //
     // Wrap
     //
-    function testWrap(address templateAdmin, uint8 tokenTypeNum, uint256 tokenId, uint256 amount, address receiver) public safeAddress(receiver) {
+    function testWrap(address templateAdmin, uint8 tokenTypeNum, uint256 tokenId, uint256 amount, address receiver)
+        public
+        safeAddress(receiver)
+    {
         IClawbackFunctions.TokenType tokenType = _toTokenType(tokenTypeNum);
         address tokenAddr;
         (tokenAddr, tokenId, amount) = _validParams(tokenType, tokenId, amount);
@@ -328,7 +331,13 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         assertFalse(success);
     }
 
-    function testWrapInvalidAmount(address templateAdmin, uint8 tokenTypeNum, uint256 tokenId, uint256 amount, address receiver) public {
+    function testWrapInvalidAmount(
+        address templateAdmin,
+        uint8 tokenTypeNum,
+        uint256 tokenId,
+        uint256 amount,
+        address receiver
+    ) public {
         IClawbackFunctions.TokenType tokenType = _toTokenType(tokenTypeNum);
         address tokenAddr;
         (tokenAddr, tokenId, amount) = _validParams(tokenType, tokenId, amount);
@@ -348,7 +357,13 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         clawback.wrap(templateId, tokenType, tokenAddr, tokenId, amount, receiver);
     }
 
-    function testWrapInvalidTemplate(uint24 templateId, uint8 tokenTypeNum, uint256 tokenId, uint256 amount, address receiver) public {
+    function testWrapInvalidTemplate(
+        uint24 templateId,
+        uint8 tokenTypeNum,
+        uint256 tokenId,
+        uint256 amount,
+        address receiver
+    ) public {
         IClawbackFunctions.TokenType tokenType = _toTokenType(tokenTypeNum);
         address tokenAddr;
         (tokenAddr, tokenId, amount) = _validParams(tokenType, tokenId, amount);
@@ -372,10 +387,14 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint256 wrappedTokenId;
     }
 
-    function _wrapSetup(address templateAdmin, uint8 tokenTypeNum, uint256 tokenId, uint256 amount, uint96 duration)
-        internal
-        returns (WrapSetupResult memory result)
-    {
+    function _wrapSetup(
+        address templateAdmin,
+        uint8 tokenTypeNum,
+        uint256 tokenId,
+        uint256 amount,
+        uint96 duration,
+        address receiver
+    ) internal returns (WrapSetupResult memory result) {
         // Unwrap timestamp is uint64 as per ERC721A implmentation used by ERC721Mock
         result.duration = uint96(bound(duration, 1, type(uint64).max - block.timestamp));
         result.templateId = testAddTemplate(templateAdmin, result.duration, false, false);
@@ -387,7 +406,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         IGenericToken(result.tokenAddr).approve(address(this), address(clawback), result.tokenId, result.amount);
 
         result.wrappedTokenId =
-            clawback.wrap(result.templateId, tokenType, result.tokenAddr, result.tokenId, result.amount, address(this));
+            clawback.wrap(result.templateId, tokenType, result.tokenAddr, result.tokenId, result.amount, receiver);
 
         // struct here prevents stack too deep during coverage reporting
         return result;
@@ -401,7 +420,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint96 duration,
         uint64 unwrapTimestamp
     ) public {
-        WrapSetupResult memory result = _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -427,7 +447,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint64 unwrapTimestamp,
         address tokenOwner
     ) public safeAddress(tokenOwner) {
-        WrapSetupResult memory result = _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -460,7 +481,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint96 duration
     ) public {
         vm.assume(wrongWrappedTokenId != 0);
-        WrapSetupResult memory result = _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -478,7 +500,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint256 amount,
         uint96 duration
     ) public {
-        WrapSetupResult memory result = _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -497,7 +520,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint256 invalidAmount,
         uint96 duration
     ) public {
-        WrapSetupResult memory result = _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -520,7 +544,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
     ) public {
         vm.assume(operator != address(this));
 
-        WrapSetupResult memory result = _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -552,7 +577,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
     ) public {
         vm.assume(operator != address(this));
 
-        WrapSetupResult memory result = _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -573,7 +599,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         address operator,
         address receiver
     ) public safeAddress(receiver) {
-        WrapSetupResult memory result = _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -613,7 +640,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
     ) public safeAddress(receiver) safeAddress(tokenOwner) {
         vm.assume(receiver != tokenOwner);
 
-        WrapSetupResult memory result = _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -646,7 +674,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         address operator,
         address receiver
     ) public safeAddress(receiver) {
-        WrapSetupResult memory result = _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -667,7 +696,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint96 duration,
         address operator
     ) public {
-        WrapSetupResult memory result = _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -708,7 +738,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         address operator,
         address receiver
     ) public safeAddress(receiver) {
-        WrapSetupResult memory result = _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -729,7 +760,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         address operator,
         address receiver
     ) public {
-        WrapSetupResult memory result = _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -750,7 +782,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint64 transferTimestamp,
         address receiver
     ) public safeAddress(receiver) {
-        WrapSetupResult memory result = _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -765,7 +798,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         assertEq(clawback.balanceOf(address(this), result.wrappedTokenId), 0, "Clawback balance of owner");
     }
 
-    function testTransferByTransferer(
+    function testTransferByTransfererAsOperator(
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
@@ -776,7 +809,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         address receiver,
         bool batch
     ) public safeAddress(receiver) {
-        WrapSetupResult memory result = _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -784,7 +818,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         clawback.updateTemplate(result.templateId, duration, false, transferOpen); // Doesn't matter
         clawback.addTemplateTransferer(result.templateId, transferer);
 
-        // Approval still required
+        // Approval still required when operator
         clawback.setApprovalForAll(transferer, true);
 
         vm.warp(transferTimestamp); // Doesn't matter if locked or unlocked
@@ -804,6 +838,76 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         assertEq(clawback.balanceOf(address(this), result.wrappedTokenId), 0, "Clawback balance of owner");
     }
 
+    function testTransferByTransfererAsTo(
+        uint8 tokenTypeNum,
+        uint256 tokenId,
+        uint256 amount,
+        uint96 duration,
+        uint64 transferTimestamp,
+        bool transferOpen,
+        address transferer,
+        bool batch
+    ) public safeAddress(transferer) {
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
+        tokenId = result.tokenId;
+        amount = result.amount;
+        duration = result.duration;
+
+        clawback.updateTemplate(result.templateId, duration, false, transferOpen); // Doesn't matter
+        clawback.addTemplateTransferer(result.templateId, transferer);
+
+        vm.warp(transferTimestamp); // Doesn't matter if locked or unlocked
+
+        if (batch) {
+            uint256[] memory tokenIds = new uint256[](1);
+            tokenIds[0] = result.wrappedTokenId;
+            uint256[] memory amounts = new uint256[](1);
+            amounts[0] = amount;
+            clawback.safeBatchTransferFrom(address(this), transferer, tokenIds, amounts, "");
+        } else {
+            clawback.safeTransferFrom(address(this), transferer, result.wrappedTokenId, amount, "");
+        }
+
+        assertEq(clawback.balanceOf(transferer, result.wrappedTokenId), amount, "Clawback balance of transferer");
+        assertEq(clawback.balanceOf(address(this), result.wrappedTokenId), 0, "Clawback balance of owner");
+    }
+
+    function testTransferByTransfererAsFrom(
+        uint8 tokenTypeNum,
+        uint256 tokenId,
+        uint256 amount,
+        uint96 duration,
+        uint64 transferTimestamp,
+        bool transferOpen,
+        address transferer,
+        bool batch
+    ) public safeAddress(transferer) {
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
+        tokenId = result.tokenId;
+        amount = result.amount;
+        duration = result.duration;
+
+        clawback.updateTemplate(result.templateId, duration, false, transferOpen); // Doesn't matter
+        clawback.addTemplateTransferer(result.templateId, transferer);
+
+        vm.warp(transferTimestamp); // Doesn't matter if locked or unlocked
+
+        if (batch) {
+            uint256[] memory tokenIds = new uint256[](1);
+            tokenIds[0] = result.wrappedTokenId;
+            uint256[] memory amounts = new uint256[](1);
+            amounts[0] = amount;
+            clawback.safeBatchTransferFrom(address(this), transferer, tokenIds, amounts, "");
+        } else {
+            clawback.safeTransferFrom(address(this), transferer, result.wrappedTokenId, amount, "");
+        }
+
+        assertEq(clawback.balanceOf(transferer, result.wrappedTokenId), amount, "Clawback balance of transferer");
+        assertEq(clawback.balanceOf(address(this), result.wrappedTokenId), 0, "Clawback balance of owner");
+    }
+
     function testTransferByTransfererNotApproved(
         uint8 tokenTypeNum,
         uint256 tokenId,
@@ -815,7 +919,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         address receiver,
         bool batch
     ) public safeAddress(receiver) {
-        WrapSetupResult memory result = _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;
@@ -849,7 +954,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         address receiver,
         bool batch
     ) public safeAddress(operator) {
-        WrapSetupResult memory result = _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration);
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
         amount = result.amount;
         duration = result.duration;

@@ -35,9 +35,14 @@ interface IClawbackFunctions {
      * @param receiver The receiver of the wrapped token.
      * @return wrappedTokenId The wrapped token ID.
      */
-    function wrap(uint24 templateId, TokenType tokenType, address tokenAddr, uint256 tokenId, uint256 amount, address receiver)
-        external
-        returns (uint256 wrappedTokenId);
+    function wrap(
+        uint24 templateId,
+        TokenType tokenType,
+        address tokenAddr,
+        uint256 tokenId,
+        uint256 amount,
+        address receiver
+    ) external returns (uint256 wrappedTokenId);
 
     /**
      * Unwraps a token.
@@ -103,6 +108,7 @@ interface IClawbackFunctions {
      * @param transferer The address of the transferer.
      * @notice Only the admin of the template can add a transferer.
      * @notice Transferers cannot be removed.
+     * @notice Transfers are allowed when the to, from or operator is a template operator, even when the template is not in transferOpen mode.
      */
     function addTemplateTransferer(uint24 templateId, address transferer) external;
 
