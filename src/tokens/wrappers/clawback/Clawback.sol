@@ -39,10 +39,14 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IClawbackFunctions
-    function wrap(uint24 templateId, TokenType tokenType, address tokenAddr, uint256 tokenId, uint256 amount, address receiver)
-        public
-        returns (uint256 wrappedTokenId)
-    {
+    function wrap(
+        uint24 templateId,
+        TokenType tokenType,
+        address tokenAddr,
+        uint256 tokenId,
+        uint256 amount,
+        address receiver
+    ) public returns (uint256 wrappedTokenId) {
         if (_templates[templateId].admin == address(0)) {
             revert InvalidTemplate();
         }
@@ -181,10 +185,13 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
     {
         TokenDetails memory details = _tokenDetails[wrappedTokenId];
         Template memory template = _templates[details.templateId];
-        bool isTransferer = templateTransferers[details.templateId][msg.sender];
-        if (!template.transferOpen && !isTransferer) {
-            // Transfer not allowed
-            revert Unauthorized();
+        if (!template.transferOpen) {
+            bool isTransferer = templateTransferers[details.templateId][msg.sender]
+                || templateTransferers[details.templateId][from] || templateTransferers[details.templateId][to];
+            if (!isTransferer) {
+                // Transfer not allowed
+                revert Unauthorized();
+            }
         }
         super.safeTransferFrom(from, to, wrappedTokenId, amount, data);
     }
@@ -208,10 +215,13 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
             uint256 wrappedTokenId = wrappedTokenIds[i];
             TokenDetails memory details = _tokenDetails[wrappedTokenId];
             Template memory template = _templates[details.templateId];
-            bool isTransferer = templateTransferers[details.templateId][msg.sender];
-            if (!template.transferOpen && !isTransferer) {
-                // Transfer not allowed
-                revert Unauthorized();
+            if (!template.transferOpen) {
+                bool isTransferer = templateTransferers[details.templateId][msg.sender]
+                    || templateTransferers[details.templateId][from] || templateTransferers[details.templateId][to];
+                if (!isTransferer) {
+                    // Transfer not allowed
+                    revert Unauthorized();
+                }
             }
         }
         super.safeBatchTransferFrom(from, to, wrappedTokenIds, amounts, data);
