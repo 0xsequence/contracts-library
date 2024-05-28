@@ -17,6 +17,8 @@
     "deploy": "ts-node scripts/deploy.ts",
     "test": "forge test",
     "coverage": "forge coverage --report lcov",
+    "snapshot:compare": "forge snapshot --diff .gas-snapshot",
+    "snapshot:write": "forge snapshot",
     "lint:init": "husky install",
     "lint:sol": "solhint \"./src/**/*.sol\" \"./tests/**/*.sol\"",
     "format:sol": "forge fmt"
