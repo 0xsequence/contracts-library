@@ -9,16 +9,16 @@ interface IClawbackFunctions {
     }
 
     struct Template {
-        address admin;
-        uint96 duration;
         bool destructionOnly;
         bool transferOpen;
+        uint56 duration;
+        address admin;
     }
 
     struct TokenDetails {
-        uint24 templateId;
-        uint96 lockedAt;
         TokenType tokenType;
+        uint32 templateId;
+        uint56 lockedAt;
         address tokenAddr;
         uint256 tokenId; // 0 for ERC20
     }
@@ -36,7 +36,7 @@ interface IClawbackFunctions {
      * @return wrappedTokenId The wrapped token ID.
      */
     function wrap(
-        uint24 templateId,
+        uint32 templateId,
         TokenType tokenType,
         address tokenAddr,
         uint256 tokenId,
@@ -78,7 +78,7 @@ interface IClawbackFunctions {
      * @param templateId The template ID.
      * @return The template details.
      */
-    function getTemplate(uint24 templateId) external view returns (Template memory);
+    function getTemplate(uint32 templateId) external view returns (Template memory);
 
     /**
      * Add a new template.
@@ -88,9 +88,9 @@ interface IClawbackFunctions {
      * @return templateId The template ID.
      * @notice The msg.sender will be set as the admin of this template.
      */
-    function addTemplate(uint96 duration, bool destructionOnly, bool transferOpen)
+    function addTemplate(uint56 duration, bool destructionOnly, bool transferOpen)
         external
-        returns (uint24 templateId);
+        returns (uint32 templateId);
 
     /**
      * Update a template.
@@ -100,7 +100,7 @@ interface IClawbackFunctions {
      * @param transferOpen Whether the template allows transfers. Can only be updated from false to true.
      * @notice Only the admin of the template can update it.
      */
-    function updateTemplate(uint24 templateId, uint96 duration, bool destructionOnly, bool transferOpen) external;
+    function updateTemplate(uint32 templateId, uint56 duration, bool destructionOnly, bool transferOpen) external;
 
     /**
      * Add a transferer to a template.
@@ -110,7 +110,7 @@ interface IClawbackFunctions {
      * @notice Transferers cannot be removed.
      * @notice Transfers are allowed when the to, from or operator is a template operator, even when the template is not in transferOpen mode.
      */
-    function addTemplateTransferer(uint24 templateId, address transferer) external;
+    function addTemplateTransferer(uint32 templateId, address transferer) external;
 
     /**
      * Update an operator to a template.
@@ -119,7 +119,7 @@ interface IClawbackFunctions {
      * @param allowed Whether the operator is allowed.
      * @notice Only the admin of the template can update an operator.
      */
-    function updateTemplateOperator(uint24 templateId, address operator, bool allowed) external;
+    function updateTemplateOperator(uint32 templateId, address operator, bool allowed) external;
 
     /**
      * Transfer a template admin to another address.
@@ -128,7 +128,7 @@ interface IClawbackFunctions {
      * @notice Only the admin of the template can transfer it.
      * @dev Transferring to address(0) is not allowed.
      */
-    function updateTemplateAdmin(uint24 templateId, address admin) external;
+    function updateTemplateAdmin(uint32 templateId, address admin) external;
 }
 
 interface IClawbackSignals {
@@ -159,7 +159,7 @@ interface IClawbackSignals {
     /// @notice Emits when a token is wrapped
     event Wrapped(
         uint256 indexed wrappedTokenId,
-        uint24 indexed templateId,
+        uint32 indexed templateId,
         address indexed tokenAddr,
         uint256 tokenId,
         uint256 amount,
@@ -170,7 +170,7 @@ interface IClawbackSignals {
     /// @notice Emits when a token is unwrapped
     event Unwrapped(
         uint256 indexed wrappedTokenId,
-        uint24 indexed templateId,
+        uint32 indexed templateId,
         address indexed tokenAddr,
         uint256 tokenId,
         uint256 amount,
@@ -180,7 +180,7 @@ interface IClawbackSignals {
     /// @notice Emits when a token is clawed back
     event ClawedBack(
         uint256 indexed wrappedTokenId,
-        uint24 indexed templateId,
+        uint32 indexed templateId,
         address indexed tokenAddr,
         uint256 tokenId,
         uint256 amount,
@@ -191,20 +191,20 @@ interface IClawbackSignals {
 
     /// @notice Emits when a template is added
     event TemplateAdded(
-        uint24 indexed templateId, address admin, uint96 duration, bool destructionOnly, bool transferOpen
+        uint32 indexed templateId, address admin, uint56 duration, bool destructionOnly, bool transferOpen
     );
 
     /// @notice Emits when a template is updated
-    event TemplateUpdated(uint24 indexed templateId, uint96 duration, bool destructionOnly, bool transferOpen);
+    event TemplateUpdated(uint32 indexed templateId, uint56 duration, bool destructionOnly, bool transferOpen);
 
     /// @notice Emits when a template admin is updated
-    event TemplateAdminUpdated(uint24 indexed templateId, address admin);
+    event TemplateAdminUpdated(uint32 indexed templateId, address admin);
 
     /// @notice Emits when a transferer is added
-    event TemplateTransfererAdded(uint24 indexed templateId, address transferer);
+    event TemplateTransfererAdded(uint32 indexed templateId, address transferer);
 
     /// @notice Emits when an operator is updated
-    event TemplateOperatorUpdated(uint24 indexed templateId, address operator, bool allowed);
+    event TemplateOperatorUpdated(uint32 indexed templateId, address operator, bool allowed);
 }
 
 // solhint-disable-next-line no-empty-blocks

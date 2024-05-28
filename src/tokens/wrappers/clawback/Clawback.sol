@@ -15,16 +15,23 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
     // Do not use address(0) as burn address due to common transfer restrictions.
     address public constant BURN_ADDRESS = address(0x000000000000000000000000000000000000dEaD);
 
-    mapping(uint24 => Template) internal _templates;
+    mapping(uint32 => Template) internal _templates;
     mapping(uint256 => TokenDetails) internal _tokenDetails;
 
-    mapping(uint24 => mapping(address => bool)) public templateOperators;
-    mapping(uint24 => mapping(address => bool)) public templateTransferers;
-
-    uint24 private _nextTemplateId;
-    uint256 private _nextWrappedTokenId;
+    mapping(uint32 => mapping(address => bool)) public templateOperators;
+    mapping(uint32 => mapping(address => bool)) public templateTransferers;
 
     bool private _expectingReceive; // Token receiver guard
+
+    uint32 private _nextTemplateId;
+    uint256 private _nextWrappedTokenId;
+
+    modifier onlyTemplateAdmin(uint32 templateId) {
+        if (_templates[templateId].admin != msg.sender) {
+            revert Unauthorized();
+        }
+        _;
+    }
 
     constructor(string memory _name, string memory _baseURI) ERC1155Metadata(_name, _baseURI) {}
 
@@ -34,13 +41,13 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IClawbackFunctions
-    function getTemplate(uint24 templateId) external view returns (Template memory) {
+    function getTemplate(uint32 templateId) external view returns (Template memory) {
         return _templates[templateId];
     }
 
     /// @inheritdoc IClawbackFunctions
     function wrap(
-        uint24 templateId,
+        uint32 templateId,
         TokenType tokenType,
         address tokenAddr,
         uint256 tokenId,
@@ -59,7 +66,7 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
         wrappedTokenId = _nextWrappedTokenId++;
 
         // solhint-disable-next-line not-rely-on-time
-        _tokenDetails[wrappedTokenId] = TokenDetails(templateId, uint96(block.timestamp), tokenType, tokenAddr, tokenId);
+        _tokenDetails[wrappedTokenId] = TokenDetails(tokenType, templateId, uint56(block.timestamp), tokenAddr, tokenId);
         _mint(receiver, wrappedTokenId, amount, "");
 
         emit Wrapped(wrappedTokenId, templateId, tokenAddr, tokenId, amount, sender, receiver);
@@ -112,19 +119,19 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IClawbackFunctions
-    function addTemplate(uint96 duration, bool destructionOnly, bool transferOpen) public returns (uint24 templateId) {
+    function addTemplate(uint56 duration, bool destructionOnly, bool transferOpen) public returns (uint32 templateId) {
         templateId = _nextTemplateId++;
         address admin = msg.sender;
-        _templates[templateId] = Template(admin, duration, destructionOnly, transferOpen);
+        _templates[templateId] = Template(destructionOnly, transferOpen, duration, admin);
         emit TemplateAdded(templateId, admin, duration, destructionOnly, transferOpen);
     }
 
     /// @inheritdoc IClawbackFunctions
-    function updateTemplate(uint24 templateId, uint96 duration, bool destructionOnly, bool transferOpen) public {
+    function updateTemplate(uint32 templateId, uint56 duration, bool destructionOnly, bool transferOpen)
+        public
+        onlyTemplateAdmin(templateId)
+    {
         Template storage template = _templates[templateId];
-        if (template.admin != msg.sender) {
-            revert Unauthorized();
-        }
         if (duration > template.duration) {
             revert InvalidTemplateChange("Duration must be equal or decrease");
         }
@@ -141,32 +148,26 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IClawbackFunctions
-    function updateTemplateAdmin(uint24 templateId, address admin) public {
+    function updateTemplateAdmin(uint32 templateId, address admin) public onlyTemplateAdmin(templateId) {
         if (admin == address(0)) {
             revert InvalidTemplateChange("Admin cannot be zero address");
         }
         Template storage template = _templates[templateId];
-        if (template.admin != msg.sender) {
-            revert Unauthorized();
-        }
         template.admin = admin;
         emit TemplateAdminUpdated(templateId, admin);
     }
 
     /// @inheritdoc IClawbackFunctions
-    function addTemplateTransferer(uint24 templateId, address transferer) public {
-        if (_templates[templateId].admin != msg.sender) {
-            revert Unauthorized();
-        }
+    function addTemplateTransferer(uint32 templateId, address transferer) public onlyTemplateAdmin(templateId) {
         templateTransferers[templateId][transferer] = true;
         emit TemplateTransfererAdded(templateId, transferer);
     }
 
     /// @inheritdoc IClawbackFunctions
-    function updateTemplateOperator(uint24 templateId, address operator, bool allowed) public {
-        if (_templates[templateId].admin != msg.sender) {
-            revert Unauthorized();
-        }
+    function updateTemplateOperator(uint32 templateId, address operator, bool allowed)
+        public
+        onlyTemplateAdmin(templateId)
+    {
         templateOperators[templateId][operator] = allowed;
         emit TemplateOperatorUpdated(templateId, operator, allowed);
     }
