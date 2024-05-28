@@ -59,9 +59,9 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
     //
     // Template
     //
-    function testAddTemplate(address admin, uint96 duration, bool destructionOnly, bool transferOpen)
+    function testAddTemplate(address admin, uint56 duration, bool destructionOnly, bool transferOpen)
         public
-        returns (uint24 templateId)
+        returns (uint32 templateId)
     {
         vm.assume(admin != address(0));
 
@@ -79,18 +79,18 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
 
     function testUpdateTemplateValid(
         address admin,
-        uint96 durationA,
+        uint56 durationA,
         bool destructionOnlyA,
         bool transferOpenA,
-        uint96 durationB,
+        uint56 durationB,
         bool destructionOnlyB,
         bool transferOpenB
     ) public {
-        durationB = uint96(bound(durationB, 0, durationA));
+        durationB = uint56(bound(durationB, 0, durationA));
         destructionOnlyB = destructionOnlyA || destructionOnlyB;
         transferOpenB = transferOpenA || transferOpenB;
 
-        uint24 templateId = testAddTemplate(admin, durationA, destructionOnlyA, transferOpenA);
+        uint32 templateId = testAddTemplate(admin, durationA, destructionOnlyA, transferOpenA);
 
         vm.expectEmit(true, true, true, true, address(clawback));
         emit TemplateUpdated(templateId, durationB, destructionOnlyB, transferOpenB);
@@ -102,13 +102,13 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         address admin,
         address nonAdmin,
         bool isNonAdminOperator,
-        uint96 duration,
+        uint56 duration,
         bool destructionOnly,
         bool transferOpen
     ) public {
         vm.assume(admin != nonAdmin);
 
-        uint24 templateId = testAddTemplate(admin, duration, destructionOnly, transferOpen);
+        uint32 templateId = testAddTemplate(admin, duration, destructionOnly, transferOpen);
 
         if (isNonAdminOperator) {
             // Operator status doesn't enable permissions for template updates
@@ -123,14 +123,14 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
 
     function testUpdateTemplateInvalidDuration(
         address admin,
-        uint96 durationA,
+        uint56 durationA,
         bool destructionOnly,
         bool transferOpen,
-        uint96 durationB
+        uint56 durationB
     ) public {
         vm.assume(durationB > durationA);
 
-        uint24 templateId = testAddTemplate(admin, durationA, destructionOnly, transferOpen);
+        uint32 templateId = testAddTemplate(admin, durationA, destructionOnly, transferOpen);
 
         vm.expectRevert(abi.encodeWithSelector(InvalidTemplateChange.selector, "Duration must be equal or decrease"));
         vm.prank(admin);
@@ -139,7 +139,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
 
     function testUpdateTemplateInvalidDestructionOnly() public {
         // No reason to fuzz this
-        uint24 templateId = testAddTemplate(address(this), 0, true, false);
+        uint32 templateId = testAddTemplate(address(this), 0, true, false);
 
         vm.expectRevert(abi.encodeWithSelector(InvalidTemplateChange.selector, "Cannot change from destruction only"));
         clawback.updateTemplate(templateId, 0, false, false);
@@ -147,7 +147,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
 
     function testUpdateTemplateInvalidTransferOpen() public {
         // No reason to fuzz this
-        uint24 templateId = testAddTemplate(address(this), 0, false, true);
+        uint32 templateId = testAddTemplate(address(this), 0, false, true);
 
         vm.expectRevert(abi.encodeWithSelector(InvalidTemplateChange.selector, "Cannot change from transfer open"));
         clawback.updateTemplate(templateId, 0, false, false);
@@ -155,7 +155,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
 
     function testUpdateTemplateAdminInvalidCaller(address admin, address nonAdmin, bool isNonAdminOperator) public {
         vm.assume(admin != nonAdmin);
-        uint24 templateId = testAddTemplate(admin, 0, false, true);
+        uint32 templateId = testAddTemplate(admin, 0, false, true);
 
         if (isNonAdminOperator) {
             // Operator status doesn't enable permissions for template updates
@@ -170,7 +170,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
 
     function testUpdateTemplateAdminInvalidAdmin() public {
         // No reason to fuzz this
-        uint24 templateId = testAddTemplate(address(this), 0, false, true);
+        uint32 templateId = testAddTemplate(address(this), 0, false, true);
 
         vm.expectRevert(abi.encodeWithSelector(InvalidTemplateChange.selector, "Admin cannot be zero address"));
         clawback.updateTemplateAdmin(templateId, address(0));
@@ -179,12 +179,12 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
     function testUpdateTemplateAdmin(
         address adminA,
         address adminB,
-        uint96 duration,
+        uint56 duration,
         bool destructionOnly,
         bool transferOpen
     ) public safeAddress(adminA) safeAddress(adminB) {
         vm.assume(adminA != adminB);
-        uint24 templateId = testAddTemplate(adminA, duration, destructionOnly, transferOpen);
+        uint32 templateId = testAddTemplate(adminA, duration, destructionOnly, transferOpen);
 
         vm.expectEmit(true, true, true, true, address(clawback));
         emit TemplateAdminUpdated(templateId, adminB);
@@ -213,7 +213,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         address transferer
     ) public {
         vm.assume(admin != nonAdmin);
-        uint24 templateId = testAddTemplate(admin, 0, false, true);
+        uint32 templateId = testAddTemplate(admin, 0, false, true);
 
         if (isNonAdminOperator) {
             // Operator status doesn't enable permissions for template updates
@@ -227,7 +227,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
     }
 
     function testAddTemplateTransferer(address admin, address transferer) public {
-        uint24 templateId = testAddTemplate(admin, 0, false, true);
+        uint32 templateId = testAddTemplate(admin, 0, false, true);
 
         vm.expectEmit(true, true, true, true, address(clawback));
         emit TemplateTransfererAdded(templateId, transferer);
@@ -245,7 +245,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         bool allowed
     ) public {
         vm.assume(admin != nonAdmin);
-        uint24 templateId = testAddTemplate(admin, 0, false, true);
+        uint32 templateId = testAddTemplate(admin, 0, false, true);
 
         if (isNonAdminOperator) {
             // Operator status doesn't enable permissions for template updates
@@ -259,7 +259,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
     }
 
     function testUpdateTemplateOperator(address admin, address operator, bool allowed) public {
-        uint24 templateId = testAddTemplate(admin, 0, false, true);
+        uint32 templateId = testAddTemplate(admin, 0, false, true);
 
         vm.expectEmit(true, true, true, true, address(clawback));
         emit TemplateOperatorUpdated(templateId, operator, allowed);
@@ -287,7 +287,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         IGenericToken(tokenAddr).mint(address(this), tokenId, amount);
         IGenericToken(tokenAddr).approve(address(this), address(clawback), tokenId, amount);
 
-        uint24 templateId = testAddTemplate(templateAdmin, 1, false, false);
+        uint32 templateId = testAddTemplate(templateAdmin, 1, false, false);
 
         vm.expectEmit(true, true, true, true, address(clawback));
         emit Wrapped(0, templateId, tokenAddr, tokenId, amount, address(this), receiver);
@@ -300,7 +300,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         assertEq(clawback.balanceOf(receiver, wrappedTokenId), amount);
         assertEq(clawback.balanceOf(address(this), wrappedTokenId), 0);
         assertEq(details.templateId, templateId);
-        assertEq(details.lockedAt, uint96(block.timestamp));
+        assertEq(details.lockedAt, uint56(block.timestamp));
         assertEq(uint8(details.tokenType), uint8(tokenType));
         assertEq(details.tokenAddr, tokenAddr);
         assertEq(details.tokenId, tokenId);
@@ -319,7 +319,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         IGenericToken(tokenAddr).mint(address(this), tokenId, amount);
         IGenericToken(tokenAddr).approve(address(this), address(clawback), tokenId, amount);
 
-        uint24 templateId = testAddTemplate(templateAdmin, 1, false, false);
+        uint32 templateId = testAddTemplate(templateAdmin, 1, false, false);
 
         bytes memory data = abi.encodeWithSelector(
             IClawbackFunctions.wrap.selector, templateId, tokenTypeNum, tokenAddr, tokenId, amount
@@ -345,7 +345,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         IGenericToken(tokenAddr).mint(address(this), tokenId, amount);
         IGenericToken(tokenAddr).approve(address(this), address(clawback), tokenId, amount);
 
-        uint24 templateId = testAddTemplate(templateAdmin, 1, false, false);
+        uint32 templateId = testAddTemplate(templateAdmin, 1, false, false);
 
         if (tokenAddr == address(erc20) && tokenTypeNum % 2 == 0) {
             // Sometimes flip tokenId
@@ -358,7 +358,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
     }
 
     function testWrapInvalidTemplate(
-        uint24 templateId,
+        uint32 templateId,
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
@@ -381,9 +381,9 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
     struct WrapSetupResult {
         uint256 tokenId;
         uint256 amount;
-        uint96 duration;
+        uint56 duration;
         address tokenAddr;
-        uint24 templateId;
+        uint32 templateId;
         uint256 wrappedTokenId;
     }
 
@@ -392,11 +392,11 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         address receiver
     ) internal returns (WrapSetupResult memory result) {
         // Unwrap timestamp is uint64 as per ERC721A implmentation used by ERC721Mock
-        result.duration = uint96(bound(duration, 1, type(uint64).max - block.timestamp));
+        result.duration = uint56(bound(duration, 1, type(uint64).max - block.timestamp));
         result.templateId = testAddTemplate(templateAdmin, result.duration, false, false);
 
         IClawbackFunctions.TokenType tokenType = _toTokenType(tokenTypeNum);
@@ -417,7 +417,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         uint64 unwrapTimestamp
     ) public {
         WrapSetupResult memory result =
@@ -443,7 +443,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         uint64 unwrapTimestamp,
         address tokenOwner
     ) public safeAddress(tokenOwner) {
@@ -478,7 +478,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint256 tokenId,
         uint256 wrongWrappedTokenId,
         uint256 amount,
-        uint96 duration
+        uint56 duration
     ) public {
         vm.assume(wrongWrappedTokenId != 0);
         WrapSetupResult memory result =
@@ -498,7 +498,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration
+        uint56 duration
     ) public {
         WrapSetupResult memory result =
             _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration, address(this));
@@ -518,7 +518,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint256 tokenId,
         uint256 amount,
         uint256 invalidAmount,
-        uint96 duration
+        uint56 duration
     ) public {
         WrapSetupResult memory result =
             _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration, address(this));
@@ -539,7 +539,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         uint64 unwrapTimestamp
     ) public {
         vm.assume(operator != address(this));
@@ -573,7 +573,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration
+        uint56 duration
     ) public {
         vm.assume(operator != address(this));
 
@@ -595,7 +595,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         address operator,
         address receiver
     ) public safeAddress(receiver) {
@@ -633,7 +633,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         address operator,
         address tokenOwner,
         address receiver
@@ -670,7 +670,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         address operator,
         address receiver
     ) public safeAddress(receiver) {
@@ -693,7 +693,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         address operator
     ) public {
         WrapSetupResult memory result =
@@ -734,7 +734,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         address operator,
         address receiver
     ) public safeAddress(receiver) {
@@ -756,7 +756,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         address operator,
         address receiver
     ) public {
@@ -778,7 +778,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         uint64 transferTimestamp,
         address receiver
     ) public safeAddress(receiver) {
@@ -802,7 +802,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         uint64 transferTimestamp,
         bool transferOpen,
         address transferer,
@@ -842,7 +842,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         uint64 transferTimestamp,
         bool transferOpen,
         address transferer,
@@ -877,7 +877,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         uint64 transferTimestamp,
         bool transferOpen,
         address transferer,
@@ -912,7 +912,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         uint64 transferTimestamp,
         bool transferOpen,
         address transferer,
@@ -951,7 +951,7 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         uint8 tokenTypeNum,
         uint256 tokenId,
         uint256 amount,
-        uint96 duration,
+        uint56 duration,
         address operator,
         address receiver,
         bool batch
