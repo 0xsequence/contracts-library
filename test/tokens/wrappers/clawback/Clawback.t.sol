@@ -919,6 +919,8 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         address receiver,
         bool batch
     ) public safeAddress(receiver) {
+        vm.assume(transferer != address(this));
+
         WrapSetupResult memory result =
             _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;
