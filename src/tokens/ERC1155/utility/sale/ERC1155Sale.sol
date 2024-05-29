@@ -198,20 +198,32 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         IERC1155ItemsFunctions(_items).batchMint(to, tokenIds, amounts, data);
     }
 
+    //
+    // Admin
+    //
+
+    /**
+     * Set the payment token.
+     * @param paymentTokenAddr The ERC20 token address to accept payment in. address(0) indicates ETH.
+     * @dev This should be set before the sale starts.
+     */
+    function setPaymentToken(address paymentTokenAddr) public onlyRole(MINT_ADMIN_ROLE) {
+        _paymentToken = paymentTokenAddr;
+    }
+
     /**
      * Set the global sale details.
      * @param cost The amount of payment tokens to accept for each token minted.
      * @param supplyCap The maximum number of tokens that can be minted.
-     * @param paymentTokenAddr The ERC20 token address to accept payment in. address(0) indicates ETH.
      * @param startTime The start time of the sale. Tokens cannot be minted before this time.
      * @param endTime The end time of the sale. Tokens cannot be minted after this time.
      * @param merkleRoot The merkle root for allowlist minting.
      * @dev A zero end time indicates an inactive sale.
+     * @notice The payment token is set globally.
      */
     function setGlobalSaleDetails(
         uint256 cost,
         uint256 supplyCap,
-        address paymentTokenAddr,
         uint64 startTime,
         uint64 endTime,
         bytes32 merkleRoot
@@ -223,7 +235,6 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         if (endTime < startTime || endTime <= block.timestamp) {
             revert InvalidSaleDetails();
         }
-        _paymentToken = paymentTokenAddr;
         _globalSaleDetails = SaleDetails(cost, startTime, endTime, merkleRoot);
         totalSupplyCap = supplyCap;
         emit GlobalSaleDetailsUpdated(cost, supplyCap, startTime, endTime, merkleRoot);
