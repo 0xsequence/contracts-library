@@ -14,6 +14,8 @@ When updating a template, the changes may only be done in a way that benefit the
 
 To wrap a token with a Clawback template, call the `wrap` function with the desired parameters. The token will be wrapped with the template and the receiver will receive the wrapped token. The permissions of the wrapped token will be determined by the template.
 
+At any time after wrapping, more tokens may be added to the wrapped instance by calling the `addToWrap` function. This only applies to wrapped ERC-20 and ERC-1155 tokens. Newly wrapped tokens have the same parameters as the originally wrapped tokens. Adding will not change the unlock duration. This can be performed even after the clawback duration has ended.
+
 ### Unwrap Token
 
 To unwrap a token, call the `unwrap` function with the desired parameters. The token will be unwrapped and the receiver will receive the unwrapped token. The permissions of the unwrapped token will be determined by the template.
