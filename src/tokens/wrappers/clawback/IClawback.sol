@@ -45,6 +45,14 @@ interface IClawbackFunctions {
     ) external returns (uint256 wrappedTokenId);
 
     /**
+     * Add more tokens to a wrapping.
+     * @param wrappedTokenId The wrapped token ID.
+     * @param amount The amount to wrap.
+     * @param receiver The receiver of the wrapped token.
+     */
+    function addToWrap(uint256 wrappedTokenId, uint256 amount, address receiver) external;
+
+    /**
      * Unwraps a token.
      * @param wrappedTokenId The wrapped token ID.
      * @param owner The owner of the token.

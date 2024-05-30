@@ -375,9 +375,6 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         clawback.wrap(templateId, tokenType, tokenAddr, tokenId, amount, receiver);
     }
 
-    //
-    // Unwrap
-    //
     struct WrapSetupResult {
         uint256 tokenId;
         uint256 amount;
@@ -412,6 +409,52 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         return result;
     }
 
+    //
+    // Add To Wrap
+    //
+    function testAddToWrap(
+        address templateAdmin,
+        uint8 tokenTypeNum,
+        uint256 tokenId,
+        uint256 amount,
+        uint56 duration,
+        address receiver,
+        uint64 addToWrapTimestamp
+    ) public safeAddress(receiver) {
+        IClawbackFunctions.TokenType tokenType = _toTokenType(tokenTypeNum);
+        vm.assume(tokenType != IClawbackFunctions.TokenType.ERC721);
+
+        WrapSetupResult memory result =
+            _wrapSetup(templateAdmin, tokenTypeNum, tokenId, amount, duration, address(this));
+        amount = result.amount;
+        vm.assume(amount < type(uint256).max / 2); // Prevent overflow
+        tokenId = result.tokenId;
+        duration = result.duration;
+
+        IGenericToken(result.tokenAddr).mint(address(this), tokenId, amount);
+        IGenericToken(result.tokenAddr).approve(address(this), address(clawback), tokenId, amount);
+
+        vm.warp(addToWrapTimestamp); // Doesn't matter
+
+        vm.expectEmit(true, true, true, true, address(clawback));
+        emit Wrapped(0, result.templateId, result.tokenAddr, tokenId, amount, address(this), receiver);
+        clawback.addToWrap(result.wrappedTokenId, amount, receiver);
+
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(receiver, tokenId), 0);
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(address(this), tokenId), 0);
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(address(clawback), tokenId), amount * 2); // Wrap and add
+        assertEq(clawback.balanceOf(address(this), result.wrappedTokenId), amount); // Wrap
+        assertEq(clawback.balanceOf(receiver, result.wrappedTokenId), amount); // Add
+    }
+
+    function testAddToWrapInvalidWrappedId(uint256 wrappedTokenId, uint256 amount, address receiver) public {
+        vm.expectRevert(InvalidTokenTransfer.selector);
+        clawback.addToWrap(wrappedTokenId, amount, receiver);
+    }
+
+    //
+    // Unwrap
+    //
     function testUnwrap(
         address templateAdmin,
         uint8 tokenTypeNum,
@@ -738,6 +781,9 @@ contract ClawbackTest is Test, IClawbackSignals, IERC1155TokenReceiver, IERC721T
         address operator,
         address receiver
     ) public safeAddress(receiver) {
+        address burnAddress = clawback.BURN_ADDRESS();
+        vm.assume(receiver != burnAddress);
+
         WrapSetupResult memory result =
             _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
         tokenId = result.tokenId;

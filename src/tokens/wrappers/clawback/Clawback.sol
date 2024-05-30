@@ -57,19 +57,41 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
         if (_templates[templateId].admin == address(0)) {
             revert InvalidTemplate();
         }
-        address sender = msg.sender;
-
-        _expectingReceive = true;
-        _transferFromOther(tokenType, tokenAddr, sender, address(this), tokenId, amount);
-        delete _expectingReceive;
 
         wrappedTokenId = _nextWrappedTokenId++;
-
         // solhint-disable-next-line not-rely-on-time
-        _tokenDetails[wrappedTokenId] = TokenDetails(tokenType, templateId, uint56(block.timestamp), tokenAddr, tokenId);
+        TokenDetails memory details = TokenDetails(tokenType, templateId, uint56(block.timestamp), tokenAddr, tokenId);
+        _tokenDetails[wrappedTokenId] = details;
+
+        address sender = msg.sender;
+        _addToWrap(details, wrappedTokenId, sender, amount, receiver);
+    }
+
+    /// @inheritdoc IClawbackFunctions
+    function addToWrap(uint256 wrappedTokenId, uint256 amount, address receiver) public {
+        TokenDetails memory details = _tokenDetails[wrappedTokenId];
+        if (details.tokenAddr == address(0)) {
+            revert InvalidTokenTransfer();
+        }
+
+        address sender = msg.sender;
+        _addToWrap(details, wrappedTokenId, sender, amount, receiver);
+    }
+
+    function _addToWrap(
+        TokenDetails memory details,
+        uint256 wrappedTokenId,
+        address sender,
+        uint256 amount,
+        address receiver
+    ) internal {
+        _expectingReceive = true;
+        _transferFromOther(details.tokenType, details.tokenAddr, sender, address(this), details.tokenId, amount);
+        delete _expectingReceive;
+
         _mint(receiver, wrappedTokenId, amount, "");
 
-        emit Wrapped(wrappedTokenId, templateId, tokenAddr, tokenId, amount, sender, receiver);
+        emit Wrapped(wrappedTokenId, details.templateId, details.tokenAddr, details.tokenId, amount, sender, receiver);
     }
 
     /// @inheritdoc IClawbackFunctions
