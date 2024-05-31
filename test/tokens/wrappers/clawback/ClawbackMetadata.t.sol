@@ -184,10 +184,10 @@ contract ClawbackMetadataTest is ClawbackTestBase {
         _hasProperty(properties, "destruction_only", template.destructionOnly ? "true" : "false");
         _hasProperty(properties, "transfer_open", template.transferOpen ? "true" : "false");
         _hasProperty(properties, "duration", Duration.format(template.duration));
-        _hasProperty(properties, "unlocks_in", _formatUnlocksAt(details.lockedAt, template.duration));
+        _hasProperty(properties, "unlocks_in", _formatUnlocksIn(details.lockedAt, template.duration));
     }
 
-    function _formatUnlocksAt(uint256 lockedAt, uint256 duration) internal view returns (string memory) {
+    function _formatUnlocksIn(uint256 lockedAt, uint256 duration) internal view returns (string memory) {
         uint256 unlocksAt = lockedAt + duration;
         if (block.timestamp >= unlocksAt) {
             return "Unlocked";
