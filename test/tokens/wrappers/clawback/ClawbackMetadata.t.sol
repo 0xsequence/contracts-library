@@ -55,9 +55,9 @@ contract ClawbackMetadataTest is ClawbackTestBase {
 
         _checkCommonProperties(properties, details, template, "ERC-20");
 
-        _hasProperty(properties, "originalName", erc20.name());
-        _hasProperty(properties, "originalSymbol", erc20.symbol());
-        _hasProperty(properties, "originalDecimals", erc20.decimals().toString());
+        _hasProperty(properties, "original_name", erc20.name());
+        _hasProperty(properties, "original_symbol", erc20.symbol());
+        _hasProperty(properties, "original_decimals", erc20.decimals().toString());
     }
 
     function testMetadataPropertiesERC721(DetailsParam memory detailsParam, IClawbackFunctions.Template memory template)
@@ -75,10 +75,10 @@ contract ClawbackMetadataTest is ClawbackTestBase {
 
         _checkCommonProperties(properties, details, template, "ERC-721");
 
-        _hasProperty(properties, "tokenId", details.tokenId.toString());
-        _hasProperty(properties, "originalName", erc721.name());
-        _hasProperty(properties, "originalSymbol", erc721.symbol());
-        _hasProperty(properties, "originalURI", erc721.tokenURI(details.tokenId));
+        _hasProperty(properties, "token_id", details.tokenId.toString());
+        _hasProperty(properties, "original_name", erc721.name());
+        _hasProperty(properties, "original_symbol", erc721.symbol());
+        _hasProperty(properties, "original_URI", erc721.tokenURI(details.tokenId));
     }
 
     function testMetadataPropertiesERC1155(
@@ -94,8 +94,8 @@ contract ClawbackMetadataTest is ClawbackTestBase {
 
         _checkCommonProperties(properties, details, template, "ERC-1155");
 
-        _hasProperty(properties, "tokenId", details.tokenId.toString());
-        _hasProperty(properties, "originalURI", erc1155.uri(details.tokenId));
+        _hasProperty(properties, "token_id", details.tokenId.toString());
+        _hasProperty(properties, "original_URI", erc1155.uri(details.tokenId));
     }
 
     function _checkCommonProperties(
@@ -104,12 +104,12 @@ contract ClawbackMetadataTest is ClawbackTestBase {
         IClawbackFunctions.Template memory template,
         string memory tokenTypeStr
     ) internal {
-        _hasProperty(properties, "tokenType", tokenTypeStr);
-        _hasProperty(properties, "tokenAddress", details.tokenAddr.toHexStringChecksummed());
-        _hasProperty(properties, "templateId", details.templateId.toString());
-        _hasProperty(properties, "lockedAt", details.lockedAt.toString());
-        _hasProperty(properties, "destructionOnly", template.destructionOnly ? "true" : "false");
-        _hasProperty(properties, "transferOpen", template.transferOpen ? "true" : "false");
+        _hasProperty(properties, "token_type", tokenTypeStr);
+        _hasProperty(properties, "token_address", details.tokenAddr.toHexStringChecksummed());
+        _hasProperty(properties, "template_id", details.templateId.toString());
+        _hasProperty(properties, "locked_at", details.lockedAt.toString());
+        _hasProperty(properties, "destruction_only", template.destructionOnly ? "true" : "false");
+        _hasProperty(properties, "transfer_open", template.transferOpen ? "true" : "false");
         _hasProperty(properties, "duration", template.duration.toString());
     }
 

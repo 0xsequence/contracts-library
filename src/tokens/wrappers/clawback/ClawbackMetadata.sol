@@ -72,48 +72,48 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
         bool hasTokenId = details.tokenType == IClawbackFunctions.TokenType.ERC721
             || details.tokenType == IClawbackFunctions.TokenType.ERC1155;
         properties = new MetadataProperty[](hasTokenId ? 8 : 7);
-        properties[0] = MetadataProperty("tokenType", _toTokenTypeStr(details.tokenType));
-        properties[1] = MetadataProperty("tokenAddress", details.tokenAddr.toHexStringChecksummed());
-        properties[2] = MetadataProperty("templateId", details.templateId.toString());
-        properties[3] = MetadataProperty("lockedAt", details.lockedAt.toString());
+        properties[0] = MetadataProperty("token_type", _toTokenTypeStr(details.tokenType));
+        properties[1] = MetadataProperty("token_address", details.tokenAddr.toHexStringChecksummed());
+        properties[2] = MetadataProperty("template_id", details.templateId.toString());
+        properties[3] = MetadataProperty("locked_at", details.lockedAt.toString());
         properties[4] = MetadataProperty("duration", template.duration.toString());
-        properties[5] = MetadataProperty("destructionOnly", _boolToString(template.destructionOnly));
-        properties[6] = MetadataProperty("transferOpen", _boolToString(template.transferOpen));
+        properties[5] = MetadataProperty("destruction_only", _boolToString(template.destructionOnly));
+        properties[6] = MetadataProperty("transfer_open", _boolToString(template.transferOpen));
         if (hasTokenId) {
-            properties[7] = MetadataProperty("tokenId", details.tokenId.toString());
+            properties[7] = MetadataProperty("token_id", details.tokenId.toString());
         }
 
         // From contract
         if (details.tokenType == IClawbackFunctions.TokenType.ERC20) {
             properties = _safeAddStringProperty(
-                properties, "originalName", details.tokenAddr, abi.encodeWithSelector(IERC20Metadata.name.selector)
+                properties, "original_name", details.tokenAddr, abi.encodeWithSelector(IERC20Metadata.name.selector)
             );
             properties = _safeAddStringProperty(
-                properties, "originalSymbol", details.tokenAddr, abi.encodeWithSelector(IERC20Metadata.symbol.selector)
+                properties, "original_symbol", details.tokenAddr, abi.encodeWithSelector(IERC20Metadata.symbol.selector)
             );
             properties = _safeAddUint256Property(
                 properties,
-                "originalDecimals",
+                "original_decimals",
                 details.tokenAddr,
                 abi.encodeWithSelector(IERC20Metadata.decimals.selector)
             );
         } else if (details.tokenType == IClawbackFunctions.TokenType.ERC721) {
             properties = _safeAddStringProperty(
-                properties, "originalName", details.tokenAddr, abi.encodeWithSelector(IERC721Metadata.name.selector)
+                properties, "original_name", details.tokenAddr, abi.encodeWithSelector(IERC721Metadata.name.selector)
             );
             properties = _safeAddStringProperty(
-                properties, "originalSymbol", details.tokenAddr, abi.encodeWithSelector(IERC721Metadata.symbol.selector)
+                properties, "original_symbol", details.tokenAddr, abi.encodeWithSelector(IERC721Metadata.symbol.selector)
             );
             properties = _safeAddStringProperty(
                 properties,
-                "originalURI",
+                "original_URI",
                 details.tokenAddr,
                 abi.encodeWithSelector(IERC721Metadata.tokenURI.selector, details.tokenId)
             );
         } else if (details.tokenType == IClawbackFunctions.TokenType.ERC1155) {
             properties = _safeAddStringProperty(
                 properties,
-                "originalURI",
+                "original_URI",
                 details.tokenAddr,
                 abi.encodeWithSelector(IERC1155MetadataURI.uri.selector, details.tokenId)
             );
