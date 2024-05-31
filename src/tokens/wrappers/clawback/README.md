@@ -28,6 +28,10 @@ To clawback a token, call the `clawback` function with the desired parameters. T
 
 The clawback mechanism is only available to approved `operators` of the template. The clawback functionality is only available when the wrapped token is still in a locked state. After the lock period has passed, the token may only be unwrapped.
 
-## Access Controls
+## Metadata
 
-While the Clawback contract itself is ownerless, each template is owned by the creator. Each template individually defines the rules associated with a token wrapped that references it.
+The owner of the Clawback contract is able to update the metadata provider. The provider will generate the metadata for the wrapped tokens. The metadata provider is able to update the metadata for the wrapped tokens.
+
+### Clawback Metadata
+
+The Clawback Metadata contract is an implementation of the metadata provider for a Clawback instance. This contract combines on chain information to construct a JSON payload with metadata. The metadata is constructed using the wrapped token details, the template details and the metadata of the underlying token.
