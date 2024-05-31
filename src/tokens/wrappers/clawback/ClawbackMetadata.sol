@@ -78,7 +78,7 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
         properties[1] = MetadataProperty("token_address", details.tokenAddr.toHexStringChecksummed());
         properties[2] = MetadataProperty("template_id", details.templateId.toString());
         properties[3] = MetadataProperty("locked_at", details.lockedAt.toString());
-        properties[4] = MetadataProperty("unlocks_in", _formatUnlocksAt(details.lockedAt, template.duration));
+        properties[4] = MetadataProperty("unlocks_in", _formatUnlocksIn(details.lockedAt, template.duration));
         properties[5] = MetadataProperty("duration", Duration.format(template.duration));
         properties[6] = MetadataProperty("destruction_only", _boolToString(template.destructionOnly));
         properties[7] = MetadataProperty("transfer_open", _boolToString(template.transferOpen));
@@ -198,7 +198,7 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
         return false;
     }
 
-    function _formatUnlocksAt(uint256 lockedAt, uint256 duration) internal view returns (string memory) {
+    function _formatUnlocksIn(uint256 lockedAt, uint256 duration) internal view returns (string memory) {
         uint256 unlocksAt = lockedAt + duration;
         if (block.timestamp >= unlocksAt) {
             return "Unlocked";
