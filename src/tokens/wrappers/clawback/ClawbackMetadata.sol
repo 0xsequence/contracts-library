@@ -4,6 +4,8 @@ pragma solidity ^0.8.19;
 import {IMetadataProvider} from "../../common/IMetadataProvider.sol";
 import {IClawbackFunctions} from "./IClawback.sol";
 
+import {Duration} from "../../../utils/Duration.sol";
+
 import {LibString} from "solady/utils/LibString.sol";
 import {Base64} from "solady/utils/Base64.sol";
 
@@ -71,16 +73,17 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
         // From clawback
         bool hasTokenId = details.tokenType == IClawbackFunctions.TokenType.ERC721
             || details.tokenType == IClawbackFunctions.TokenType.ERC1155;
-        properties = new MetadataProperty[](hasTokenId ? 8 : 7);
+        properties = new MetadataProperty[](hasTokenId ? 9 : 8);
         properties[0] = MetadataProperty("token_type", _toTokenTypeStr(details.tokenType));
         properties[1] = MetadataProperty("token_address", details.tokenAddr.toHexStringChecksummed());
         properties[2] = MetadataProperty("template_id", details.templateId.toString());
         properties[3] = MetadataProperty("locked_at", details.lockedAt.toString());
-        properties[4] = MetadataProperty("duration", template.duration.toString());
-        properties[5] = MetadataProperty("destruction_only", _boolToString(template.destructionOnly));
-        properties[6] = MetadataProperty("transfer_open", _boolToString(template.transferOpen));
+        properties[4] = MetadataProperty("unlocks_in", _formatUnlocksAt(details.lockedAt, template.duration));
+        properties[5] = MetadataProperty("duration", Duration.format(template.duration));
+        properties[6] = MetadataProperty("destruction_only", _boolToString(template.destructionOnly));
+        properties[7] = MetadataProperty("transfer_open", _boolToString(template.transferOpen));
         if (hasTokenId) {
-            properties[7] = MetadataProperty("token_id", details.tokenId.toString());
+            properties[8] = MetadataProperty("token_id", details.tokenId.toString());
         }
 
         // From contract
@@ -193,5 +196,19 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
             return true;
         }
         return false;
+    }
+
+    function _formatUnlocksAt(uint256 lockedAt, uint256 duration) internal view returns (string memory) {
+        uint256 unlocksAt = lockedAt + duration;
+        if (block.timestamp >= unlocksAt) {
+            return "Unlocked";
+        }
+
+        uint256 remaining = unlocksAt - block.timestamp;
+        if (remaining >= 999999 days) {
+            return "Never";
+        }
+
+        return Duration.format(remaining);
     }
 }
