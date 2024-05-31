@@ -3,15 +3,18 @@ pragma solidity ^0.8.19;
 
 import {IClawback, IClawbackFunctions} from "./IClawback.sol";
 import {IERC721Transfer} from "../../common/IERC721Transfer.sol";
+import {IMetadataProvider} from "../../common/IMetadataProvider.sol";
 
 import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import {ERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
+import {IERC1155Metadata} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155Metadata.sol";
 import {ERC1155, ERC1155MintBurn} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
+
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
-contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
+contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
     // Do not use address(0) as burn address due to common transfer restrictions.
     address public constant BURN_ADDRESS = address(0x000000000000000000000000000000000000dEaD);
 
@@ -20,6 +23,8 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
 
     mapping(uint32 => mapping(address => bool)) public templateOperators;
     mapping(uint32 => mapping(address => bool)) public templateTransferers;
+
+    IMetadataProvider public metadataProvider;
 
     bool private _expectingReceive; // Token receiver guard
 
@@ -33,7 +38,10 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
         _;
     }
 
-    constructor(string memory _name, string memory _baseURI) ERC1155Metadata(_name, _baseURI) {}
+    constructor(address ownerAddr, address metadataProviderAddr) {
+        _transferOwnership(ownerAddr);
+        metadataProvider = IMetadataProvider(metadataProviderAddr);
+    }
 
     /// @inheritdoc IClawbackFunctions
     function getTokenDetails(uint256 wrappedTokenId) external view returns (TokenDetails memory) {
@@ -284,6 +292,16 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
         }
     }
 
+    // URI
+
+    function updateMetadataProvider(address metadataProviderAddr) public onlyOwner {
+        metadataProvider = IMetadataProvider(metadataProviderAddr);
+    }
+
+    function uri(uint256 wrappedTokenId) public view override returns (string memory) {
+        return metadataProvider.metadata(address(this), wrappedTokenId);
+    }
+
     // Receiver
 
     modifier expectedReceive() {
@@ -316,14 +334,11 @@ contract Clawback is ERC1155MintBurn, ERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IERC165
-    function supportsInterface(bytes4 _interfaceID)
-        public
-        view
-        virtual
-        override(ERC1155, ERC1155Metadata)
-        returns (bool)
-    {
-        if (_interfaceID == type(IClawback).interfaceId || _interfaceID == type(IClawbackFunctions).interfaceId) {
+    function supportsInterface(bytes4 _interfaceID) public view virtual override returns (bool) {
+        if (
+            _interfaceID == type(IClawback).interfaceId || _interfaceID == type(IClawbackFunctions).interfaceId
+                || _interfaceID == type(IERC1155Metadata).interfaceId
+        ) {
             return true;
         }
         return super.supportsInterface(_interfaceID);
