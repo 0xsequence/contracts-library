@@ -16,10 +16,21 @@ Base and preset **implementations of common token standards**:
 
 ## Usage
 
-1. Clone the repository
-2. Install dependencies with `yarn`
-3. Compile the contracts with `yarn build`
-4. Run tests with `yarn test`
+### Installation
+
+Clone the repository, including git submodules.
+
+Install dependencies with `yarn`.
+
+Compile the contracts with `yarn build`.
+
+### Testing
+
+Run tests with `yarn test`.
+
+Run coverage report with `yarn coverage`. View coverage report with `genhtml -o report --branch-coverage --ignore-errors category lcov.info && py -m http.server`. Viewing the report with this command requires Python to be installed.
+
+Compare gas usage with `yarn snapshot:compare`. Note as some test use random values, the gas usage may vary slightly between runs.
 
 ### Deployment
 
@@ -37,7 +48,7 @@ yarn deploy
 
 ## Dependencies
 
-The contracts in this repository are built with Solidity ^0.8.19 and use 0xSequence, OpenZeppelin and Azuki contracts for standards implementation and additional functionalities such as access control.
+The contracts in this repository are built with Solidity ^0.8.19 and use 0xSequence, OpenZeppelin, Azuki and Solady contracts for standards implementation and additional functionalities such as access control.
 
 ## Audits
 

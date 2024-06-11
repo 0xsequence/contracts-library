@@ -41,7 +41,7 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
         token.initialize(owner, "name", "symbol", DECIMALS);
     }
 
-    function testSupportsInterface() public {
+    function testSupportsInterface() public view {
         assertTrue(token.supportsInterface(type(IERC165).interfaceId));
         assertTrue(token.supportsInterface(type(IERC20).interfaceId));
         assertTrue(token.supportsInterface(type(IERC20Metadata).interfaceId));
@@ -52,7 +52,7 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
      * Test all public selectors for collisions against the proxy admin functions.
      * @dev yarn ts-node scripts/outputSelectors.ts
      */
-    function testSelectorCollision() public {
+    function testSelectorCollision() public pure {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
         checkSelectorCollision(0xdd62ed3e); // allowance(address,address)
         checkSelectorCollision(0x095ea7b3); // approve(address,uint256)
@@ -79,12 +79,12 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
         checkSelectorCollision(0x23b872dd); // transferFrom(address,address,uint256)
     }
 
-    function testOwnerHasRoles() public {
+    function testOwnerHasRoles() public view {
         assertTrue(token.hasRole(token.DEFAULT_ADMIN_ROLE(), owner));
         assertTrue(token.hasRole(keccak256("MINTER_ROLE"), owner));
     }
 
-    function testInitValues() public {
+    function testInitValues() public view {
         assertEq(token.name(), "name");
         assertEq(token.symbol(), "symbol");
         assertEq(token.decimals(), DECIMALS);

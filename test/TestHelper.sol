@@ -22,7 +22,7 @@ abstract contract TestHelper is Test, Merkle {
     /**
      * Check for selector collisions against the proxy admin functions.
      */
-    function checkSelectorCollision(bytes4 selector) internal {
+    function checkSelectorCollision(bytes4 selector) internal pure {
         assertNotEq(selector, ITransparentUpgradeableProxy.upgradeTo.selector);
         assertNotEq(selector, ITransparentUpgradeableProxy.upgradeToAndCall.selector);
         assertNotEq(selector, ITransparentUpgradeableProxy.changeAdmin.selector);
