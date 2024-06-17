@@ -8,6 +8,13 @@ interface IPaymentsFunctions {
         ERC1155
     }
 
+    struct PaymentRecipient {
+        // Payment recipient
+        address recipient;
+        // Payment amount
+        uint256 amount;
+    }
+
     struct PaymentDetails {
         // Unique ID for this purchase
         uint256 purchaseId;
@@ -19,10 +26,8 @@ interface IPaymentsFunctions {
         address tokenAddress;
         // Token ID to use for payment. Used for ERC-721 and 1155 payments
         uint256 tokenId;
-        // Amount to pay
-        uint256 amount;
-        // Address to send the funds to
-        address fundsRecipient;
+        // Payment receipients
+        PaymentRecipient[] paymentRecipients;
         // Expiration time of the payment
         uint64 expiration;
         // ID of the product
