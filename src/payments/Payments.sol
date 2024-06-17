@@ -48,15 +48,18 @@ contract Payments is Ownable, IPayments, IERC165 {
 
         address spender = msg.sender;
 
-        _takePayment(
-            paymentDetails.tokenType,
-            paymentDetails.tokenAddress,
-            spender,
-            paymentDetails.fundsRecipient,
-            paymentDetails.tokenId,
-            paymentDetails.amount
-        );
-        //TODO Take cut?
+        for (uint256 i = 0; i < paymentDetails.paymentRecipients.length; i++) {
+            // We don't check length == 0. Will only be signed if length 0 is a valid input.
+            PaymentRecipient calldata recipient = paymentDetails.paymentRecipients[i];
+            _takePayment(
+                paymentDetails.tokenType,
+                paymentDetails.tokenAddress,
+                spender,
+                recipient.recipient,
+                paymentDetails.tokenId,
+                recipient.amount
+            );
+        }
 
         // Emit event
         emit PaymentMade(spender, paymentDetails.productRecipient, paymentDetails.purchaseId, paymentDetails.productId);
@@ -77,8 +80,7 @@ contract Payments is Ownable, IPayments, IERC165 {
                 paymentDetails.tokenType,
                 paymentDetails.tokenAddress,
                 paymentDetails.tokenId,
-                paymentDetails.amount,
-                paymentDetails.fundsRecipient,
+                paymentDetails.paymentRecipients,
                 paymentDetails.expiration,
                 paymentDetails.productId,
                 paymentDetails.additionalData

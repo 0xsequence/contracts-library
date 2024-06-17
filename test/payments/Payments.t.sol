@@ -37,8 +37,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         uint8 tokenType;
         address tokenAddress;
         uint256 tokenId;
-        uint256 amount;
-        address fundsRecipient;
+        IPaymentsFunctions.PaymentRecipient paymentRecipient;
         uint64 expiration;
         string productId;
         bytes additionalData;
@@ -60,31 +59,35 @@ contract PaymentsTest is Test, IPaymentsSignals {
         view
         returns (address, uint256, uint256)
     {
+        // / 10 to avoid overflow when paying multiple
         if (tokenType == IPaymentsFunctions.TokenType.ERC20) {
-            return (address(erc20), 0, bound(amount, 1, type(uint256).max));
+            return (address(erc20), 0, bound(amount, 1, type(uint256).max / 10));
         }
         if (tokenType == IPaymentsFunctions.TokenType.ERC721) {
-            return (address(erc721), bound(tokenId, 1, type(uint256).max), 1);
+            return (address(erc721), bound(tokenId, 1, type(uint256).max / 10), 1);
         }
-        return (address(erc1155), tokenId, bound(amount, 1, type(uint128).max));
+        return (address(erc1155), tokenId, bound(amount, 1, type(uint128).max / 10));
     }
 
     function testMakePaymentSuccess(address caller, DetailsInput calldata input)
         public
         safeAddress(caller)
-        safeAddress(input.fundsRecipient)
+        safeAddress(input.paymentRecipient.recipient)
     {
-        IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
-        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.amount);
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
+        IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
+        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
+        paymentRecipients[0] = input.paymentRecipient;
+        paymentRecipients[0].amount = amount;
+
         IPaymentsFunctions.PaymentDetails memory details = IPaymentsFunctions.PaymentDetails(
             input.purchaseId,
             input.productRecipient,
             tokenType,
             tokenAddr,
             tokenId,
-            amount,
-            input.fundsRecipient,
+            paymentRecipients,
             expiration,
             input.productId,
             input.additionalData
@@ -105,7 +108,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         vm.prank(caller);
         payments.makePayment(details, sig);
 
-        assertEq(IGenericToken(tokenAddr).balanceOf(input.fundsRecipient, tokenId), amount);
+        assertEq(IGenericToken(tokenAddr).balanceOf(input.paymentRecipient.recipient, tokenId), amount);
 
         // Duplicate call fails
         vm.expectRevert(PaymentAlreadyAccepted.selector);
@@ -113,20 +116,72 @@ contract PaymentsTest is Test, IPaymentsSignals {
         payments.makePayment(details, sig);
     }
 
-    function testMakePaymentInvalidSignature(address caller, DetailsInput calldata input, bytes memory signature)
+    function testMakePaymentSuccessMultiplePaymentRecips(address caller, DetailsInput calldata input, address recip2)
         public
+        safeAddress(caller)
+        safeAddress(input.paymentRecipient.recipient)
+        safeAddress(recip2)
     {
+        vm.assume(input.paymentRecipient.recipient != recip2);
         IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
-        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.amount);
+        vm.assume(tokenType != IPaymentsFunctions.TokenType.ERC721); // ERC-721 not supported for multi payments
+
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
+
+        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](2);
+        paymentRecipients[0] = input.paymentRecipient;
+        paymentRecipients[0].amount = amount;
+        paymentRecipients[1] = IPaymentsFunctions.PaymentRecipient(recip2, amount);
+
         IPaymentsFunctions.PaymentDetails memory details = IPaymentsFunctions.PaymentDetails(
             input.purchaseId,
             input.productRecipient,
             tokenType,
             tokenAddr,
             tokenId,
-            amount,
-            input.fundsRecipient,
+            paymentRecipients,
+            expiration,
+            input.productId,
+            input.additionalData
+        );
+
+        // Mint required tokens
+        IGenericToken(tokenAddr).mint(caller, tokenId, amount * 2);
+        IGenericToken(tokenAddr).approve(caller, address(payments), tokenId, amount * 2);
+
+        // Sign it
+        bytes32 messageHash = _hashPaymentDetails(details);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
+        bytes memory sig = abi.encodePacked(r, s, v);
+
+        // Send it
+        vm.expectEmit(true, true, true, true, address(payments));
+        emit PaymentMade(caller, input.productRecipient, input.purchaseId, input.productId);
+        vm.prank(caller);
+        payments.makePayment(details, sig);
+
+        assertEq(IGenericToken(tokenAddr).balanceOf(input.paymentRecipient.recipient, tokenId), amount);
+        assertEq(IGenericToken(tokenAddr).balanceOf(recip2, tokenId), amount);
+    }
+
+    function testMakePaymentInvalidSignature(address caller, DetailsInput calldata input, bytes memory signature)
+        public
+    {
+        uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
+        IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
+        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
+        paymentRecipients[0] = input.paymentRecipient;
+        paymentRecipients[0].amount = amount;
+
+        IPaymentsFunctions.PaymentDetails memory details = IPaymentsFunctions.PaymentDetails(
+            input.purchaseId,
+            input.productRecipient,
+            tokenType,
+            tokenAddr,
+            tokenId,
+            paymentRecipients,
             expiration,
             input.productId,
             input.additionalData
@@ -138,25 +193,28 @@ contract PaymentsTest is Test, IPaymentsSignals {
         payments.makePayment(details, signature);
     }
 
-    function testMakePaymentExpired(address caller, DetailsInput calldata input, uint64 expiration, uint64 blockTimestamp)
+    function testMakePaymentExpired(address caller, DetailsInput calldata input, uint64 blockTimestamp)
         public
         safeAddress(caller)
-        safeAddress(input.fundsRecipient)
+        safeAddress(input.paymentRecipient.recipient)
     {
-        vm.assume(blockTimestamp > expiration);
+        vm.assume(blockTimestamp > input.expiration);
         vm.warp(blockTimestamp);
 
         IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
-        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.amount);
+        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
+        paymentRecipients[0] = input.paymentRecipient;
+        paymentRecipients[0].amount = amount;
+
         IPaymentsFunctions.PaymentDetails memory details = IPaymentsFunctions.PaymentDetails(
             input.purchaseId,
             input.productRecipient,
             tokenType,
             tokenAddr,
             tokenId,
-            amount,
-            input.fundsRecipient,
-            expiration,
+            paymentRecipients,
+            input.expiration,
             input.productId,
             input.additionalData
         );
@@ -184,8 +242,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
                 details.tokenType,
                 details.tokenAddress,
                 details.tokenId,
-                details.amount,
-                details.fundsRecipient,
+                details.paymentRecipients,
                 details.expiration,
                 details.productId,
                 details.additionalData
