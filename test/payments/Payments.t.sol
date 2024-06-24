@@ -98,7 +98,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         IGenericToken(tokenAddr).approve(caller, address(payments), tokenId, amount);
 
         // Sign it
-        bytes32 messageHash = _hashPaymentDetails(details);
+        bytes32 messageHash = payments.hashPaymentDetails(details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
         bytes memory sig = abi.encodePacked(r, s, v);
 
@@ -151,7 +151,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         IGenericToken(tokenAddr).approve(caller, address(payments), tokenId, amount * 2);
 
         // Sign it
-        bytes32 messageHash = _hashPaymentDetails(details);
+        bytes32 messageHash = payments.hashPaymentDetails(details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
         bytes memory sig = abi.encodePacked(r, s, v);
 
@@ -224,7 +224,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         IGenericToken(tokenAddr).approve(caller, address(payments), tokenId, amount);
 
         // Sign it
-        bytes32 messageHash = _hashPaymentDetails(details);
+        bytes32 messageHash = payments.hashPaymentDetails(details);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
         bytes memory sig = abi.encodePacked(r, s, v);
 
@@ -232,22 +232,6 @@ contract PaymentsTest is Test, IPaymentsSignals {
         vm.expectRevert(PaymentExpired.selector);
         vm.prank(caller);
         payments.makePayment(details, sig);
-    }
-
-    function _hashPaymentDetails(IPaymentsFunctions.PaymentDetails memory details) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encode(
-                details.purchaseId,
-                details.productRecipient,
-                details.tokenType,
-                details.tokenAddress,
-                details.tokenId,
-                details.paymentRecipients,
-                details.expiration,
-                details.productId,
-                details.additionalData
-            )
-        );
     }
 
     // Update signer

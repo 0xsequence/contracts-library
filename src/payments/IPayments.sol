@@ -52,11 +52,17 @@ interface IPaymentsFunctions {
     function isValidSignature(PaymentDetails calldata paymentDetails, bytes calldata signature)
         external
         view
-        returns (bool);
+        returns (bool isValid);
+
+    /**
+     * Returns the hash of the payment details.
+     * @param paymentDetails The payment details.
+     * @return paymentHash The hash of the payment details for signing.
+     */
+    function hashPaymentDetails(PaymentDetails calldata paymentDetails) external view returns (bytes32 paymentHash);
 }
 
 interface IPaymentsSignals {
-
     /// @notice Emitted when a payment is already accepted. This prevents double spending.
     error PaymentAlreadyAccepted();
 
