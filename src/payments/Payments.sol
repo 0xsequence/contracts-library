@@ -72,9 +72,17 @@ contract Payments is Ownable, IPayments, IERC165 {
         view
         returns (bool)
     {
-        // Check if signature is valid
-        bytes32 messageHash = keccak256(
+        bytes32 messageHash = hashPaymentDetails(paymentDetails);
+        address sigSigner = messageHash.recoverCalldata(signature);
+        return sigSigner == signer;
+    }
+
+    /// @inheritdoc IPaymentsFunctions
+    /// @dev This hash includes the chain ID.
+    function hashPaymentDetails(PaymentDetails calldata paymentDetails) public view returns (bytes32) {
+        return keccak256(
             abi.encode(
+                block.chainid,
                 paymentDetails.purchaseId,
                 paymentDetails.productRecipient,
                 paymentDetails.tokenType,
@@ -86,9 +94,6 @@ contract Payments is Ownable, IPayments, IERC165 {
                 paymentDetails.additionalData
             )
         );
-        //FIXME Check this
-        address sigSigner = messageHash.recoverCalldata(signature);
-        return sigSigner == signer;
     }
 
     /**
