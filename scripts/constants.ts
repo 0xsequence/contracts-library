@@ -8,6 +8,7 @@ export const DEPLOYABLE_CONTRACT_NAMES = [
   'ERC1155SaleFactory',
   'ERC1155SoulboundFactory',
   'PaymentCombiner',
+  'Payments',
   'Clawback',
   'ClawbackMetadata',
 ]
