@@ -2,8 +2,9 @@
 ds-test/=lib/forge-std/lib/ds-test/src/
 forge-std/=lib/forge-std/src/
 murky/=lib/murky/src/
-@0xsequence/erc20-meta-token/=node_modules/@0xsequence/erc20-meta-token/
-@0xsequence/erc-1155/=node_modules/@0xsequence/erc-1155/
-erc721a/=node_modules/erc721a/
-erc721a-upgradeable/=node_modules/erc721a-upgradeable/
-@openzeppelin/=node_modules/@openzeppelin/
+@0xsequence/erc20-meta-token/=lib/0xsequence/erc20-meta-token/src/
+@0xsequence/erc-1155/=lib/0xsequence/erc-1155/src/
+erc721a/=lib/chiru-labs/erc721a/
+erc721a-upgradeable/=lib/chiru-labs/erc721a-upgradeable/
+@openzeppelin/=lib/openzeppelin/
+solady/=lib/solady/src/

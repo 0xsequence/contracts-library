@@ -44,7 +44,7 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         token.initialize(owner, "name", "symbol", "baseURI", "contractURI", address(this), 0);
     }
 
-    function testSupportsInterface() public {
+    function testSupportsInterface() public view {
         assertTrue(token.supportsInterface(type(IERC165).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721A).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721AQueryable).interfaceId));
@@ -57,7 +57,7 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
      * Test all public selectors for collisions against the proxy admin functions.
      * @dev yarn ts-node scripts/outputSelectors.ts
      */
-    function testSelectorCollision() public {
+    function testSelectorCollision() public pure {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
         checkSelectorCollision(0x095ea7b3); // approve(address,uint256)
         checkSelectorCollision(0x70a08231); // balanceOf(address)
@@ -97,7 +97,7 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         checkSelectorCollision(0x23b872dd); // transferFrom(address,address,uint256)
     }
 
-    function testOwnerHasRoles() public {
+    function testOwnerHasRoles() public view {
         assertTrue(token.hasRole(token.DEFAULT_ADMIN_ROLE(), owner));
         assertTrue(token.hasRole(keccak256("METADATA_ADMIN_ROLE"), owner));
         assertTrue(token.hasRole(keccak256("MINTER_ROLE"), owner));

@@ -623,6 +623,7 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
 
     function assumeSafe(address nonContract, uint256 tokenId, uint256 amount)
         private
+        view
         returns (uint256 boundTokenId, uint256 boundAmount)
     {
         assumeSafeAddress(nonContract);
