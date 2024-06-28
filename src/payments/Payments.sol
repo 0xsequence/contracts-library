@@ -108,20 +108,17 @@ contract Payments is Ownable, IPayments, IERC165 {
         uint256 amount
     ) internal {
         if (tokenType == TokenType.ERC1155) {
-            if (amount == 0) {
-                revert InvalidTokenTransfer();
-            }
             // ERC-1155
             IERC1155(tokenAddr).safeTransferFrom(from, to, tokenId, amount, "");
         } else if (tokenType == TokenType.ERC721) {
             // ERC-721
-            if (amount != 1) {
+            if (amount > 1) {
                 revert InvalidTokenTransfer();
             }
             IERC721Transfer(tokenAddr).safeTransferFrom(from, to, tokenId);
         } else if (tokenType == TokenType.ERC20) {
             // ERC-20
-            if (tokenId != 0 || amount == 0) {
+            if (tokenId != 0) {
                 revert InvalidTokenTransfer();
             }
             SafeTransferLib.safeTransferFrom(tokenAddr, from, to, amount);
