@@ -60,6 +60,13 @@ interface IPaymentsFunctions {
      * @return paymentHash The hash of the payment details for signing.
      */
     function hashPaymentDetails(PaymentDetails calldata paymentDetails) external view returns (bytes32 paymentHash);
+
+    /**
+     * Check if a payment has been accepted.
+     * @param purchaseId The ID of the purchase.
+     * @return accepted True if the payment has been accepted.
+     */
+    function paymentAccepted(uint256 purchaseId) external view returns (bool);
 }
 
 interface IPaymentsSignals {
