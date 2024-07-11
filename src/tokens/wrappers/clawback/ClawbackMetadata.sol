@@ -42,11 +42,13 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
         ).concat('", "image": "", "decimals": 0, "properties": {');
 
         MetadataProperty[] memory properties = metadataProperties(details, template);
-        for (uint256 i = 0; i < properties.length; i++) {
+        uint256 len = properties.length;
+        for (uint256 i = 0; i < len;) {
             if (i > 0) {
                 json = json.concat(", ");
             }
             json = json.concat('"').concat(properties[i].key).concat('": "').concat(properties[i].value).concat('"');
+            unchecked { ++i; }
         }
         json = json.concat("}}");
 
@@ -183,8 +185,10 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
         returns (MetadataProperty[] memory)
     {
         MetadataProperty[] memory newProperties = new MetadataProperty[](properties.length + 1);
-        for (uint256 i = 0; i < properties.length; i++) {
+        uint256 len = properties.length;
+        for (uint256 i = 0; i < len;) {
             newProperties[i] = properties[i];
+            unchecked { ++i; }
         }
         newProperties[properties.length] = prop;
         return newProperties;

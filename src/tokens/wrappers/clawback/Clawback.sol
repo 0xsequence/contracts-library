@@ -61,7 +61,7 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
         uint256 tokenId,
         uint256 amount,
         address receiver
-    ) public returns (uint256 wrappedTokenId) {
+    ) external returns (uint256 wrappedTokenId) {
         if (_templates[templateId].admin == address(0)) {
             revert InvalidTemplate();
         }
@@ -80,7 +80,7 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IClawbackFunctions
-    function addToWrap(uint256 wrappedTokenId, uint256 amount, address receiver) public {
+    function addToWrap(uint256 wrappedTokenId, uint256 amount, address receiver) external {
         TokenDetails memory details = _tokenDetails[wrappedTokenId];
         if (details.tokenAddr == address(0)) {
             revert InvalidTokenTransfer();
@@ -107,7 +107,7 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IClawbackFunctions
-    function unwrap(uint256 wrappedTokenId, address holder, uint256 amount) public {
+    function unwrap(uint256 wrappedTokenId, address holder, uint256 amount) external {
         TokenDetails memory details = _tokenDetails[wrappedTokenId];
         Template memory template = _templates[details.templateId];
         address sender = msg.sender;
@@ -128,7 +128,7 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IClawbackFunctions
-    function clawback(uint256 wrappedTokenId, address holder, address receiver, uint256 amount) public {
+    function clawback(uint256 wrappedTokenId, address holder, address receiver, uint256 amount) external {
         TokenDetails memory details = _tokenDetails[wrappedTokenId];
         _verifyClawback(details, receiver);
 
@@ -141,7 +141,7 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IClawbackFunctions
-    function emergencyClawback(uint256 wrappedTokenId, address receiver, uint256 amount) public {
+    function emergencyClawback(uint256 wrappedTokenId, address receiver, uint256 amount) external {
         TokenDetails memory details = _tokenDetails[wrappedTokenId];
         _verifyClawback(details, receiver);
 
@@ -170,7 +170,7 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IClawbackFunctions
-    function addTemplate(uint56 duration, bool destructionOnly, bool transferOpen) public returns (uint32 templateId) {
+    function addTemplate(uint56 duration, bool destructionOnly, bool transferOpen) external returns (uint32 templateId) {
         templateId = _nextTemplateId++;
         address admin = msg.sender;
         _templates[templateId] = Template(destructionOnly, transferOpen, duration, admin);
@@ -179,7 +179,7 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
 
     /// @inheritdoc IClawbackFunctions
     function updateTemplate(uint32 templateId, uint56 duration, bool destructionOnly, bool transferOpen)
-        public
+        external
         onlyTemplateAdmin(templateId)
     {
         Template storage template = _templates[templateId];
@@ -199,7 +199,7 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IClawbackFunctions
-    function updateTemplateAdmin(uint32 templateId, address admin) public onlyTemplateAdmin(templateId) {
+    function updateTemplateAdmin(uint32 templateId, address admin) external onlyTemplateAdmin(templateId) {
         if (admin == address(0)) {
             revert InvalidTemplateChange("Admin cannot be zero address");
         }
@@ -209,14 +209,14 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IClawbackFunctions
-    function addTemplateTransferer(uint32 templateId, address transferer) public onlyTemplateAdmin(templateId) {
+    function addTemplateTransferer(uint32 templateId, address transferer) external onlyTemplateAdmin(templateId) {
         templateTransferers[templateId][transferer] = true;
         emit TemplateTransfererAdded(templateId, transferer);
     }
 
     /// @inheritdoc IClawbackFunctions
     function updateTemplateOperator(uint32 templateId, address operator, bool allowed)
-        public
+        external
         onlyTemplateAdmin(templateId)
     {
         templateOperators[templateId][operator] = allowed;
@@ -263,7 +263,8 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
         uint256[] memory amounts,
         bytes memory data
     ) public override {
-        for (uint256 i = 0; i < wrappedTokenIds.length; i++) {
+        uint256 len = wrappedTokenIds.length;
+        for (uint256 i = 0; i < len;) {
             uint256 wrappedTokenId = wrappedTokenIds[i];
             TokenDetails memory details = _tokenDetails[wrappedTokenId];
             Template memory template = _templates[details.templateId];
@@ -275,6 +276,7 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
                     revert Unauthorized();
                 }
             }
+            unchecked { ++i; }
         }
         super.safeBatchTransferFrom(from, to, wrappedTokenIds, amounts, data);
     }
@@ -315,11 +317,11 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
 
     // URI
 
-    function updateMetadataProvider(address metadataProviderAddr) public onlyOwner {
+    function updateMetadataProvider(address metadataProviderAddr) external onlyOwner {
         metadataProvider = IMetadataProvider(metadataProviderAddr);
     }
 
-    function uri(uint256 wrappedTokenId) public view override returns (string memory) {
+    function uri(uint256 wrappedTokenId) external view override returns (string memory) {
         return metadataProvider.metadata(address(this), wrappedTokenId);
     }
 
