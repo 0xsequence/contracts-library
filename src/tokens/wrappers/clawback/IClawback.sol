@@ -73,6 +73,17 @@ interface IClawbackFunctions {
     function clawback(uint256 wrappedTokenId, address holder, address receiver, uint256 amount) external;
 
     /**
+     * Clawback unwrapped tokens without burning wrapped tokens.
+     * @param wrappedTokenId The wrapped token ID.
+     * @param receiver The receiver of the token.
+     * @param amount The amount to clawback.
+     * @notice Clawback rules apply.
+     * @notice This function doesn't affect the wrapped token and should only be used when wrapped tokens are logically inaccessible.
+     * @dev Clawing back an incomplete amount will lead to a race when unwrapping remaining tokens.
+     */
+    function emergencyClawback(uint256 wrappedTokenId, address receiver, uint256 amount) external;
+
+    /**
      * Returns the details of a wrapped token.
      * @param wrappedTokenId The wrapped token ID.
      * @return The token details.
@@ -194,6 +205,17 @@ interface IClawbackSignals {
         uint256 amount,
         address operator,
         address holder,
+        address receiver
+    );
+
+    /// @notice Emits when a token is clawed back via emergency
+    event EmergencyClawedBack(
+        uint256 indexed wrappedTokenId,
+        uint32 indexed templateId,
+        address indexed tokenAddr,
+        uint256 tokenId,
+        uint256 amount,
+        address operator,
         address receiver
     );
 
