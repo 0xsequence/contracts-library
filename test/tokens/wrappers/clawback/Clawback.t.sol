@@ -331,6 +331,21 @@ contract ClawbackTest is ClawbackTestBase, IClawbackSignals {
         clawback.wrap(templateId, tokenType, tokenAddr, tokenId, amount, receiver);
     }
 
+    function testWrapInvalidRewrapping(
+        uint8 tokenTypeNum,
+        uint256 tokenId,
+        uint256 amount,
+        uint56 duration,
+        address receiver
+    ) public {
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
+        amount = result.amount;
+
+        vm.expectRevert(InvalidTokenTransfer.selector);
+        clawback.wrap(result.templateId, IClawbackFunctions.TokenType.ERC1155, address(clawback), result.wrappedTokenId, amount, receiver);
+    }
+
     //
     // Add To Wrap
     //

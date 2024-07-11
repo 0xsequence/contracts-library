@@ -65,6 +65,10 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
         if (_templates[templateId].admin == address(0)) {
             revert InvalidTemplate();
         }
+        if (tokenAddr == address(this)) {
+            // Prevent rewrapping
+            revert InvalidTokenTransfer();
+        }
 
         wrappedTokenId = _nextWrappedTokenId++;
         // solhint-disable-next-line not-rely-on-time
