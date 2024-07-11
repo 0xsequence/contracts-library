@@ -591,7 +591,7 @@ contract ClawbackTest is ClawbackTestBase, IClawbackSignals {
         assertEq(IGenericToken(result.tokenAddr).balanceOf(address(clawback), tokenId), 0, "Token balance of clawback");
         assertEq(clawback.balanceOf(receiver, result.wrappedTokenId), 0, "Clawback balance of receiver");
         assertEq(clawback.balanceOf(address(this), result.wrappedTokenId), 0, "Clawback balance of owner");
-        assertEq(clawback.balanceOf(address(clawback), result.wrappedTokenId), 0, "Clawback balance of clawback"); // Burned
+        assertEq(clawback.balanceOf(address(clawback), result.wrappedTokenId), 0, "Clawback balance of clawback");
     }
 
     function testClawbackAfterTransfer(
@@ -623,12 +623,14 @@ contract ClawbackTest is ClawbackTestBase, IClawbackSignals {
         vm.prank(operator);
         clawback.clawback(result.wrappedTokenId, tokenOwner, receiver, amount);
 
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(tokenOwner, tokenId), 0, "Token balance of token owner");
         assertEq(IGenericToken(result.tokenAddr).balanceOf(receiver, tokenId), amount, "Token balance of receiver");
         assertEq(IGenericToken(result.tokenAddr).balanceOf(address(this), tokenId), 0, "Token balance of owner");
         assertEq(IGenericToken(result.tokenAddr).balanceOf(address(clawback), tokenId), 0, "Token balance of clawback");
+        assertEq(clawback.balanceOf(tokenOwner, result.wrappedTokenId), 0, "Clawback balance of token owner"); // Burned
         assertEq(clawback.balanceOf(receiver, result.wrappedTokenId), 0, "Clawback balance of receiver");
         assertEq(clawback.balanceOf(address(this), result.wrappedTokenId), 0, "Clawback balance of owner");
-        assertEq(clawback.balanceOf(address(clawback), result.wrappedTokenId), 0, "Clawback balance of clawback"); // Burned
+        assertEq(clawback.balanceOf(address(clawback), result.wrappedTokenId), 0, "Clawback balance of clawback");
     }
 
     function testClawbackInvalidUnlocked(
@@ -686,13 +688,12 @@ contract ClawbackTest is ClawbackTestBase, IClawbackSignals {
         vm.prank(operator);
         clawback.clawback(result.wrappedTokenId, address(this), burnAddress, amount);
 
-        assertEq(IGenericToken(result.tokenAddr).balanceOf(burnAddress, tokenId), amount, "Token balance of burn");
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(burnAddress, tokenId), amount, "Token balance of receiver");
         assertEq(IGenericToken(result.tokenAddr).balanceOf(address(this), tokenId), 0, "Token balance of owner");
         assertEq(IGenericToken(result.tokenAddr).balanceOf(address(clawback), tokenId), 0, "Token balance of clawback");
-        assertEq(clawback.balanceOf(address(0), result.wrappedTokenId), 0, "Clawback balance of address(0)"); // Burned
-        assertEq(clawback.balanceOf(burnAddress, result.wrappedTokenId), 0, "Clawback balance of alt burn"); // Burned
+        assertEq(clawback.balanceOf(burnAddress, result.wrappedTokenId), 0, "Clawback balance of receiver");
         assertEq(clawback.balanceOf(address(this), result.wrappedTokenId), 0, "Clawback balance of owner");
-        assertEq(clawback.balanceOf(address(clawback), result.wrappedTokenId), 0, "Clawback balance of clawback"); // Burned
+        assertEq(clawback.balanceOf(address(clawback), result.wrappedTokenId), 0, "Clawback balance of clawback");
     }
 
     function testClawbackDestructionOnlyInvalidReceiver(
@@ -737,6 +738,191 @@ contract ClawbackTest is ClawbackTestBase, IClawbackSignals {
         vm.expectRevert(Unauthorized.selector);
         vm.prank(operator);
         clawback.clawback(result.wrappedTokenId, address(this), receiver, amount);
+    }
+
+    //
+    // Emergency Clawback
+    //
+    function testEmergencyClawback(
+        uint8 tokenTypeNum,
+        uint256 tokenId,
+        uint256 amount,
+        uint56 duration,
+        address operator,
+        address receiver
+    ) public safeAddress(receiver) {
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
+        tokenId = result.tokenId;
+        amount = result.amount;
+        duration = result.duration;
+
+        clawback.updateTemplateOperator(result.templateId, operator, true);
+
+        vm.expectEmit(true, true, true, true, address(clawback));
+        emit EmergencyClawedBack(
+            result.wrappedTokenId,
+            result.templateId,
+            result.tokenAddr,
+            tokenId,
+            amount,
+            operator,
+            receiver
+        );
+        vm.prank(operator);
+        clawback.emergencyClawback(result.wrappedTokenId, receiver, amount);
+
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(receiver, tokenId), amount, "Token balance of receiver");
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(address(this), tokenId), 0, "Token balance of owner");
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(address(clawback), tokenId), 0, "Token balance of clawback");
+        assertEq(clawback.balanceOf(receiver, result.wrappedTokenId), 0, "Clawback balance of receiver");
+        assertEq(clawback.balanceOf(address(this), result.wrappedTokenId), amount, "Clawback balance of owner"); // Unaffected
+        assertEq(clawback.balanceOf(address(clawback), result.wrappedTokenId), 0, "Clawback balance of clawback");
+    }
+
+    function testEmergencyClawbackAfterTransfer(
+        uint8 tokenTypeNum,
+        uint256 tokenId,
+        uint256 amount,
+        uint56 duration,
+        address operator,
+        address tokenOwner,
+        address receiver
+    ) public safeAddress(receiver) safeAddress(tokenOwner) {
+        vm.assume(receiver != tokenOwner);
+
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
+        tokenId = result.tokenId;
+        amount = result.amount;
+        duration = result.duration;
+
+        clawback.updateTemplate(result.templateId, duration, false, true);
+        clawback.updateTemplateOperator(result.templateId, operator, true);
+
+        clawback.safeTransferFrom(address(this), tokenOwner, result.wrappedTokenId, amount, "");
+
+        vm.expectEmit(true, true, true, true, address(clawback));
+        emit EmergencyClawedBack(
+            result.wrappedTokenId, result.templateId, result.tokenAddr, tokenId, amount, operator, receiver
+        );
+        vm.prank(operator);
+        clawback.emergencyClawback(result.wrappedTokenId, receiver, amount);
+
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(receiver, tokenId), amount, "Token balance of receiver");
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(tokenOwner, tokenId), 0, "Token balance of token owner");
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(address(this), tokenId), 0, "Token balance of old owner");
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(address(clawback), tokenId), 0, "Token balance of clawback");
+        assertEq(clawback.balanceOf(receiver, result.wrappedTokenId), 0, "Clawback balance of receiver");
+        assertEq(clawback.balanceOf(tokenOwner, result.wrappedTokenId), amount, "Clawback balance of token owner"); // Unaffected
+        assertEq(clawback.balanceOf(address(this), result.wrappedTokenId), 0, "Clawback balance of old owner");
+        assertEq(clawback.balanceOf(address(clawback), result.wrappedTokenId), 0, "Clawback balance of clawback");
+    }
+
+    function testEmergencyClawbackInvalidUnlocked(
+        uint8 tokenTypeNum,
+        uint256 tokenId,
+        uint256 amount,
+        uint56 duration,
+        address operator,
+        address receiver
+    ) public safeAddress(receiver) {
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
+        tokenId = result.tokenId;
+        amount = result.amount;
+        duration = result.duration;
+
+        clawback.updateTemplateOperator(result.templateId, operator, true);
+
+        vm.warp(block.timestamp + duration);
+
+        vm.expectRevert(TokenUnlocked.selector);
+        vm.prank(operator);
+        clawback.emergencyClawback(result.wrappedTokenId, receiver, amount);
+    }
+
+    function testEmergencyClawbackDestructionOnly(
+        uint8 tokenTypeNum,
+        uint256 tokenId,
+        uint256 amount,
+        uint56 duration,
+        address operator
+    ) public {
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
+        tokenId = result.tokenId;
+        amount = result.amount;
+        duration = result.duration;
+
+        clawback.updateTemplate(result.templateId, duration, true, false);
+        clawback.updateTemplateOperator(result.templateId, operator, true);
+
+        address burnAddress = clawback.BURN_ADDRESS();
+
+        vm.expectEmit(true, true, true, true, address(clawback));
+        emit EmergencyClawedBack(
+            result.wrappedTokenId,
+            result.templateId,
+            result.tokenAddr,
+            tokenId,
+            amount,
+            operator,
+            burnAddress
+        );
+        vm.prank(operator);
+        clawback.emergencyClawback(result.wrappedTokenId, burnAddress, amount);
+
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(burnAddress, tokenId), amount, "Token balance of burn address");
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(address(this), tokenId), 0, "Token balance of owner");
+        assertEq(IGenericToken(result.tokenAddr).balanceOf(address(clawback), tokenId), 0, "Token balance of clawback");
+        assertEq(clawback.balanceOf(burnAddress, result.wrappedTokenId), 0, "Clawback balance of burn address");
+        assertEq(clawback.balanceOf(address(this), result.wrappedTokenId), amount, "Clawback balance of owner"); // Unaffected
+        assertEq(clawback.balanceOf(address(clawback), result.wrappedTokenId), 0, "Clawback balance of clawback");
+    }
+
+    function testEmergencyClawbackDestructionOnlyInvalidReceiver(
+        uint8 tokenTypeNum,
+        uint256 tokenId,
+        uint256 amount,
+        uint56 duration,
+        address operator,
+        address receiver
+    ) public safeAddress(receiver) {
+        address burnAddress = clawback.BURN_ADDRESS();
+        vm.assume(receiver != burnAddress);
+
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
+        tokenId = result.tokenId;
+        amount = result.amount;
+        duration = result.duration;
+
+        clawback.updateTemplate(result.templateId, duration, true, false);
+        clawback.updateTemplateOperator(result.templateId, operator, true);
+
+        vm.expectRevert(InvalidReceiver.selector);
+        vm.prank(operator);
+        clawback.emergencyClawback(result.wrappedTokenId, receiver, amount);
+    }
+
+    function testEmergencyClawbackInvalidCaller(
+        uint8 tokenTypeNum,
+        uint256 tokenId,
+        uint256 amount,
+        uint56 duration,
+        address operator,
+        address receiver
+    ) public {
+        WrapSetupResult memory result =
+            _wrapSetup(address(this), tokenTypeNum, tokenId, amount, duration, address(this));
+        tokenId = result.tokenId;
+        amount = result.amount;
+        duration = result.duration;
+
+        vm.expectRevert(Unauthorized.selector);
+        vm.prank(operator);
+        clawback.emergencyClawback(result.wrappedTokenId, receiver, amount);
     }
 
     //
