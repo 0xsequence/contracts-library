@@ -126,6 +126,30 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
     /// @inheritdoc IClawbackFunctions
     function clawback(uint256 wrappedTokenId, address holder, address receiver, uint256 amount) public {
         TokenDetails memory details = _tokenDetails[wrappedTokenId];
+        _verifyClawback(details, receiver);
+
+        _burn(holder, wrappedTokenId, amount);
+        _transferFromOther(details.tokenType, details.tokenAddr, address(this), receiver, details.tokenId, amount);
+
+        emit ClawedBack(
+            wrappedTokenId, details.templateId, details.tokenAddr, details.tokenId, amount, msg.sender, holder, receiver
+        );
+    }
+
+    /// @inheritdoc IClawbackFunctions
+    function emergencyClawback(uint256 wrappedTokenId, address receiver, uint256 amount) public {
+        TokenDetails memory details = _tokenDetails[wrappedTokenId];
+        _verifyClawback(details, receiver);
+
+        // No burn
+        _transferFromOther(details.tokenType, details.tokenAddr, address(this), receiver, details.tokenId, amount);
+
+        emit EmergencyClawedBack(
+            wrappedTokenId, details.templateId, details.tokenAddr, details.tokenId, amount, msg.sender, receiver
+        );
+    }
+
+    function _verifyClawback(TokenDetails memory details, address receiver) internal view {
         Template memory template = _templates[details.templateId];
         if (!templateOperators[details.templateId][msg.sender]) {
             // Only allowed by operators
@@ -139,13 +163,6 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
         if (template.destructionOnly && receiver != BURN_ADDRESS) {
             revert InvalidReceiver();
         }
-
-        _burn(holder, wrappedTokenId, amount);
-        _transferFromOther(details.tokenType, details.tokenAddr, address(this), receiver, details.tokenId, amount);
-
-        emit ClawedBack(
-            wrappedTokenId, details.templateId, details.tokenAddr, details.tokenId, amount, msg.sender, holder, receiver
-        );
     }
 
     /// @inheritdoc IClawbackFunctions
