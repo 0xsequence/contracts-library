@@ -55,22 +55,22 @@ interface IClawbackFunctions {
     /**
      * Unwraps a token.
      * @param wrappedTokenId The wrapped token ID.
-     * @param owner The owner of the token.
+     * @param holder The holder of the token.
      * @param amount The amount to unwrap.
-     * @dev Unwrapped tokens are sent to the wrapped token owner.
+     * @dev Unwrapped tokens are sent to the wrapped token holder.
      */
-    function unwrap(uint256 wrappedTokenId, address owner, uint256 amount) external;
+    function unwrap(uint256 wrappedTokenId, address holder, uint256 amount) external;
 
     /**
      * Clawback a token.
      * @param wrappedTokenId The wrapped token ID.
-     * @param owner The owner of the token.
+     * @param holder The holder of the token.
      * @param receiver The receiver of the token.
      * @param amount The amount to clawback.
      * @notice Only an operator of the template can clawback.
      * @notice Clawback is only allowed when the token is locked.
      */
-    function clawback(uint256 wrappedTokenId, address owner, address receiver, uint256 amount) external;
+    function clawback(uint256 wrappedTokenId, address holder, address receiver, uint256 amount) external;
 
     /**
      * Returns the details of a wrapped token.
@@ -193,7 +193,7 @@ interface IClawbackSignals {
         uint256 tokenId,
         uint256 amount,
         address operator,
-        address owner,
+        address holder,
         address receiver
     );
 
