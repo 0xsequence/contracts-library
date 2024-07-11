@@ -103,11 +103,11 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IClawbackFunctions
-    function unwrap(uint256 wrappedTokenId, address owner, uint256 amount) public {
+    function unwrap(uint256 wrappedTokenId, address holder, uint256 amount) public {
         TokenDetails memory details = _tokenDetails[wrappedTokenId];
         Template memory template = _templates[details.templateId];
         address sender = msg.sender;
-        if (owner != sender) {
+        if (holder != sender) {
             // Operators are permitted any time
             if (!templateOperators[details.templateId][sender]) {
                 revert Unauthorized();
@@ -117,14 +117,14 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
             revert TokenLocked();
         }
 
-        _burn(owner, wrappedTokenId, amount);
-        _transferFromOther(details.tokenType, details.tokenAddr, address(this), owner, details.tokenId, amount);
+        _burn(holder, wrappedTokenId, amount);
+        _transferFromOther(details.tokenType, details.tokenAddr, address(this), holder, details.tokenId, amount);
 
         emit Unwrapped(wrappedTokenId, details.templateId, details.tokenAddr, details.tokenId, amount, sender);
     }
 
     /// @inheritdoc IClawbackFunctions
-    function clawback(uint256 wrappedTokenId, address owner, address receiver, uint256 amount) public {
+    function clawback(uint256 wrappedTokenId, address holder, address receiver, uint256 amount) public {
         TokenDetails memory details = _tokenDetails[wrappedTokenId];
         Template memory template = _templates[details.templateId];
         if (!templateOperators[details.templateId][msg.sender]) {
@@ -140,11 +140,11 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
             revert InvalidReceiver();
         }
 
-        _burn(owner, wrappedTokenId, amount);
+        _burn(holder, wrappedTokenId, amount);
         _transferFromOther(details.tokenType, details.tokenAddr, address(this), receiver, details.tokenId, amount);
 
         emit ClawedBack(
-            wrappedTokenId, details.templateId, details.tokenAddr, details.tokenId, amount, msg.sender, owner, receiver
+            wrappedTokenId, details.templateId, details.tokenAddr, details.tokenId, amount, msg.sender, holder, receiver
         );
     }
 
