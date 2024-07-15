@@ -63,6 +63,14 @@ contract Payments is Ownable, IPayments, IERC165 {
 
         // Emit event
         emit PaymentMade(spender, paymentDetails.productRecipient, paymentDetails.purchaseId, paymentDetails.productId);
+
+        // Perform chained call
+        if (paymentDetails.chainedCallAddress != address(0)) {
+            (bool success, ) = paymentDetails.chainedCallAddress.call{value: 0}(paymentDetails.chainedCallData);
+            if (!success) {
+                revert ChainedCallFailed();
+            }
+        }
     }
 
     /// @inheritdoc IPaymentsFunctions
@@ -91,7 +99,8 @@ contract Payments is Ownable, IPayments, IERC165 {
                 paymentDetails.paymentRecipients,
                 paymentDetails.expiration,
                 paymentDetails.productId,
-                paymentDetails.additionalData
+                paymentDetails.chainedCallAddress,
+                paymentDetails.chainedCallData
             )
         );
     }

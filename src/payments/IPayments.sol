@@ -32,8 +32,10 @@ interface IPaymentsFunctions {
         uint64 expiration;
         // ID of the product
         string productId;
-        // Unspecified additional data for the payment
-        bytes additionalData;
+        // Address for chained call
+        address chainedCallAddress;
+        // Data for chained call
+        bytes chainedCallData;
     }
 
     /**
@@ -81,6 +83,9 @@ interface IPaymentsSignals {
 
     /// @notice Emitted when a token transfer is invalid.
     error InvalidTokenTransfer();
+
+    /// @notice Emitted when a chained call fails.
+    error ChainedCallFailed();
 
     /// @notice Emitted when a payment is made.
     event PaymentMade(

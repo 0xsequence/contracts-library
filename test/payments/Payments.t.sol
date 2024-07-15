@@ -40,7 +40,6 @@ contract PaymentsTest is Test, IPaymentsSignals {
         IPaymentsFunctions.PaymentRecipient paymentRecipient;
         uint64 expiration;
         string productId;
-        bytes additionalData;
     }
 
     function _toTokenType(uint8 tokenType) internal pure returns (IPaymentsFunctions.TokenType) {
@@ -90,7 +89,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
             paymentRecipients,
             expiration,
             input.productId,
-            input.additionalData
+            address(0),
+            ""
         );
 
         // Mint required tokens
@@ -114,6 +114,64 @@ contract PaymentsTest is Test, IPaymentsSignals {
         vm.expectRevert(PaymentAlreadyAccepted.selector);
         vm.prank(caller);
         payments.makePayment(details, sig);
+    }
+
+    function testMakePaymentSuccessChainedCall(address caller, DetailsInput calldata input)
+        public
+        safeAddress(caller)
+        safeAddress(input.paymentRecipient.recipient)
+        safeAddress(input.productRecipient)
+    {
+        uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
+        IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
+        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
+        paymentRecipients[0] = input.paymentRecipient;
+        paymentRecipients[0].amount = amount;
+
+        // Will mint the next token type
+        IPaymentsFunctions.TokenType chainedTokenType;
+        if (tokenType == IPaymentsFunctions.TokenType.ERC20) {
+            chainedTokenType = IPaymentsFunctions.TokenType.ERC721;
+        } else if (tokenType == IPaymentsFunctions.TokenType.ERC721) {
+            chainedTokenType = IPaymentsFunctions.TokenType.ERC1155;
+        } else {
+            chainedTokenType = IPaymentsFunctions.TokenType.ERC20;
+        }
+        (address chainedTokenAddr, uint256 chainedTokenId, uint256 chainedAmount) = _validTokenParams(chainedTokenType, input.tokenId, input.paymentRecipient.amount);
+        bytes memory chainedData = abi.encodeWithSelector(IGenericToken.mint.selector, input.productRecipient, chainedTokenId, chainedAmount);
+
+        IPaymentsFunctions.PaymentDetails memory details = IPaymentsFunctions.PaymentDetails(
+            input.purchaseId,
+            input.productRecipient,
+            tokenType,
+            tokenAddr,
+            tokenId,
+            paymentRecipients,
+            expiration,
+            input.productId,
+            chainedTokenAddr,
+            chainedData
+        );
+
+        // Mint required tokens
+        IGenericToken(tokenAddr).mint(caller, tokenId, amount);
+        IGenericToken(tokenAddr).approve(caller, address(payments), tokenId, amount);
+
+        // Sign it
+        bytes32 messageHash = payments.hashPaymentDetails(details);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
+        bytes memory sig = abi.encodePacked(r, s, v);
+
+        // Send it
+        vm.expectEmit(true, true, true, true, address(payments));
+        emit PaymentMade(caller, input.productRecipient, input.purchaseId, input.productId);
+        vm.prank(caller);
+        payments.makePayment(details, sig);
+
+        assertEq(IGenericToken(tokenAddr).balanceOf(input.paymentRecipient.recipient, tokenId), amount);
+        // Check chaining worked
+        assertEq(IGenericToken(chainedTokenAddr).balanceOf(input.productRecipient, chainedTokenId), chainedAmount);
     }
 
     function testMakePaymentSuccessMultiplePaymentRecips(address caller, DetailsInput calldata input, address recip2)
@@ -143,7 +201,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
             paymentRecipients,
             expiration,
             input.productId,
-            input.additionalData
+            address(0),
+            ""
         );
 
         // Mint required tokens
@@ -184,7 +243,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
             paymentRecipients,
             expiration,
             input.productId,
-            input.additionalData
+            address(0),
+            ""
         );
 
         // Send it
@@ -216,7 +276,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
             paymentRecipients,
             input.expiration,
             input.productId,
-            input.additionalData
+            address(0),
+            ""
         );
 
         // Mint required tokens
