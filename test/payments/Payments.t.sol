@@ -295,6 +295,119 @@ contract PaymentsTest is Test, IPaymentsSignals {
         payments.makePayment(details, sig);
     }
 
+    function testMakePaymentInvalidPayment(address caller, DetailsInput calldata input)
+        public
+        safeAddress(caller)
+        safeAddress(input.paymentRecipient.recipient)
+    {
+        uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
+        IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
+        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
+        paymentRecipients[0] = input.paymentRecipient;
+        paymentRecipients[0].amount = amount;
+
+        IPaymentsFunctions.PaymentDetails memory details = IPaymentsFunctions.PaymentDetails(
+            input.purchaseId,
+            input.productRecipient,
+            tokenType,
+            tokenAddr,
+            tokenId,
+            paymentRecipients,
+            expiration,
+            input.productId,
+            address(0),
+            ""
+        );
+
+        // Do not mint required tokens
+
+        // Sign it
+        bytes32 messageHash = payments.hashPaymentDetails(details);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
+        bytes memory sig = abi.encodePacked(r, s, v);
+
+        // Send it
+        vm.expectRevert();
+        vm.prank(caller);
+        payments.makePayment(details, sig);
+    }
+
+    function testMakePaymentInvalidTokenSettingsERC20(address caller, DetailsInput calldata input, uint256 tokenId)
+        public
+        safeAddress(caller)
+        safeAddress(input.paymentRecipient.recipient)
+    {
+        tokenId = _bound(tokenId, 1, type(uint256).max); // Non-zero
+
+        uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
+        IPaymentsFunctions.TokenType tokenType = IPaymentsFunctions.TokenType.ERC20;
+        (address tokenAddr,, uint256 amount) = _validTokenParams(tokenType, tokenId, input.paymentRecipient.amount);
+        IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
+        paymentRecipients[0] = input.paymentRecipient;
+        paymentRecipients[0].amount = amount;
+
+        IPaymentsFunctions.PaymentDetails memory details = IPaymentsFunctions.PaymentDetails(
+            input.purchaseId,
+            input.productRecipient,
+            tokenType,
+            tokenAddr,
+            tokenId,
+            paymentRecipients,
+            expiration,
+            input.productId,
+            address(0),
+            ""
+        );
+
+        // Sign it
+        bytes32 messageHash = payments.hashPaymentDetails(details);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
+        bytes memory sig = abi.encodePacked(r, s, v);
+
+        // Send it
+        vm.expectRevert(InvalidTokenTransfer.selector);
+        vm.prank(caller);
+        payments.makePayment(details, sig);
+    }
+
+    function testMakePaymentInvalidTokenSettingsERC721(address caller, DetailsInput calldata input)
+        public
+        safeAddress(caller)
+        safeAddress(input.paymentRecipient.recipient)
+    {
+
+        uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
+        IPaymentsFunctions.TokenType tokenType = IPaymentsFunctions.TokenType.ERC721;
+        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
+        paymentRecipients[0] = input.paymentRecipient;
+        paymentRecipients[0].amount = _bound(amount, 2, type(uint256).max); // Invalid amount
+
+        IPaymentsFunctions.PaymentDetails memory details = IPaymentsFunctions.PaymentDetails(
+            input.purchaseId,
+            input.productRecipient,
+            tokenType,
+            tokenAddr,
+            tokenId,
+            paymentRecipients,
+            expiration,
+            input.productId,
+            address(0),
+            ""
+        );
+
+        // Sign it
+        bytes32 messageHash = payments.hashPaymentDetails(details);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
+        bytes memory sig = abi.encodePacked(r, s, v);
+
+        // Send it
+        vm.expectRevert(InvalidTokenTransfer.selector);
+        vm.prank(caller);
+        payments.makePayment(details, sig);
+    }
+
     // Note there is a VERY slim chance this test can fail if the fuzzed data makes a valid call
     function testMakePaymentFailedChainedCall(address caller, DetailsInput calldata input, bytes memory chainedCallData)
         public
