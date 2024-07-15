@@ -408,13 +408,16 @@ contract PaymentsTest is Test, IPaymentsSignals {
         payments.makePayment(details, sig);
     }
 
-    // Note there is a VERY slim chance this test can fail if the fuzzed data makes a valid call
     function testMakePaymentFailedChainedCall(address caller, DetailsInput calldata input, bytes memory chainedCallData)
         public
         safeAddress(caller)
         safeAddress(input.paymentRecipient.recipient)
         safeAddress(input.productRecipient)
     {
+        // Check the call will fail
+        (bool success,) = address(payments).call(chainedCallData);
+        vm.assume(!success);
+
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
         IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
         (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
@@ -473,6 +476,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
         public
         safeAddress(recipient)
     {
+        vm.assume(caller != signer);
+
         IPaymentsFunctions.TokenType tokenType = _toTokenType(tokenTypeInt);
         address tokenAddr;
         (tokenAddr, tokenId, amount) = _validTokenParams(tokenType, tokenId, amount);
@@ -485,10 +490,13 @@ contract PaymentsTest is Test, IPaymentsSignals {
         payments.performChainedCall(tokenAddr, callData);
     }
 
-    // Note there is a slim chance this test can fail if the fuzzed data makes a valid call
     function testPerformChainedCallInvalidCall(bytes memory chainedCallData)
         public
     {
+        // Check the call will fail
+        (bool success,) = address(payments).call(chainedCallData);
+        vm.assume(!success);
+
         vm.expectRevert(ChainedCallFailed.selector);
         vm.prank(signer);
         // Chained call to payments will fail
