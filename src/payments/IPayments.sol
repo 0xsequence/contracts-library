@@ -46,6 +46,14 @@ interface IPaymentsFunctions {
     function makePayment(PaymentDetails calldata paymentDetails, bytes calldata signature) external payable;
 
     /**
+     * Complete a chained call.
+     * @param chainedCallAddress The address of the chained call.
+     * @param chainedCallData The data for the chained call.
+     * @notice This is only callable by an authorised party.
+     */
+    function performChainedCall(address chainedCallAddress, bytes calldata chainedCallData) external;
+
+    /**
      * Check is a signature is valid.
      * @param paymentDetails The payment details.
      * @param signature The signature of the payment.
@@ -74,6 +82,9 @@ interface IPaymentsFunctions {
 interface IPaymentsSignals {
     /// @notice Emitted when a payment is already accepted. This prevents double spending.
     error PaymentAlreadyAccepted();
+
+    /// @notice Emitted when a sender is invalid.
+    error InvalidSender();
 
     /// @notice Emitted when a signature is invalid.
     error InvalidSignature();

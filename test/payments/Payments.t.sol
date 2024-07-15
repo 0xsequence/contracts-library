@@ -295,6 +295,93 @@ contract PaymentsTest is Test, IPaymentsSignals {
         payments.makePayment(details, sig);
     }
 
+    // Note there is a VERY slim chance this test can fail if the fuzzed data makes a valid call
+    function testMakePaymentFailedChainedCall(address caller, DetailsInput calldata input, bytes memory chainedCallData)
+        public
+        safeAddress(caller)
+        safeAddress(input.paymentRecipient.recipient)
+        safeAddress(input.productRecipient)
+    {
+        uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
+        IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
+        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
+        paymentRecipients[0] = input.paymentRecipient;
+        paymentRecipients[0].amount = amount;
+
+        IPaymentsFunctions.PaymentDetails memory details = IPaymentsFunctions.PaymentDetails(
+            input.purchaseId,
+            input.productRecipient,
+            tokenType,
+            tokenAddr,
+            tokenId,
+            paymentRecipients,
+            expiration,
+            input.productId,
+            address(payments), // Chained call to payments will fail
+            chainedCallData
+        );
+
+        // Mint required tokens
+        IGenericToken(tokenAddr).mint(caller, tokenId, amount);
+        IGenericToken(tokenAddr).approve(caller, address(payments), tokenId, amount);
+
+        // Sign it
+        bytes32 messageHash = payments.hashPaymentDetails(details);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
+        bytes memory sig = abi.encodePacked(r, s, v);
+
+        // Send it
+        vm.expectRevert(ChainedCallFailed.selector);
+        vm.prank(caller);
+        payments.makePayment(details, sig);
+    }
+
+    // Chained call
+
+    function testPerformChainedCallSuccess(uint8 tokenTypeInt, uint256 tokenId, uint256 amount, address recipient)
+        public
+        safeAddress(recipient)
+    {
+        IPaymentsFunctions.TokenType tokenType = _toTokenType(tokenTypeInt);
+        address tokenAddr;
+        (tokenAddr, tokenId, amount) = _validTokenParams(tokenType, tokenId, amount);
+
+        bytes memory callData = abi.encodeWithSelector(IGenericToken.mint.selector, recipient, tokenId, amount);
+
+        // Send it
+        vm.prank(signer);
+        payments.performChainedCall(tokenAddr, callData);
+
+        assertEq(IGenericToken(tokenAddr).balanceOf(recipient, tokenId), amount);
+    }
+
+    function testPerformChainedCallInvalidCaller(address caller, uint8 tokenTypeInt, uint256 tokenId, uint256 amount, address recipient)
+        public
+        safeAddress(recipient)
+    {
+        IPaymentsFunctions.TokenType tokenType = _toTokenType(tokenTypeInt);
+        address tokenAddr;
+        (tokenAddr, tokenId, amount) = _validTokenParams(tokenType, tokenId, amount);
+
+        bytes memory callData = abi.encodeWithSelector(IGenericToken.mint.selector, recipient, tokenId, amount);
+
+        // Send it
+        vm.expectRevert(InvalidSender.selector);
+        vm.prank(caller);
+        payments.performChainedCall(tokenAddr, callData);
+    }
+
+    // Note there is a slim chance this test can fail if the fuzzed data makes a valid call
+    function testPerformChainedCallInvalidCall(bytes memory chainedCallData)
+        public
+    {
+        vm.expectRevert(ChainedCallFailed.selector);
+        vm.prank(signer);
+        // Chained call to payments will fail
+        payments.performChainedCall(address(payments), chainedCallData);
+    }
+
     // Update signer
 
     function testUpdateSignerSuccess(address newSigner) public {

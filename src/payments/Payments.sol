@@ -66,10 +66,7 @@ contract Payments is Ownable, IPayments, IERC165 {
 
         // Perform chained call
         if (paymentDetails.chainedCallAddress != address(0)) {
-            (bool success, ) = paymentDetails.chainedCallAddress.call{value: 0}(paymentDetails.chainedCallData);
-            if (!success) {
-                revert ChainedCallFailed();
-            }
+            _performChainedCall(paymentDetails.chainedCallAddress, paymentDetails.chainedCallData);
         }
     }
 
@@ -103,6 +100,27 @@ contract Payments is Ownable, IPayments, IERC165 {
                 paymentDetails.chainedCallData
             )
         );
+    }
+
+    /// @inheritdoc IPaymentsFunctions
+    /// @notice This can only be called by the signer.
+    /// @dev As the signer can validate any payment (including zero) this function does not increase the security surface.
+    function performChainedCall(address chainedCallAddress, bytes calldata chainedCallData) external override {
+        // Check authorization
+        if (msg.sender != signer) {
+            revert InvalidSender();
+        }
+        _performChainedCall(chainedCallAddress, chainedCallData);
+    }
+
+    /**
+     * Perform a chained call and revert on error.
+     */
+    function _performChainedCall(address chainedCallAddress, bytes calldata chainedCallData) internal {
+        (bool success, ) = chainedCallAddress.call{value: 0}(chainedCallData);
+        if (!success) {
+            revert ChainedCallFailed();
+        }
     }
 
     /**
