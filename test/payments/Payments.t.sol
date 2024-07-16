@@ -75,7 +75,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
     {
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
         IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
-        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        (address tokenAddr, uint256 tokenId, uint256 amount) =
+            _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
         IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
         paymentRecipients[0] = input.paymentRecipient;
         paymentRecipients[0].amount = amount;
@@ -89,10 +90,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
             paymentRecipients,
             expiration,
             input.productId,
-            IPaymentsFunctions.ChainedCallDetails(
-                address(0),
-                ""
-            )
+            IPaymentsFunctions.ChainedCallDetails(address(0), "")
         );
 
         // Mint required tokens
@@ -126,7 +124,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
     {
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
         IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
-        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        (address tokenAddr, uint256 tokenId, uint256 amount) =
+            _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
         IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
         paymentRecipients[0] = input.paymentRecipient;
         paymentRecipients[0].amount = amount;
@@ -140,8 +139,10 @@ contract PaymentsTest is Test, IPaymentsSignals {
         } else {
             chainedTokenType = IPaymentsFunctions.TokenType.ERC20;
         }
-        (address chainedTokenAddr, uint256 chainedTokenId, uint256 chainedAmount) = _validTokenParams(chainedTokenType, input.tokenId, input.paymentRecipient.amount);
-        bytes memory chainedData = abi.encodeWithSelector(IGenericToken.mint.selector, input.productRecipient, chainedTokenId, chainedAmount);
+        (address chainedTokenAddr, uint256 chainedTokenId, uint256 chainedAmount) =
+            _validTokenParams(chainedTokenType, input.tokenId, input.paymentRecipient.amount);
+        bytes memory chainedData =
+            abi.encodeWithSelector(IGenericToken.mint.selector, input.productRecipient, chainedTokenId, chainedAmount);
 
         IPaymentsFunctions.PaymentDetails memory details = IPaymentsFunctions.PaymentDetails(
             input.purchaseId,
@@ -187,7 +188,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
 
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
 
-        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        (address tokenAddr, uint256 tokenId, uint256 amount) =
+            _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
         IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](2);
         paymentRecipients[0] = input.paymentRecipient;
         paymentRecipients[0].amount = amount;
@@ -229,7 +231,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
     {
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
         IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
-        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        (address tokenAddr, uint256 tokenId, uint256 amount) =
+            _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
         IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
         paymentRecipients[0] = input.paymentRecipient;
         paymentRecipients[0].amount = amount;
@@ -261,7 +264,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
         vm.warp(blockTimestamp);
 
         IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
-        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        (address tokenAddr, uint256 tokenId, uint256 amount) =
+            _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
         IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
         paymentRecipients[0] = input.paymentRecipient;
         paymentRecipients[0].amount = amount;
@@ -300,7 +304,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
     {
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
         IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
-        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        (address tokenAddr, uint256 tokenId, uint256 amount) =
+            _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
         IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
         paymentRecipients[0] = input.paymentRecipient;
         paymentRecipients[0].amount = amount;
@@ -372,10 +377,10 @@ contract PaymentsTest is Test, IPaymentsSignals {
         safeAddress(caller)
         safeAddress(input.paymentRecipient.recipient)
     {
-
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
         IPaymentsFunctions.TokenType tokenType = IPaymentsFunctions.TokenType.ERC721;
-        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        (address tokenAddr, uint256 tokenId, uint256 amount) =
+            _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
         IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
         paymentRecipients[0] = input.paymentRecipient;
         paymentRecipients[0].amount = _bound(amount, 2, type(uint256).max); // Invalid amount
@@ -415,7 +420,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
 
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
         IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
-        (address tokenAddr, uint256 tokenId, uint256 amount) = _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
+        (address tokenAddr, uint256 tokenId, uint256 amount) =
+            _validTokenParams(tokenType, input.tokenId, input.paymentRecipient.amount);
         IPaymentsFunctions.PaymentRecipient[] memory paymentRecipients = new IPaymentsFunctions.PaymentRecipient[](1);
         paymentRecipients[0] = input.paymentRecipient;
         paymentRecipients[0].amount = amount;
@@ -458,7 +464,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
         (tokenAddr, tokenId, amount) = _validTokenParams(tokenType, tokenId, amount);
 
         bytes memory callData = abi.encodeWithSelector(IGenericToken.mint.selector, recipient, tokenId, amount);
-        IPaymentsFunctions.ChainedCallDetails memory chainedCallDetails = IPaymentsFunctions.ChainedCallDetails(tokenAddr, callData);
+        IPaymentsFunctions.ChainedCallDetails memory chainedCallDetails =
+            IPaymentsFunctions.ChainedCallDetails(tokenAddr, callData);
 
         // Sign it
         bytes32 messageHash = payments.hashChainedCallDetails(chainedCallDetails);
@@ -472,10 +479,14 @@ contract PaymentsTest is Test, IPaymentsSignals {
         assertEq(IGenericToken(tokenAddr).balanceOf(recipient, tokenId), amount);
     }
 
-    function testPerformChainedCallInvalidSignature(address caller, uint8 tokenTypeInt, uint256 tokenId, uint256 amount, address recipient, bytes calldata sig)
-        public
-        safeAddress(recipient)
-    {
+    function testPerformChainedCallInvalidSignature(
+        address caller,
+        uint8 tokenTypeInt,
+        uint256 tokenId,
+        uint256 amount,
+        address recipient,
+        bytes calldata sig
+    ) public safeAddress(recipient) {
         vm.assume(caller != signer);
 
         IPaymentsFunctions.TokenType tokenType = _toTokenType(tokenTypeInt);
@@ -483,7 +494,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
         (tokenAddr, tokenId, amount) = _validTokenParams(tokenType, tokenId, amount);
 
         bytes memory callData = abi.encodeWithSelector(IGenericToken.mint.selector, recipient, tokenId, amount);
-        IPaymentsFunctions.ChainedCallDetails memory chainedCallDetails = IPaymentsFunctions.ChainedCallDetails(tokenAddr, callData);
+        IPaymentsFunctions.ChainedCallDetails memory chainedCallDetails =
+            IPaymentsFunctions.ChainedCallDetails(tokenAddr, callData);
 
         // Send it
         vm.expectRevert(InvalidSignature.selector);
@@ -491,10 +503,9 @@ contract PaymentsTest is Test, IPaymentsSignals {
         payments.performChainedCall(chainedCallDetails, sig);
     }
 
-    function testPerformChainedCallInvalidCall(bytes calldata chainedCallData)
-        public
-    {
-        IPaymentsFunctions.ChainedCallDetails memory chainedCallDetails = IPaymentsFunctions.ChainedCallDetails(address(this), chainedCallData);
+    function testPerformChainedCallInvalidCall(bytes calldata chainedCallData) public {
+        IPaymentsFunctions.ChainedCallDetails memory chainedCallDetails =
+            IPaymentsFunctions.ChainedCallDetails(address(this), chainedCallData);
         // Check the call will fail
         (bool success,) = chainedCallDetails.chainedCallAddress.call(chainedCallDetails.chainedCallData);
         vm.assume(!success);

@@ -80,7 +80,10 @@ interface IPaymentsFunctions {
      * @param chainedCallDetails The chained call details.
      * @return callHash The hash of the chained call for signing.
      */
-    function hashChainedCallDetails(ChainedCallDetails calldata chainedCallDetails) external view returns (bytes32 callHash);
+    function hashChainedCallDetails(ChainedCallDetails calldata chainedCallDetails)
+        external
+        view
+        returns (bytes32 callHash);
 
     /**
      * Complete a chained call.

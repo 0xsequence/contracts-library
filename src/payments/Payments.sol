@@ -103,7 +103,10 @@ contract Payments is Ownable, IPayments, IERC165 {
 
     /// @inheritdoc IPaymentsFunctions
     /// @dev As the signer can validate any payment (including zero) this function does not increase the security surface.
-    function performChainedCall(ChainedCallDetails calldata chainedCallDetails, bytes calldata signature) external override {
+    function performChainedCall(ChainedCallDetails calldata chainedCallDetails, bytes calldata signature)
+        external
+        override
+    {
         if (!isValidChainedCallSignature(chainedCallDetails, signature)) {
             revert InvalidSignature();
         }
@@ -125,11 +128,7 @@ contract Payments is Ownable, IPayments, IERC165 {
     /// @dev This hash includes the chain ID.
     function hashChainedCallDetails(ChainedCallDetails calldata chainedCallDetails) public view returns (bytes32) {
         return keccak256(
-            abi.encode(
-                block.chainid,
-                chainedCallDetails.chainedCallAddress,
-                chainedCallDetails.chainedCallData
-            )
+            abi.encode(block.chainid, chainedCallDetails.chainedCallAddress, chainedCallDetails.chainedCallData)
         );
     }
 
@@ -137,7 +136,7 @@ contract Payments is Ownable, IPayments, IERC165 {
      * Perform a chained call and revert on error.
      */
     function _performChainedCall(ChainedCallDetails calldata chainedCallDetails) internal {
-        (bool success, ) = chainedCallDetails.chainedCallAddress.call{value: 0}(chainedCallDetails.chainedCallData);
+        (bool success,) = chainedCallDetails.chainedCallAddress.call{value: 0}(chainedCallDetails.chainedCallData);
         if (!success) {
             revert ChainedCallFailed();
         }
