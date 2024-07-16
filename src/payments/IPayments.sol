@@ -15,6 +15,13 @@ interface IPaymentsFunctions {
         uint256 amount;
     }
 
+    struct ChainedCallDetails {
+        // Address for chained call
+        address chainedCallAddress;
+        // Data for chained call
+        bytes chainedCallData;
+    }
+
     struct PaymentDetails {
         // Unique ID for this purchase
         uint256 purchaseId;
@@ -32,37 +39,9 @@ interface IPaymentsFunctions {
         uint64 expiration;
         // ID of the product
         string productId;
-        // Address for chained call
-        address chainedCallAddress;
-        // Data for chained call
-        bytes chainedCallData;
+        // Chained call details
+        ChainedCallDetails chainedCallDetails;
     }
-
-    /**
-     * Make a payment for a product.
-     * @param paymentDetails The payment details.
-     * @param signature The signature of the payment.
-     */
-    function makePayment(PaymentDetails calldata paymentDetails, bytes calldata signature) external payable;
-
-    /**
-     * Complete a chained call.
-     * @param chainedCallAddress The address of the chained call.
-     * @param chainedCallData The data for the chained call.
-     * @notice This is only callable by an authorised party.
-     */
-    function performChainedCall(address chainedCallAddress, bytes calldata chainedCallData) external;
-
-    /**
-     * Check is a signature is valid.
-     * @param paymentDetails The payment details.
-     * @param signature The signature of the payment.
-     * @return isValid True if the signature is valid.
-     */
-    function isValidSignature(PaymentDetails calldata paymentDetails, bytes calldata signature)
-        external
-        view
-        returns (bool isValid);
 
     /**
      * Returns the hash of the payment details.
@@ -72,11 +51,55 @@ interface IPaymentsFunctions {
     function hashPaymentDetails(PaymentDetails calldata paymentDetails) external view returns (bytes32 paymentHash);
 
     /**
+     * Check is a payment signature is valid.
+     * @param paymentDetails The payment details.
+     * @param signature The signature of the payment.
+     * @return isValid True if the signature is valid.
+     */
+    function isValidPaymentSignature(PaymentDetails calldata paymentDetails, bytes calldata signature)
+        external
+        view
+        returns (bool isValid);
+
+    /**
+     * Make a payment for a product.
+     * @param paymentDetails The payment details.
+     * @param signature The signature of the payment.
+     */
+    function makePayment(PaymentDetails calldata paymentDetails, bytes calldata signature) external payable;
+
+    /**
      * Check if a payment has been accepted.
      * @param purchaseId The ID of the purchase.
      * @return accepted True if the payment has been accepted.
      */
     function paymentAccepted(uint256 purchaseId) external view returns (bool);
+
+    /**
+     * Returns the hash of the chained call.
+     * @param chainedCallDetails The chained call details.
+     * @return callHash The hash of the chained call for signing.
+     */
+    function hashChainedCallDetails(ChainedCallDetails calldata chainedCallDetails) external view returns (bytes32 callHash);
+
+    /**
+     * Complete a chained call.
+     * @param chainedCallDetails The chained call details.
+     * @param signature The signature of the chained call.
+     * @dev This is called when a payment is accepted off/cross chain.
+     */
+    function performChainedCall(ChainedCallDetails calldata chainedCallDetails, bytes calldata signature) external;
+
+    /**
+     * Check is a chained call signature is valid.
+     * @param chainedCallDetails The chained call details.
+     * @param signature The signature of the chained call.
+     * @return isValid True if the signature is valid.
+     */
+    function isValidChainedCallSignature(ChainedCallDetails calldata chainedCallDetails, bytes calldata signature)
+        external
+        view
+        returns (bool isValid);
 
     /**
      * Get the signer address.
@@ -88,9 +111,6 @@ interface IPaymentsFunctions {
 interface IPaymentsSignals {
     /// @notice Emitted when a payment is already accepted. This prevents double spending.
     error PaymentAlreadyAccepted();
-
-    /// @notice Emitted when a sender is invalid.
-    error InvalidSender();
 
     /// @notice Emitted when a signature is invalid.
     error InvalidSignature();

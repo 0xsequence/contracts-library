@@ -89,8 +89,10 @@ contract PaymentsTest is Test, IPaymentsSignals {
             paymentRecipients,
             expiration,
             input.productId,
-            address(0),
-            ""
+            IPaymentsFunctions.ChainedCallDetails(
+                address(0),
+                ""
+            )
         );
 
         // Mint required tokens
@@ -150,8 +152,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
             paymentRecipients,
             expiration,
             input.productId,
-            chainedTokenAddr,
-            chainedData
+            IPaymentsFunctions.ChainedCallDetails(chainedTokenAddr, chainedData)
         );
 
         // Mint required tokens
@@ -201,8 +202,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
             paymentRecipients,
             expiration,
             input.productId,
-            address(0),
-            ""
+            IPaymentsFunctions.ChainedCallDetails(address(0), "")
         );
 
         // Mint required tokens
@@ -243,8 +243,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
             paymentRecipients,
             expiration,
             input.productId,
-            address(0),
-            ""
+            IPaymentsFunctions.ChainedCallDetails(address(0), "")
         );
 
         // Send it
@@ -276,8 +275,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
             paymentRecipients,
             input.expiration,
             input.productId,
-            address(0),
-            ""
+            IPaymentsFunctions.ChainedCallDetails(address(0), "")
         );
 
         // Mint required tokens
@@ -316,8 +314,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
             paymentRecipients,
             expiration,
             input.productId,
-            address(0),
-            ""
+            IPaymentsFunctions.ChainedCallDetails(address(0), "")
         );
 
         // Do not mint required tokens
@@ -356,8 +353,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
             paymentRecipients,
             expiration,
             input.productId,
-            address(0),
-            ""
+            IPaymentsFunctions.ChainedCallDetails(address(0), "")
         );
 
         // Sign it
@@ -393,8 +389,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
             paymentRecipients,
             expiration,
             input.productId,
-            address(0),
-            ""
+            IPaymentsFunctions.ChainedCallDetails(address(0), "")
         );
 
         // Sign it
@@ -434,8 +429,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
             paymentRecipients,
             expiration,
             input.productId,
-            address(payments), // Chained call to payments will fail
-            chainedCallData
+            IPaymentsFunctions.ChainedCallDetails(address(payments), chainedCallData)
         );
 
         // Mint required tokens
@@ -464,15 +458,21 @@ contract PaymentsTest is Test, IPaymentsSignals {
         (tokenAddr, tokenId, amount) = _validTokenParams(tokenType, tokenId, amount);
 
         bytes memory callData = abi.encodeWithSelector(IGenericToken.mint.selector, recipient, tokenId, amount);
+        IPaymentsFunctions.ChainedCallDetails memory chainedCallDetails = IPaymentsFunctions.ChainedCallDetails(tokenAddr, callData);
+
+        // Sign it
+        bytes32 messageHash = payments.hashChainedCallDetails(chainedCallDetails);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
+        bytes memory sig = abi.encodePacked(r, s, v);
 
         // Send it
         vm.prank(signer);
-        payments.performChainedCall(tokenAddr, callData);
+        payments.performChainedCall(chainedCallDetails, sig);
 
         assertEq(IGenericToken(tokenAddr).balanceOf(recipient, tokenId), amount);
     }
 
-    function testPerformChainedCallInvalidCaller(address caller, uint8 tokenTypeInt, uint256 tokenId, uint256 amount, address recipient)
+    function testPerformChainedCallInvalidSignature(address caller, uint8 tokenTypeInt, uint256 tokenId, uint256 amount, address recipient, bytes calldata sig)
         public
         safeAddress(recipient)
     {
@@ -483,24 +483,30 @@ contract PaymentsTest is Test, IPaymentsSignals {
         (tokenAddr, tokenId, amount) = _validTokenParams(tokenType, tokenId, amount);
 
         bytes memory callData = abi.encodeWithSelector(IGenericToken.mint.selector, recipient, tokenId, amount);
+        IPaymentsFunctions.ChainedCallDetails memory chainedCallDetails = IPaymentsFunctions.ChainedCallDetails(tokenAddr, callData);
 
         // Send it
-        vm.expectRevert(InvalidSender.selector);
+        vm.expectRevert(InvalidSignature.selector);
         vm.prank(caller);
-        payments.performChainedCall(tokenAddr, callData);
+        payments.performChainedCall(chainedCallDetails, sig);
     }
 
-    function testPerformChainedCallInvalidCall(bytes memory chainedCallData)
+    function testPerformChainedCallInvalidCall(bytes calldata chainedCallData)
         public
     {
+        IPaymentsFunctions.ChainedCallDetails memory chainedCallDetails = IPaymentsFunctions.ChainedCallDetails(address(this), chainedCallData);
         // Check the call will fail
-        (bool success,) = address(payments).call(chainedCallData);
+        (bool success,) = chainedCallDetails.chainedCallAddress.call(chainedCallDetails.chainedCallData);
         vm.assume(!success);
+
+        // Sign it
+        bytes32 messageHash = payments.hashChainedCallDetails(chainedCallDetails);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
+        bytes memory sig = abi.encodePacked(r, s, v);
 
         vm.expectRevert(ChainedCallFailed.selector);
         vm.prank(signer);
-        // Chained call to payments will fail
-        payments.performChainedCall(address(payments), chainedCallData);
+        payments.performChainedCall(chainedCallDetails, sig);
     }
 
     // Update signer

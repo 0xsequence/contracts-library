@@ -38,7 +38,7 @@ contract Payments is Ownable, IPayments, IERC165 {
         if (paymentAccepted[paymentDetails.purchaseId]) {
             revert PaymentAlreadyAccepted();
         }
-        if (!isValidSignature(paymentDetails, signature)) {
+        if (!isValidPaymentSignature(paymentDetails, signature)) {
             revert InvalidSignature();
         }
         if (block.timestamp > paymentDetails.expiration) {
@@ -65,14 +65,14 @@ contract Payments is Ownable, IPayments, IERC165 {
         emit PaymentMade(spender, paymentDetails.productRecipient, paymentDetails.purchaseId, paymentDetails.productId);
 
         // Perform chained call
-        if (paymentDetails.chainedCallAddress != address(0)) {
-            _performChainedCall(paymentDetails.chainedCallAddress, paymentDetails.chainedCallData);
+        if (paymentDetails.chainedCallDetails.chainedCallAddress != address(0)) {
+            _performChainedCall(paymentDetails.chainedCallDetails);
         }
     }
 
     /// @inheritdoc IPaymentsFunctions
     /// @notice A valid signature does not guarantee that the payment will be accepted.
-    function isValidSignature(PaymentDetails calldata paymentDetails, bytes calldata signature)
+    function isValidPaymentSignature(PaymentDetails calldata paymentDetails, bytes calldata signature)
         public
         view
         returns (bool)
@@ -96,28 +96,48 @@ contract Payments is Ownable, IPayments, IERC165 {
                 paymentDetails.paymentRecipients,
                 paymentDetails.expiration,
                 paymentDetails.productId,
-                paymentDetails.chainedCallAddress,
-                paymentDetails.chainedCallData
+                paymentDetails.chainedCallDetails
             )
         );
     }
 
     /// @inheritdoc IPaymentsFunctions
-    /// @notice This can only be called by the signer.
     /// @dev As the signer can validate any payment (including zero) this function does not increase the security surface.
-    function performChainedCall(address chainedCallAddress, bytes calldata chainedCallData) external override {
-        // Check authorization
-        if (msg.sender != signer) {
-            revert InvalidSender();
+    function performChainedCall(ChainedCallDetails calldata chainedCallDetails, bytes calldata signature) external override {
+        if (!isValidChainedCallSignature(chainedCallDetails, signature)) {
+            revert InvalidSignature();
         }
-        _performChainedCall(chainedCallAddress, chainedCallData);
+        _performChainedCall(chainedCallDetails);
+    }
+
+    /// @inheritdoc IPaymentsFunctions
+    function isValidChainedCallSignature(ChainedCallDetails calldata chainedCallDetails, bytes calldata signature)
+        public
+        view
+        returns (bool)
+    {
+        bytes32 messageHash = hashChainedCallDetails(chainedCallDetails);
+        address sigSigner = messageHash.recoverCalldata(signature);
+        return sigSigner == signer;
+    }
+
+    /// @inheritdoc IPaymentsFunctions
+    /// @dev This hash includes the chain ID.
+    function hashChainedCallDetails(ChainedCallDetails calldata chainedCallDetails) public view returns (bytes32) {
+        return keccak256(
+            abi.encode(
+                block.chainid,
+                chainedCallDetails.chainedCallAddress,
+                chainedCallDetails.chainedCallData
+            )
+        );
     }
 
     /**
      * Perform a chained call and revert on error.
      */
-    function _performChainedCall(address chainedCallAddress, bytes calldata chainedCallData) internal {
-        (bool success, ) = chainedCallAddress.call{value: 0}(chainedCallData);
+    function _performChainedCall(ChainedCallDetails calldata chainedCallDetails) internal {
+        (bool success, ) = chainedCallDetails.chainedCallAddress.call{value: 0}(chainedCallDetails.chainedCallData);
         if (!success) {
             revert ChainedCallFailed();
         }
