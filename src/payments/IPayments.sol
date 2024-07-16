@@ -77,6 +77,12 @@ interface IPaymentsFunctions {
      * @return accepted True if the payment has been accepted.
      */
     function paymentAccepted(uint256 purchaseId) external view returns (bool);
+
+    /**
+     * Get the signer address.
+     * @return signer The signer address.
+     */
+    function signer() external view returns (address);
 }
 
 interface IPaymentsSignals {
