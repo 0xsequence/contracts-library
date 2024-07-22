@@ -10,12 +10,14 @@ import {ERC1155Mock} from "test/_mocks/ERC1155Mock.sol";
 import {ERC20Mock} from "test/_mocks/ERC20Mock.sol";
 import {ERC721Mock} from "test/_mocks/ERC721Mock.sol";
 import {IGenericToken} from "test/_mocks/IGenericToken.sol";
+import {ERC1271Mock} from "test/_mocks/ERC1271Mock.sol";
 
 contract PaymentsTest is Test, IPaymentsSignals {
     Payments public payments;
     address public owner;
     address public signer;
     uint256 public signerPk;
+    ERC1271Mock public signer1271;
 
     ERC20Mock public erc20;
     ERC721Mock public erc721;
@@ -29,6 +31,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
         erc20 = new ERC20Mock(address(this));
         erc721 = new ERC721Mock(address(this), "baseURI");
         erc1155 = new ERC1155Mock(address(this), "baseURI");
+
+        signer1271 = new ERC1271Mock();
     }
 
     struct DetailsInput {
@@ -68,7 +72,42 @@ contract PaymentsTest is Test, IPaymentsSignals {
         return (address(erc1155), tokenId, bound(amount, 1, type(uint128).max / 10));
     }
 
-    function testMakePaymentSuccess(address caller, DetailsInput calldata input)
+    function _signPayment(IPaymentsFunctions.PaymentDetails memory details, bool isERC1271, bool isValid)
+        internal
+        returns (bytes memory signature)
+    {
+        bytes32 digest = payments.hashPaymentDetails(details);
+        return _signDigest(digest, isERC1271, isValid);
+    }
+
+    function _signChainedCall(IPaymentsFunctions.ChainedCallDetails memory details, bool isERC1271, bool isValid)
+        internal
+        returns (bytes memory signature)
+    {
+        bytes32 digest = payments.hashChainedCallDetails(details);
+        return _signDigest(digest, isERC1271, isValid);
+    }
+
+    function _signDigest(bytes32 digest, bool isERC1271, bool isValid) internal returns (bytes memory signature) {
+        if (isERC1271) {
+            vm.prank(owner);
+            payments.updateSigner(address(signer1271));
+
+            // Pretend digest is the signature
+            if (isValid) {
+                signer1271.setValidSignature(digest);
+            }
+            return abi.encodePacked(uint8(2), address(signer1271), digest);
+        } else {
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
+            if (!isValid) {
+                v--; // Invalidate sig
+            }
+            return abi.encodePacked(uint8(1), r, s, v);
+        }
+    }
+
+    function testMakePaymentSuccess(address caller, DetailsInput calldata input, bool isERC1271)
         public
         safeAddress(caller)
         safeAddress(input.paymentRecipient.recipient)
@@ -98,9 +137,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         IGenericToken(tokenAddr).approve(caller, address(payments), tokenId, amount);
 
         // Sign it
-        bytes32 messageHash = payments.hashPaymentDetails(details);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
-        bytes memory sig = abi.encodePacked(r, s, v);
+        bytes memory sig = _signPayment(details, isERC1271, true);
 
         // Send it
         vm.expectEmit(true, true, true, true, address(payments));
@@ -116,7 +153,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         payments.makePayment(details, sig);
     }
 
-    function testMakePaymentSuccessChainedCall(address caller, DetailsInput calldata input)
+    function testMakePaymentSuccessChainedCall(address caller, DetailsInput calldata input, bool isERC1271)
         public
         safeAddress(caller)
         safeAddress(input.paymentRecipient.recipient)
@@ -161,9 +198,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         IGenericToken(tokenAddr).approve(caller, address(payments), tokenId, amount);
 
         // Sign it
-        bytes32 messageHash = payments.hashPaymentDetails(details);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
-        bytes memory sig = abi.encodePacked(r, s, v);
+        bytes memory sig = _signPayment(details, isERC1271, true);
 
         // Send it
         vm.expectEmit(true, true, true, true, address(payments));
@@ -176,12 +211,12 @@ contract PaymentsTest is Test, IPaymentsSignals {
         assertEq(IGenericToken(chainedTokenAddr).balanceOf(input.productRecipient, chainedTokenId), chainedAmount);
     }
 
-    function testMakePaymentSuccessMultiplePaymentRecips(address caller, DetailsInput calldata input, address recip2)
-        public
-        safeAddress(caller)
-        safeAddress(input.paymentRecipient.recipient)
-        safeAddress(recip2)
-    {
+    function testMakePaymentSuccessMultiplePaymentRecips(
+        address caller,
+        DetailsInput calldata input,
+        address recip2,
+        bool isERC1271
+    ) public safeAddress(caller) safeAddress(input.paymentRecipient.recipient) safeAddress(recip2) {
         vm.assume(input.paymentRecipient.recipient != recip2);
         IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
         vm.assume(tokenType != IPaymentsFunctions.TokenType.ERC721); // ERC-721 not supported for multi payments
@@ -212,9 +247,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         IGenericToken(tokenAddr).approve(caller, address(payments), tokenId, amount * 2);
 
         // Sign it
-        bytes32 messageHash = payments.hashPaymentDetails(details);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
-        bytes memory sig = abi.encodePacked(r, s, v);
+        bytes memory sig = _signPayment(details, isERC1271, true);
 
         // Send it
         vm.expectEmit(true, true, true, true, address(payments));
@@ -226,9 +259,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         assertEq(IGenericToken(tokenAddr).balanceOf(recip2, tokenId), amount);
     }
 
-    function testMakePaymentInvalidSignature(address caller, DetailsInput calldata input, bytes memory signature)
-        public
-    {
+    function testMakePaymentInvalidSignature(address caller, DetailsInput calldata input, bool isERC1271) public {
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
         IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
         (address tokenAddr, uint256 tokenId, uint256 amount) =
@@ -249,13 +280,16 @@ contract PaymentsTest is Test, IPaymentsSignals {
             IPaymentsFunctions.ChainedCallDetails(address(0), "")
         );
 
+        // Invalid sign it
+        bytes memory sig = _signPayment(details, isERC1271, false);
+
         // Send it
         vm.expectRevert(InvalidSignature.selector);
         vm.prank(caller);
-        payments.makePayment(details, signature);
+        payments.makePayment(details, sig);
     }
 
-    function testMakePaymentExpired(address caller, DetailsInput calldata input, uint64 blockTimestamp)
+    function testMakePaymentExpired(address caller, DetailsInput calldata input, uint64 blockTimestamp, bool isERC1271)
         public
         safeAddress(caller)
         safeAddress(input.paymentRecipient.recipient)
@@ -287,9 +321,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         IGenericToken(tokenAddr).approve(caller, address(payments), tokenId, amount);
 
         // Sign it
-        bytes32 messageHash = payments.hashPaymentDetails(details);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
-        bytes memory sig = abi.encodePacked(r, s, v);
+        bytes memory sig = _signPayment(details, isERC1271, true);
 
         // Send it
         vm.expectRevert(PaymentExpired.selector);
@@ -297,7 +329,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         payments.makePayment(details, sig);
     }
 
-    function testMakePaymentInvalidPayment(address caller, DetailsInput calldata input)
+    function testMakePaymentInvalidPayment(address caller, DetailsInput calldata input, bool isERC1271)
         public
         safeAddress(caller)
         safeAddress(input.paymentRecipient.recipient)
@@ -325,9 +357,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         // Do not mint required tokens
 
         // Sign it
-        bytes32 messageHash = payments.hashPaymentDetails(details);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
-        bytes memory sig = abi.encodePacked(r, s, v);
+        bytes memory sig = _signPayment(details, isERC1271, true);
 
         // Send it
         vm.expectRevert();
@@ -335,11 +365,12 @@ contract PaymentsTest is Test, IPaymentsSignals {
         payments.makePayment(details, sig);
     }
 
-    function testMakePaymentInvalidTokenSettingsERC20(address caller, DetailsInput calldata input, uint256 tokenId)
-        public
-        safeAddress(caller)
-        safeAddress(input.paymentRecipient.recipient)
-    {
+    function testMakePaymentInvalidTokenSettingsERC20(
+        address caller,
+        DetailsInput calldata input,
+        uint256 tokenId,
+        bool isERC1271
+    ) public safeAddress(caller) safeAddress(input.paymentRecipient.recipient) {
         tokenId = _bound(tokenId, 1, type(uint256).max); // Non-zero
 
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
@@ -362,9 +393,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         );
 
         // Sign it
-        bytes32 messageHash = payments.hashPaymentDetails(details);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
-        bytes memory sig = abi.encodePacked(r, s, v);
+        bytes memory sig = _signPayment(details, isERC1271, true);
 
         // Send it
         vm.expectRevert(InvalidTokenTransfer.selector);
@@ -372,7 +401,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         payments.makePayment(details, sig);
     }
 
-    function testMakePaymentInvalidTokenSettingsERC721(address caller, DetailsInput calldata input)
+    function testMakePaymentInvalidTokenSettingsERC721(address caller, DetailsInput calldata input, bool isERC1271)
         public
         safeAddress(caller)
         safeAddress(input.paymentRecipient.recipient)
@@ -398,9 +427,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         );
 
         // Sign it
-        bytes32 messageHash = payments.hashPaymentDetails(details);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
-        bytes memory sig = abi.encodePacked(r, s, v);
+        bytes memory sig = _signPayment(details, isERC1271, true);
 
         // Send it
         vm.expectRevert(InvalidTokenTransfer.selector);
@@ -408,12 +435,12 @@ contract PaymentsTest is Test, IPaymentsSignals {
         payments.makePayment(details, sig);
     }
 
-    function testMakePaymentFailedChainedCall(address caller, DetailsInput calldata input, bytes memory chainedCallData)
-        public
-        safeAddress(caller)
-        safeAddress(input.paymentRecipient.recipient)
-        safeAddress(input.productRecipient)
-    {
+    function testMakePaymentFailedChainedCall(
+        address caller,
+        DetailsInput calldata input,
+        bytes memory chainedCallData,
+        bool isERC1271
+    ) public safeAddress(caller) safeAddress(input.paymentRecipient.recipient) safeAddress(input.productRecipient) {
         // Check the call will fail
         (bool success,) = address(payments).call(chainedCallData);
         vm.assume(!success);
@@ -443,9 +470,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         IGenericToken(tokenAddr).approve(caller, address(payments), tokenId, amount);
 
         // Sign it
-        bytes32 messageHash = payments.hashPaymentDetails(details);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
-        bytes memory sig = abi.encodePacked(r, s, v);
+        bytes memory sig = _signPayment(details, isERC1271, true);
 
         // Send it
         vm.expectRevert(ChainedCallFailed.selector);
@@ -455,10 +480,13 @@ contract PaymentsTest is Test, IPaymentsSignals {
 
     // Chained call
 
-    function testPerformChainedCallSuccess(uint8 tokenTypeInt, uint256 tokenId, uint256 amount, address recipient)
-        public
-        safeAddress(recipient)
-    {
+    function testPerformChainedCallSuccess(
+        uint8 tokenTypeInt,
+        uint256 tokenId,
+        uint256 amount,
+        address recipient,
+        bool isERC1271
+    ) public safeAddress(recipient) {
         IPaymentsFunctions.TokenType tokenType = _toTokenType(tokenTypeInt);
         address tokenAddr;
         (tokenAddr, tokenId, amount) = _validTokenParams(tokenType, tokenId, amount);
@@ -468,9 +496,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
             IPaymentsFunctions.ChainedCallDetails(tokenAddr, callData);
 
         // Sign it
-        bytes32 messageHash = payments.hashChainedCallDetails(chainedCallDetails);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
-        bytes memory sig = abi.encodePacked(r, s, v);
+        bytes memory sig = _signChainedCall(chainedCallDetails, isERC1271, true);
 
         // Send it
         vm.prank(signer);
@@ -485,7 +511,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         uint256 tokenId,
         uint256 amount,
         address recipient,
-        bytes calldata sig
+        bool isERC1271
     ) public safeAddress(recipient) {
         vm.assume(caller != signer);
 
@@ -497,13 +523,16 @@ contract PaymentsTest is Test, IPaymentsSignals {
         IPaymentsFunctions.ChainedCallDetails memory chainedCallDetails =
             IPaymentsFunctions.ChainedCallDetails(tokenAddr, callData);
 
+        // Fake sign it
+        bytes memory sig = _signChainedCall(chainedCallDetails, isERC1271, false);
+
         // Send it
         vm.expectRevert(InvalidSignature.selector);
         vm.prank(caller);
         payments.performChainedCall(chainedCallDetails, sig);
     }
 
-    function testPerformChainedCallInvalidCall(bytes calldata chainedCallData) public {
+    function testPerformChainedCallInvalidCall(bytes calldata chainedCallData, bool isERC1271) public {
         IPaymentsFunctions.ChainedCallDetails memory chainedCallDetails =
             IPaymentsFunctions.ChainedCallDetails(address(this), chainedCallData);
         // Check the call will fail
@@ -511,9 +540,7 @@ contract PaymentsTest is Test, IPaymentsSignals {
         vm.assume(!success);
 
         // Sign it
-        bytes32 messageHash = payments.hashChainedCallDetails(chainedCallDetails);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, messageHash);
-        bytes memory sig = abi.encodePacked(r, s, v);
+        bytes memory sig = _signChainedCall(chainedCallDetails, isERC1271, true);
 
         vm.expectRevert(ChainedCallFailed.selector);
         vm.prank(signer);

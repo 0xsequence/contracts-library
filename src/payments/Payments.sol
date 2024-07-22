@@ -6,14 +6,13 @@ import {IPayments, IPaymentsFunctions} from "./IPayments.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 
+import {SignatureValidator} from "../utils/SignatureValidator.sol";
 import {IERC721Transfer} from "../tokens/common/IERC721Transfer.sol";
 import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
-
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
-import {ECDSA} from "solady/utils/ECDSA.sol";
 
 contract Payments is Ownable, IPayments, IERC165 {
-    using ECDSA for bytes32;
+    using SignatureValidator for bytes32;
 
     address public signer;
 
@@ -78,7 +77,7 @@ contract Payments is Ownable, IPayments, IERC165 {
         returns (bool)
     {
         bytes32 messageHash = hashPaymentDetails(paymentDetails);
-        address sigSigner = messageHash.recoverCalldata(signature);
+        address sigSigner = messageHash.recoverSigner(signature);
         return sigSigner == signer;
     }
 
@@ -120,7 +119,7 @@ contract Payments is Ownable, IPayments, IERC165 {
         returns (bool)
     {
         bytes32 messageHash = hashChainedCallDetails(chainedCallDetails);
-        address sigSigner = messageHash.recoverCalldata(signature);
+        address sigSigner = messageHash.recoverSigner(signature);
         return sigSigner == signer;
     }
 
