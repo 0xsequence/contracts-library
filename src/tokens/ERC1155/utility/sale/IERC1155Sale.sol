@@ -5,6 +5,7 @@ interface IERC1155SaleFunctions {
 
     struct SaleDetails {
         uint256 cost;
+        uint256 supplyCap; // 0 supply cap indicates unlimited supply
         uint64 startTime;
         uint64 endTime; // 0 end time indicates sale inactive
         bytes32 merkleRoot; // Root of allowed addresses

@@ -31,10 +31,6 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
     SaleDetails private _globalSaleDetails;
     mapping(uint256 => SaleDetails) private _tokenSaleDetails;
 
-    // Maximum supply globaly and per token. 0 indicates unlimited supply
-    uint256 internal totalSupplyCap;
-    mapping(uint256 => uint256) internal tokenSupplyCap;
-
     /**
      * Initialize the contract.
      * @param owner Owner address
@@ -61,7 +57,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
      * @param _endTime Latest acceptable timestamp (exclusive).
      * @dev A zero endTime value is always considered out of bounds.
      */
-    function blockTimeOutOfBounds(uint256 _startTime, uint256 _endTime) private view returns (bool) {
+    function _blockTimeOutOfBounds(uint256 _startTime, uint256 _endTime) private view returns (bool) {
         // 0 end time indicates inactive sale.
         return _endTime == 0 || block.timestamp < _startTime || block.timestamp >= _endTime; // solhint-disable-line not-rely-on-time
     }
@@ -88,7 +84,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         uint256 totalAmount;
 
         SaleDetails memory gSaleDetails = _globalSaleDetails;
-        bool globalSaleInactive = blockTimeOutOfBounds(gSaleDetails.startTime, gSaleDetails.endTime);
+        bool globalSaleInactive = _blockTimeOutOfBounds(gSaleDetails.startTime, gSaleDetails.endTime);
         bool globalMerkleCheckRequired = false;
         for (uint256 i; i < _tokenIds.length; i++) {
             uint256 tokenId = _tokenIds[i];
@@ -102,7 +98,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
 
             // Active sale test
             SaleDetails memory saleDetails = _tokenSaleDetails[tokenId];
-            bool tokenSaleInactive = blockTimeOutOfBounds(saleDetails.startTime, saleDetails.endTime);
+            bool tokenSaleInactive = _blockTimeOutOfBounds(saleDetails.startTime, saleDetails.endTime);
             if (tokenSaleInactive) {
                 // Prefer token sale
                 if (globalSaleInactive) {
@@ -184,13 +180,15 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         uint256 nMint = tokenIds.length;
         for (uint256 i = 0; i < nMint; i++) {
             // Update storage balance
+            uint256 tokenSupplyCap = _tokenSaleDetails[tokenIds[i]].supplyCap;
             if (
-                tokenSupplyCap[tokenIds[i]] > 0 && items.tokenSupply(tokenIds[i]) + amounts[i] > tokenSupplyCap[tokenIds[i]]
+                tokenSupplyCap > 0 && items.tokenSupply(tokenIds[i]) + amounts[i] > tokenSupplyCap
             ) {
-                revert InsufficientSupply(items.tokenSupply(tokenIds[i]), amounts[i], tokenSupplyCap[tokenIds[i]]);
+                revert InsufficientSupply(items.tokenSupply(tokenIds[i]), amounts[i], tokenSupplyCap);
             }
             totalAmount += amounts[i];
         }
+        uint256 totalSupplyCap = _globalSaleDetails.supplyCap;
         if (totalSupplyCap > 0 && items.totalSupply() + totalAmount > totalSupplyCap) {
             revert InsufficientSupply(items.totalSupply(), totalAmount, totalSupplyCap);
         }
@@ -235,8 +233,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         if (endTime < startTime || endTime <= block.timestamp) {
             revert InvalidSaleDetails();
         }
-        _globalSaleDetails = SaleDetails(cost, startTime, endTime, merkleRoot);
-        totalSupplyCap = supplyCap;
+        _globalSaleDetails = SaleDetails(cost, supplyCap, startTime, endTime, merkleRoot);
         emit GlobalSaleDetailsUpdated(cost, supplyCap, startTime, endTime, merkleRoot);
     }
 
@@ -266,8 +263,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         if (endTime < startTime || endTime <= block.timestamp) {
             revert InvalidSaleDetails();
         }
-        _tokenSaleDetails[tokenId] = SaleDetails(cost, startTime, endTime, merkleRoot);
-        tokenSupplyCap[tokenId] = supplyCap;
+        _tokenSaleDetails[tokenId] = SaleDetails(cost, supplyCap, startTime, endTime, merkleRoot);
         emit TokenSaleDetailsUpdated(tokenId, cost, supplyCap, startTime, endTime, merkleRoot);
     }
 
