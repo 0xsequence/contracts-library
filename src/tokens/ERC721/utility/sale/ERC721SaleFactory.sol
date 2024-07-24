@@ -2,7 +2,10 @@
 pragma solidity ^0.8.19;
 
 import {ERC721Sale} from "@0xsequence/contracts-library/tokens/ERC721/utility/sale/ERC721Sale.sol";
-import {IERC721SaleFactory, IERC721SaleFactoryFunctions} from "@0xsequence/contracts-library/tokens/ERC721/utility/sale/IERC721SaleFactory.sol";
+import {
+    IERC721SaleFactory,
+    IERC721SaleFactoryFunctions
+} from "@0xsequence/contracts-library/tokens/ERC721/utility/sale/IERC721SaleFactory.sol";
 import {SequenceProxyFactory} from "@0xsequence/contracts-library/proxies/SequenceProxyFactory.sol";
 
 /**
@@ -28,7 +31,11 @@ contract ERC721SaleFactory is IERC721SaleFactory, SequenceProxyFactory {
     }
 
     /// @inheritdoc IERC721SaleFactoryFunctions
-    function determineAddress(address proxyOwner, address tokenOwner, address items) external view returns (address proxyAddr) {
+    function determineAddress(address proxyOwner, address tokenOwner, address items)
+        external
+        view
+        returns (address proxyAddr)
+    {
         bytes32 salt = keccak256(abi.encode(tokenOwner, items));
         return _computeProxyAddress(salt, proxyOwner, "");
     }

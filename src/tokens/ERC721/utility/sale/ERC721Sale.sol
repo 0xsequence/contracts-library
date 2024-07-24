@@ -68,9 +68,7 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
         address _expectedPaymentToken,
         uint256 _maxTotal,
         bytes32[] calldata _proof
-    )
-        private
-    {
+    ) private {
         // Active sale test
         if (_blockTimeOutOfBounds(_saleDetails.startTime, _saleDetails.endTime)) {
             revert SaleInactive();
@@ -146,10 +144,7 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
         uint64 startTime,
         uint64 endTime,
         bytes32 merkleRoot
-    )
-        public
-        onlyRole(MINT_ADMIN_ROLE)
-    {
+    ) public onlyRole(MINT_ADMIN_ROLE) {
         // solhint-disable-next-line not-rely-on-time
         if (endTime < startTime || endTime <= block.timestamp) {
             revert InvalidSaleDetails();
@@ -161,7 +156,6 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
     //
     // Views
     //
-
     function itemsContract() external view returns (address) {
         return address(_items);
     }
@@ -183,7 +177,7 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
         public
         view
         virtual
-        override (AccessControlEnumerable)
+        override(AccessControlEnumerable)
         returns (bool)
     {
         return interfaceId == type(IERC721SaleFunctions).interfaceId || super.supportsInterface(interfaceId);

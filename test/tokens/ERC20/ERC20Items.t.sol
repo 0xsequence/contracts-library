@@ -157,7 +157,6 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
     //
     // Burn
     //
-
     function testBurnSuccess(address caller, uint256 amount, uint256 burnAmount) public {
         assumeSafeCaller(caller);
         vm.assume(amount >= burnAmount);
@@ -190,7 +189,6 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
     //
     // Helpers
     //
-
     function assumeSafeCaller(address caller) private view {
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);

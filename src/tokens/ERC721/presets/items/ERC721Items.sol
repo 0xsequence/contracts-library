@@ -42,10 +42,7 @@ contract ERC721Items is ERC721BaseToken, IERC721Items {
         string memory tokenContractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
-    )
-        public
-        virtual
-    {
+    ) public virtual {
         if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }

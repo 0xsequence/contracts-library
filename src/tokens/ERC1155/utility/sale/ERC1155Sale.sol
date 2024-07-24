@@ -76,9 +76,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         address _expectedPaymentToken,
         uint256 _maxTotal,
         bytes32[] calldata _proof
-    )
-        private
-    {
+    ) private {
         uint256 lastTokenId;
         uint256 totalCost;
         uint256 totalAmount;
@@ -169,10 +167,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         address expectedPaymentToken,
         uint256 maxTotal,
         bytes32[] calldata proof
-    )
-        public
-        payable
-    {
+    ) public payable {
         _payForActiveMint(tokenIds, amounts, expectedPaymentToken, maxTotal, proof);
 
         IERC1155SupplyFunctions items = IERC1155SupplyFunctions(_items);
@@ -181,9 +176,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         for (uint256 i = 0; i < nMint; i++) {
             // Update storage balance
             uint256 tokenSupplyCap = _tokenSaleDetails[tokenIds[i]].supplyCap;
-            if (
-                tokenSupplyCap > 0 && items.tokenSupply(tokenIds[i]) + amounts[i] > tokenSupplyCap
-            ) {
+            if (tokenSupplyCap > 0 && items.tokenSupply(tokenIds[i]) + amounts[i] > tokenSupplyCap) {
                 revert InsufficientSupply(items.tokenSupply(tokenIds[i]), amounts[i], tokenSupplyCap);
             }
             totalAmount += amounts[i];
@@ -219,13 +212,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
      * @dev A zero end time indicates an inactive sale.
      * @notice The payment token is set globally.
      */
-    function setGlobalSaleDetails(
-        uint256 cost,
-        uint256 supplyCap,
-        uint64 startTime,
-        uint64 endTime,
-        bytes32 merkleRoot
-    )
+    function setGlobalSaleDetails(uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot)
         public
         onlyRole(MINT_ADMIN_ROLE)
     {
@@ -255,10 +242,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         uint64 startTime,
         uint64 endTime,
         bytes32 merkleRoot
-    )
-        public
-        onlyRole(MINT_ADMIN_ROLE)
-    {
+    ) public onlyRole(MINT_ADMIN_ROLE) {
         // solhint-disable-next-line not-rely-on-time
         if (endTime < startTime || endTime <= block.timestamp) {
             revert InvalidSaleDetails();
@@ -309,7 +293,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         public
         view
         virtual
-        override (AccessControlEnumerable)
+        override(AccessControlEnumerable)
         returns (bool)
     {
         return type(IERC1155SaleFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);

@@ -129,7 +129,6 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
     //
     // Metadata
     //
-
     function testContractURI() external {
         address nonOwner = makeAddr("nonOwner");
         vm.expectRevert(); // Missing role
@@ -253,7 +252,6 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
     //
     // Burn
     //
-
     function testBurnSuccess(address caller, uint256 tokenId, uint256 amount, uint256 burnAmount) public {
         assumeSafeAddress(caller);
         vm.assume(caller != owner);

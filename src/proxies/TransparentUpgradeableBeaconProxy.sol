@@ -48,7 +48,7 @@ contract TransparentUpgradeableBeaconProxy is TransparentUpgradeableProxy, Beaco
      * @dev If the admin is not set, the fallback function is used to initialize the proxy.
      * @dev If the admin is set, the fallback function is used to delegatecall the implementation.
      */
-    function _fallback() internal override (TransparentUpgradeableProxy, Proxy) {
+    function _fallback() internal override(TransparentUpgradeableProxy, Proxy) {
         if (_getAdmin() == address(0)) {
             bytes memory ret;
             bytes4 selector = msg.sig;
@@ -69,7 +69,7 @@ contract TransparentUpgradeableBeaconProxy is TransparentUpgradeableProxy, Beaco
      * Returns the current implementation address.
      * @dev This is the implementation address set by the admin, or the beacon implementation.
      */
-    function _implementation() internal view override (ERC1967Proxy, BeaconProxy) returns (address) {
+    function _implementation() internal view override(ERC1967Proxy, BeaconProxy) returns (address) {
         address implementation = ERC1967Proxy._implementation();
         if (implementation != address(0)) {
             return implementation;

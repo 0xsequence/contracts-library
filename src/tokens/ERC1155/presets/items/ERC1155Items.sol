@@ -38,10 +38,7 @@ contract ERC1155Items is ERC1155BaseToken, IERC1155Items {
         string memory tokenContractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
-    )
-        public
-        virtual
-    {
+    ) public virtual {
         if (msg.sender != initializer || initialized) {
             revert InvalidInitialization();
         }
@@ -92,8 +89,8 @@ contract ERC1155Items is ERC1155BaseToken, IERC1155Items {
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId) public view override (ERC1155BaseToken) returns (bool) {
-        return type(IERC1155ItemsFunctions).interfaceId == interfaceId || ERC1155BaseToken.supportsInterface(interfaceId)
-            || super.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view override(ERC1155BaseToken) returns (bool) {
+        return type(IERC1155ItemsFunctions).interfaceId == interfaceId
+            || ERC1155BaseToken.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
     }
 }

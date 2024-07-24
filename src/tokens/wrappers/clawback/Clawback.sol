@@ -170,7 +170,10 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
     }
 
     /// @inheritdoc IClawbackFunctions
-    function addTemplate(uint56 duration, bool destructionOnly, bool transferOpen) external returns (uint32 templateId) {
+    function addTemplate(uint56 duration, bool destructionOnly, bool transferOpen)
+        external
+        returns (uint32 templateId)
+    {
         templateId = _nextTemplateId++;
         address admin = msg.sender;
         _templates[templateId] = Template(destructionOnly, transferOpen, duration, admin);
@@ -276,7 +279,9 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
                     revert Unauthorized();
                 }
             }
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
         super.safeBatchTransferFrom(from, to, wrappedTokenIds, amounts, data);
     }

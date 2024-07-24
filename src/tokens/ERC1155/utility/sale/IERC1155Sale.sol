@@ -2,7 +2,6 @@
 pragma solidity ^0.8.19;
 
 interface IERC1155SaleFunctions {
-
     struct SaleDetails {
         uint256 cost;
         uint256 supplyCap; // 0 supply cap indicates unlimited supply
@@ -55,15 +54,16 @@ interface IERC1155SaleFunctions {
         address paymentToken,
         uint256 maxTotal,
         bytes32[] calldata proof
-    )
-        external
-        payable;
+    ) external payable;
 }
 
 interface IERC1155SaleSignals {
-
-    event GlobalSaleDetailsUpdated(uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
-    event TokenSaleDetailsUpdated(uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
+    event GlobalSaleDetailsUpdated(
+        uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot
+    );
+    event TokenSaleDetailsUpdated(
+        uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot
+    );
 
     /**
      * Contract already initialized.

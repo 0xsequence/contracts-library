@@ -180,9 +180,7 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
         assumeSafe(mintTo, amount)
         withFactory(useFactory)
     {
-        sale.setSaleDetails(
-            0, perTokenCost, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
-        );
+        sale.setSaleDetails(0, perTokenCost, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
         uint256 cost = amount * perTokenCost;
         vm.deal(address(this), cost);
 
@@ -198,9 +196,7 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
         withERC20
     {
         address paymentToken = wrongToken == address(0) ? address(erc20) : address(0);
-        sale.setSaleDetails(
-            0, 0, paymentToken, uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
-        );
+        sale.setSaleDetails(0, 0, paymentToken, uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
 
         vm.expectRevert(abi.encodeWithSelector(InsufficientPayment.selector, paymentToken, 0, 0));
         sale.mint(mintTo, amount, wrongToken, 0, TestHelper.blankProof());
@@ -213,9 +209,7 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
         withFactory(useFactory)
         withERC20
     {
-        sale.setSaleDetails(
-            0, 0, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
-        );
+        sale.setSaleDetails(0, 0, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
 
         vm.expectRevert(abi.encodeWithSelector(InsufficientPayment.selector, address(0), 0, 1));
         sale.mint{value: 1}(mintTo, amount, address(erc20), 0, TestHelper.blankProof());
@@ -250,7 +244,7 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
         (bytes32 root, bytes32[] memory proof) = TestHelper.getMerkleParts(allowlist, 0, senderIndex);
 
         sale.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
- 
+
         vm.prank(sender);
         sale.mint(sender, 1, address(0), 0, proof);
 

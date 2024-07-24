@@ -131,7 +131,6 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
     //
     // Metadata
     //
-
     function testNameAndSymbol() external {
         address nonOwner = makeAddr("nonOwner");
         vm.expectRevert(); // Missing role
@@ -234,7 +233,6 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
     //
     // Burn
     //
-
     function testBurnSuccess(address caller) public {
         assumeSafeAddress(caller);
 

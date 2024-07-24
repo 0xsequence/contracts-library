@@ -2,8 +2,10 @@
 pragma solidity ^0.8.19;
 
 import {ERC20Items} from "@0xsequence/contracts-library/tokens/ERC20/presets/items/ERC20Items.sol";
-import {IERC20ItemsFactory, IERC20ItemsFactoryFunctions} from
-    "@0xsequence/contracts-library/tokens/ERC20/presets/items/IERC20ItemsFactory.sol";
+import {
+    IERC20ItemsFactory,
+    IERC20ItemsFactoryFunctions
+} from "@0xsequence/contracts-library/tokens/ERC20/presets/items/IERC20ItemsFactory.sol";
 import {SequenceProxyFactory} from "@0xsequence/contracts-library/proxies/SequenceProxyFactory.sol";
 
 /**

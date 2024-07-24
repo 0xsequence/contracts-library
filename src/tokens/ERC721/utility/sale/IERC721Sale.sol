@@ -2,7 +2,6 @@
 pragma solidity ^0.8.19;
 
 interface IERC721SaleFunctions {
-
     struct SaleDetails {
         uint256 supplyCap; // 0 supply cap indicates unlimited supply
         uint256 cost;
@@ -22,13 +21,9 @@ interface IERC721SaleFunctions {
      * @notice Sale must be active for all tokens.
      * @dev An empty proof is supplied when no proof is required.
      */
-    function mint(
-        address to,
-        uint256 amount,
-        address paymentToken,
-        uint256 maxTotal,
-        bytes32[] memory proof
-    ) external payable;
+    function mint(address to, uint256 amount, address paymentToken, uint256 maxTotal, bytes32[] memory proof)
+        external
+        payable;
 
     /**
      * Set the sale details.
@@ -56,7 +51,9 @@ interface IERC721SaleFunctions {
 }
 
 interface IERC721SaleSignals {
-    event SaleDetailsUpdated(uint256 supplyCap, uint256 cost, address paymentToken, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
+    event SaleDetailsUpdated(
+        uint256 supplyCap, uint256 cost, address paymentToken, uint64 startTime, uint64 endTime, bytes32 merkleRoot
+    );
 
     /**
      * Contract already initialized.

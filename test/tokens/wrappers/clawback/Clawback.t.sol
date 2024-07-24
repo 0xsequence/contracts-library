@@ -343,7 +343,14 @@ contract ClawbackTest is ClawbackTestBase, IClawbackSignals {
         amount = result.amount;
 
         vm.expectRevert(InvalidTokenTransfer.selector);
-        clawback.wrap(result.templateId, IClawbackFunctions.TokenType.ERC1155, address(clawback), result.wrappedTokenId, amount, receiver);
+        clawback.wrap(
+            result.templateId,
+            IClawbackFunctions.TokenType.ERC1155,
+            address(clawback),
+            result.wrappedTokenId,
+            amount,
+            receiver
+        );
     }
 
     //
@@ -776,13 +783,7 @@ contract ClawbackTest is ClawbackTestBase, IClawbackSignals {
 
         vm.expectEmit(true, true, true, true, address(clawback));
         emit EmergencyClawedBack(
-            result.wrappedTokenId,
-            result.templateId,
-            result.tokenAddr,
-            tokenId,
-            amount,
-            operator,
-            receiver
+            result.wrappedTokenId, result.templateId, result.tokenAddr, tokenId, amount, operator, receiver
         );
         vm.prank(operator);
         clawback.emergencyClawback(result.wrappedTokenId, receiver, amount);
@@ -877,18 +878,14 @@ contract ClawbackTest is ClawbackTestBase, IClawbackSignals {
 
         vm.expectEmit(true, true, true, true, address(clawback));
         emit EmergencyClawedBack(
-            result.wrappedTokenId,
-            result.templateId,
-            result.tokenAddr,
-            tokenId,
-            amount,
-            operator,
-            burnAddress
+            result.wrappedTokenId, result.templateId, result.tokenAddr, tokenId, amount, operator, burnAddress
         );
         vm.prank(operator);
         clawback.emergencyClawback(result.wrappedTokenId, burnAddress, amount);
 
-        assertEq(IGenericToken(result.tokenAddr).balanceOf(burnAddress, tokenId), amount, "Token balance of burn address");
+        assertEq(
+            IGenericToken(result.tokenAddr).balanceOf(burnAddress, tokenId), amount, "Token balance of burn address"
+        );
         assertEq(IGenericToken(result.tokenAddr).balanceOf(address(this), tokenId), 0, "Token balance of owner");
         assertEq(IGenericToken(result.tokenAddr).balanceOf(address(clawback), tokenId), 0, "Token balance of clawback");
         assertEq(clawback.balanceOf(burnAddress, result.wrappedTokenId), 0, "Clawback balance of burn address");

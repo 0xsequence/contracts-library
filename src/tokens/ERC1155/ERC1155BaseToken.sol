@@ -35,9 +35,7 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Con
         string memory tokenName,
         string memory tokenBaseURI,
         string memory tokenContractURI
-    )
-        internal
-    {
+    ) internal {
         name = tokenName;
         baseURI = tokenBaseURI;
         _contractURI = tokenContractURI;
@@ -120,7 +118,7 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Con
         public
         view
         virtual
-        override (ERC1155Supply, ERC1155Metadata, ERC2981Controlled)
+        override(ERC1155Supply, ERC1155Metadata, ERC2981Controlled)
         returns (bool)
     {
         return ERC1155Supply.supportsInterface(interfaceId) || ERC1155Metadata.supportsInterface(interfaceId)

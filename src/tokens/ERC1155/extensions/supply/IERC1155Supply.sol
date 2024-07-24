@@ -2,7 +2,6 @@
 pragma solidity ^0.8.19;
 
 interface IERC1155SupplyFunctions {
-
     /**
      * Returns the total supply of ERC1155 tokens.
      */
@@ -16,7 +15,6 @@ interface IERC1155SupplyFunctions {
 }
 
 interface IERC1155SupplySignals {
-
     /**
      * Invalid array input length.
      */

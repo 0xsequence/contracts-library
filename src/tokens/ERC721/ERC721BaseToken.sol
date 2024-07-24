@@ -39,9 +39,7 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled {
         string memory tokenSymbol,
         string memory tokenBaseURI,
         string memory tokenContractURI
-    )
-        internal
-    {
+    ) internal {
         _tokenName = tokenName;
         _tokenSymbol = tokenSymbol;
         _tokenBaseURI = tokenBaseURI;
@@ -131,7 +129,7 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled {
         public
         view
         virtual
-        override (ERC721A, IERC721A, ERC2981Controlled)
+        override(ERC721A, IERC721A, ERC2981Controlled)
         returns (bool)
     {
         return interfaceId == type(IERC721A).interfaceId || interfaceId == type(IERC721AQueryable).interfaceId
@@ -153,14 +151,14 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled {
     /**
      * Override the ERC721A name function.
      */
-    function name() public view override (ERC721A, IERC721A) returns (string memory) {
+    function name() public view override(ERC721A, IERC721A) returns (string memory) {
         return _tokenName;
     }
 
     /**
      * Override the ERC721A symbol function.
      */
-    function symbol() public view override (ERC721A, IERC721A) returns (string memory) {
+    function symbol() public view override(ERC721A, IERC721A) returns (string memory) {
         return _tokenSymbol;
     }
 }

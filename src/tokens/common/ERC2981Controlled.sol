@@ -51,7 +51,7 @@ abstract contract ERC2981Controlled is ERC2981, AccessControlEnumerable, IERC298
         public
         view
         virtual
-        override (ERC2981, AccessControlEnumerable)
+        override(ERC2981, AccessControlEnumerable)
         returns (bool)
     {
         return ERC2981.supportsInterface(interfaceId) || AccessControlEnumerable.supportsInterface(interfaceId)

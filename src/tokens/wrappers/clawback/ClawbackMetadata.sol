@@ -48,7 +48,9 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
                 json = json.concat(", ");
             }
             json = json.concat('"').concat(properties[i].key).concat('": "').concat(properties[i].value).concat('"');
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
         json = json.concat("}}");
 
@@ -107,7 +109,10 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
                 properties, "original_name", details.tokenAddr, abi.encodeWithSelector(IERC721Metadata.name.selector)
             );
             properties = _safeAddStringProperty(
-                properties, "original_symbol", details.tokenAddr, abi.encodeWithSelector(IERC721Metadata.symbol.selector)
+                properties,
+                "original_symbol",
+                details.tokenAddr,
+                abi.encodeWithSelector(IERC721Metadata.symbol.selector)
             );
             properties = _safeAddStringProperty(
                 properties,
@@ -188,7 +193,9 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
         uint256 len = properties.length;
         for (uint256 i = 0; i < len;) {
             newProperties[i] = properties[i];
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
         newProperties[properties.length] = prop;
         return newProperties;

@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {IERC721ItemsFactory, IERC721ItemsFactoryFunctions} from
-    "@0xsequence/contracts-library/tokens/ERC721/presets/items/IERC721ItemsFactory.sol";
+import {
+    IERC721ItemsFactory,
+    IERC721ItemsFactoryFunctions
+} from "@0xsequence/contracts-library/tokens/ERC721/presets/items/IERC721ItemsFactory.sol";
 import {ERC721Items} from "@0xsequence/contracts-library/tokens/ERC721/presets/items/ERC721Items.sol";
 import {SequenceProxyFactory} from "@0xsequence/contracts-library/proxies/SequenceProxyFactory.sol";
 
@@ -29,14 +31,13 @@ contract ERC721ItemsFactory is IERC721ItemsFactory, SequenceProxyFactory {
         string memory contractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
-    )
-        external
-        returns (address proxyAddr)
-    {
+    ) external returns (address proxyAddr) {
         bytes32 salt =
             keccak256(abi.encode(tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
         proxyAddr = _createProxy(salt, proxyOwner, "");
-        ERC721Items(proxyAddr).initialize(tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator);
+        ERC721Items(proxyAddr).initialize(
+            tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator
+        );
         emit ERC721ItemsDeployed(proxyAddr);
         return proxyAddr;
     }
@@ -51,8 +52,7 @@ contract ERC721ItemsFactory is IERC721ItemsFactory, SequenceProxyFactory {
         string memory contractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
-    ) external view returns (address proxyAddr)
-    {
+    ) external view returns (address proxyAddr) {
         bytes32 salt =
             keccak256(abi.encode(tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
         return _computeProxyAddress(salt, proxyOwner, "");

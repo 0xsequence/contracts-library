@@ -21,9 +21,7 @@ interface IERC1155ItemsFactoryFunctions {
         string memory contractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
-    )
-        external
-        returns (address proxyAddr);
+    ) external returns (address proxyAddr);
 
     /**
      * Computes the address of a proxy instance.
@@ -44,9 +42,7 @@ interface IERC1155ItemsFactoryFunctions {
         string memory contractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
-    )
-        external
-        returns (address proxyAddr);
+    ) external returns (address proxyAddr);
 }
 
 interface IERC1155ItemsFactorySignals {

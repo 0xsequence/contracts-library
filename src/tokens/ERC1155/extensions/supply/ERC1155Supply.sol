@@ -116,7 +116,7 @@ abstract contract ERC1155Supply is ERC1155, IERC1155Supply {
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override (ERC1155) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155) returns (bool) {
         return type(IERC1155SupplyFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
 }

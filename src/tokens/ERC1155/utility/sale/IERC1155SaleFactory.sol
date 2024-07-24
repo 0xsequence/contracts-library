@@ -19,7 +19,9 @@ interface IERC1155SaleFactoryFunctions {
      * @param items The ERC-1155 Items contract address
      * @return proxyAddr The address of the ERC-1155 Sale Proxy
      */
-    function determineAddress(address proxyOwner, address tokenOwner, address items) external returns (address proxyAddr);
+    function determineAddress(address proxyOwner, address tokenOwner, address items)
+        external
+        returns (address proxyAddr);
 }
 
 interface IERC1155SaleFactorySignals {

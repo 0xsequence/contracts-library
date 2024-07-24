@@ -46,7 +46,11 @@ abstract contract TestHelper is Test, Merkle {
         }
     }
 
-    function getMerkleParts(address[] memory allowlist, uint256 salt, uint256 leafIndex) internal pure returns (bytes32 root, bytes32[] memory proof) {
+    function getMerkleParts(address[] memory allowlist, uint256 salt, uint256 leafIndex)
+        internal
+        pure
+        returns (bytes32 root, bytes32[] memory proof)
+    {
         bytes32[] memory leaves = new bytes32[](allowlist.length);
         for (uint256 i = 0; i < allowlist.length; i++) {
             leaves[i] = keccak256(abi.encodePacked(allowlist[i], salt));

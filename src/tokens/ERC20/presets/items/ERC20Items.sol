@@ -3,8 +3,7 @@ pragma solidity ^0.8.19;
 
 import {ERC20BaseToken} from "@0xsequence/contracts-library/tokens/ERC20/ERC20BaseToken.sol";
 import {
-    IERC20Items,
-    IERC20ItemsFunctions
+    IERC20Items, IERC20ItemsFunctions
 } from "@0xsequence/contracts-library/tokens/ERC20/presets/items/IERC20Items.sol";
 
 /**

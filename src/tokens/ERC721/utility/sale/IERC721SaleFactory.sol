@@ -19,7 +19,9 @@ interface IERC721SaleFactoryFunctions {
      * @param items The ERC-721 Items contract address
      * @return proxyAddr The address of the ERC-721 Sale Proxy
      */
-    function determineAddress(address proxyOwner, address tokenOwner, address items) external returns (address proxyAddr);
+    function determineAddress(address proxyOwner, address tokenOwner, address items)
+        external
+        returns (address proxyAddr);
 }
 
 interface IERC721SaleFactorySignals {
