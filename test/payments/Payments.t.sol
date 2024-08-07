@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import "forge-std/Test.sol";
+import {TestHelper} from "../TestHelper.sol";
 
+import {PaymentsFactory} from "src/payments/PaymentsFactory.sol";
 import {Payments, IERC165} from "src/payments/Payments.sol";
 import {IPayments, IPaymentsFunctions, IPaymentsSignals} from "src/payments/IPayments.sol";
 
@@ -12,7 +13,7 @@ import {ERC721Mock} from "test/_mocks/ERC721Mock.sol";
 import {IGenericToken} from "test/_mocks/IGenericToken.sol";
 import {ERC1271Mock} from "test/_mocks/ERC1271Mock.sol";
 
-contract PaymentsTest is Test, IPaymentsSignals {
+contract PaymentsTest is TestHelper, IPaymentsSignals {
     Payments public payments;
     address public owner;
     address public signer;
@@ -26,7 +27,8 @@ contract PaymentsTest is Test, IPaymentsSignals {
     function setUp() public {
         owner = makeAddr("owner");
         (signer, signerPk) = makeAddrAndKey("signer");
-        payments = new Payments(owner, signer);
+        PaymentsFactory factory = new PaymentsFactory(owner);
+        payments = Payments(factory.deploy(owner, owner, signer));
 
         erc20 = new ERC20Mock(address(this));
         erc721 = new ERC721Mock(address(this), "baseURI");
@@ -105,6 +107,27 @@ contract PaymentsTest is Test, IPaymentsSignals {
             }
             return abi.encodePacked(uint8(1), r, s, v);
         }
+    }
+
+    /**
+     * Test all public selectors for collisions against the proxy admin functions.
+     * @dev yarn ts-node scripts/outputSelectors.ts
+     */
+    function testSelectorCollision() public pure {
+        checkSelectorCollision(0x0e6fe11f); // hashChainedCallDetails((address,bytes))
+        checkSelectorCollision(0x98c3065f); // hashPaymentDetails((uint256,address,uint8,address,uint256,(address,uint256)[],uint64,string,(address,bytes)))
+        checkSelectorCollision(0x485cc955); // initialize(address,address)
+        checkSelectorCollision(0x579a97e6); // isValidChainedCallSignature((address,bytes),bytes)
+        checkSelectorCollision(0x7b8bdc8e); // isValidPaymentSignature((uint256,address,uint8,address,uint256,(address,uint256)[],uint64,string,(address,bytes)),bytes)
+        checkSelectorCollision(0xdecfb3b2); // makePayment((uint256,address,uint8,address,uint256,(address,uint256)[],uint64,string,(address,bytes)),bytes)
+        checkSelectorCollision(0x8da5cb5b); // owner()
+        checkSelectorCollision(0x3a63b803); // paymentAccepted(uint256)
+        checkSelectorCollision(0xb2238700); // performChainedCall((address,bytes),bytes)
+        checkSelectorCollision(0x715018a6); // renounceOwnership()
+        checkSelectorCollision(0x238ac933); // signer()
+        checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
+        checkSelectorCollision(0xf2fde38b); // transferOwnership(address)
+        checkSelectorCollision(0xa7ecd37e); // updateSigner(address)
     }
 
     function testMakePaymentSuccess(address caller, DetailsInput calldata input, bool isERC1271)

@@ -14,14 +14,28 @@ import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 contract Payments is Ownable, IPayments, IERC165 {
     using SignatureValidator for bytes32;
 
+    bool private _initialized;
+
     address public signer;
 
     // Payment accepted. Works as a nonce.
     mapping(uint256 => bool) public paymentAccepted;
 
-    constructor(address _owner, address _signer) {
+    /**
+     * Initialize the contract.
+     * @param _owner Owner address
+     * @param _signer Signer address
+     * @dev This should be called immediately after deployment.
+     */
+    function initialize(address _owner, address _signer) public virtual {
+        if (_initialized) {
+            revert InvalidInitialization();
+        }
+
         Ownable._transferOwnership(_owner);
         signer = _signer;
+
+        _initialized = true;
     }
 
     /**

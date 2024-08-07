@@ -112,6 +112,9 @@ interface IPaymentsFunctions {
 }
 
 interface IPaymentsSignals {
+    /// @notice Emitted when contract is already initialized.
+    error InvalidInitialization();
+
     /// @notice Emitted when a payment is already accepted. This prevents double spending.
     error PaymentAlreadyAccepted();
 
