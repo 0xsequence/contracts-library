@@ -46,6 +46,14 @@ abstract contract TestHelper is Test, Merkle {
         }
     }
 
+    function assumeNoDuplicates(address[] memory values) internal pure {
+        for (uint256 i = 0; i < values.length; i++) {
+            for (uint256 j = i + 1; j < values.length; j++) {
+                vm.assume(values[i] != values[j]);
+            }
+        }
+    }
+
     function getMerkleParts(address[] memory allowlist, uint256 salt, uint256 leafIndex) internal pure returns (bytes32 root, bytes32[] memory proof) {
         bytes32[] memory leaves = new bytes32[](allowlist.length);
         for (uint256 i = 0; i < allowlist.length; i++) {
