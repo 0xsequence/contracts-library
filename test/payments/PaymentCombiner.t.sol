@@ -103,12 +103,10 @@ contract PaymentCombinerTest is TestHelper, IPaymentCombinerSignals {
             payable(splitterAddrs[i]).transfer(amount);
         }
 
-        (address[] memory splitterReleasable, uint256[] memory pendingShares) =
-            combiner.listReleasable(payable(targetPayee), address(0));
+        uint256[] memory pendingShares = combiner.listReleasable(payable(targetPayee), address(0), splitterAddrs);
 
-        for (uint256 i = 0; i < splitterReleasable.length; i++) {
-            assertEq(splitterReleasable[i], splitterAddrs[i]);
-            PaymentSplitter splitter = PaymentSplitter(payable(splitterReleasable[i]));
+        for (uint256 i = 0; i < splitterAddrs.length; i++) {
+            PaymentSplitter splitter = PaymentSplitter(payable(splitterAddrs[i]));
             assertEq(splitter.releasable(targetPayee), pendingShares[i]);
         }
     }
@@ -130,12 +128,10 @@ contract PaymentCombinerTest is TestHelper, IPaymentCombinerSignals {
             erc20.transfer(splitterAddrs[i], amount);
         }
 
-        (address[] memory splitterReleasable, uint256[] memory pendingShares) =
-            combiner.listReleasable(payable(targetPayee), address(erc20));
+        uint256[] memory pendingShares = combiner.listReleasable(payable(targetPayee), address(erc20), splitterAddrs);
 
-        for (uint256 i = 0; i < splitterReleasable.length; i++) {
-            assertEq(splitterReleasable[i], splitterAddrs[i]);
-            PaymentSplitter splitter = PaymentSplitter(payable(splitterReleasable[i]));
+        for (uint256 i = 0; i < splitterAddrs.length; i++) {
+            PaymentSplitter splitter = PaymentSplitter(payable(splitterAddrs[i]));
             assertEq(splitter.releasable(IERC20Upgradeable(address(erc20)), targetPayee), pendingShares[i]);
         }
     }

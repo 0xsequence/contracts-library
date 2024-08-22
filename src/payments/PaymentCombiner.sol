@@ -67,33 +67,32 @@ contract PaymentCombiner is IPaymentCombiner, IERC165 {
     }
 
     /// @inheritdoc IPaymentCombinerFunctions
-    function listReleasable(address payee, address tokenAddr)
+    function listReleasable(address payee, address tokenAddr, address[] calldata splitterAddrs)
         external
         view
-        returns (address[] memory splitterAddrs, uint256[] memory pendingShares)
+        returns (uint256[] memory pendingShares)
     {
-        address[] memory payeeSplitters = _payeeSplitters[payee];
-        uint256 len = payeeSplitters.length;
+        uint256 len = splitterAddrs.length;
         uint256[] memory payeePendingShares = new uint256[](len);
 
         if (tokenAddr == address(0)) {
             for (uint256 i = 0; i < len;) {
-                payeePendingShares[i] = PaymentSplitter(payable(payeeSplitters[i])).releasable(payee);
+                payeePendingShares[i] = PaymentSplitter(payable(splitterAddrs[i])).releasable(payee);
                 unchecked {
                     i++;
                 }
             }
         } else {
+            IERC20Upgradeable token = IERC20Upgradeable(tokenAddr);
             for (uint256 i = 0; i < len;) {
-                payeePendingShares[i] =
-                    PaymentSplitter(payable(payeeSplitters[i])).releasable(IERC20Upgradeable(tokenAddr), payee);
+                payeePendingShares[i] = PaymentSplitter(payable(splitterAddrs[i])).releasable(token, payee);
                 unchecked {
                     i++;
                 }
             }
         }
 
-        return (payeeSplitters, payeePendingShares);
+        return payeePendingShares;
     }
 
     /// @inheritdoc IPaymentCombinerFunctions
@@ -107,8 +106,9 @@ contract PaymentCombiner is IPaymentCombiner, IERC165 {
                 }
             }
         } else {
+            IERC20Upgradeable token = IERC20Upgradeable(tokenAddr);
             for (uint256 i = 0; i < len;) {
-                PaymentSplitter(payable(splitterAddrs[i])).release(IERC20Upgradeable(tokenAddr), payee);
+                PaymentSplitter(payable(splitterAddrs[i])).release(token, payee);
                 unchecked {
                     i++;
                 }

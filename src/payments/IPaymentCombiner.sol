@@ -22,7 +22,9 @@ interface IPaymentCombinerFunctions {
      * @param shares The number of shares each payee has
      * @return proxyAddr The address of the proxy
      */
-    function determineAddress(address[] calldata payees, uint256[] calldata shares) external returns (address proxyAddr);
+    function determineAddress(address[] calldata payees, uint256[] calldata shares)
+        external
+        returns (address proxyAddr);
 
     /**
      * Get the list of Payment Splitters this payee is associated with.
@@ -35,14 +37,14 @@ interface IPaymentCombinerFunctions {
      * Get the list of pending shares for a payee.
      * @param payee The address of the payee
      * @param tokenAddr The address of the ERC-20 token. If the token address is 0x0, then the native token is used.
-     * @return splitterAddrs The list of payments splitters with pending shares
+     * @param splitterAddrs The list of payments splitters to check
      * @return pendingShares The list of pending shares
      * @dev The list includes zero balances. These should be removed before releasing shares.
      */
-    function listReleasable(address payee, address tokenAddr)
+    function listReleasable(address payee, address tokenAddr, address[] memory splitterAddrs)
         external
         view
-        returns (address[] memory splitterAddrs, uint256[] memory pendingShares);
+        returns (uint256[] memory pendingShares);
 
     /**
      * Release the pending shares for a payee.
