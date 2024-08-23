@@ -37,7 +37,7 @@ interface IPaymentCombinerFunctions {
      * Get the list of pending shares for a payee.
      * @param payee The address of the payee
      * @param tokenAddr The address of the ERC-20 token. If the token address is 0x0, then the native token is used.
-     * @param splitterAddrs The list of payments splitters to check
+     * @param splitterAddrs The list of payments splitters to check. If empty then all splitters are used.
      * @return pendingShares The list of pending shares
      * @dev The list includes zero balances. These should be removed before releasing shares.
      */
@@ -50,8 +50,9 @@ interface IPaymentCombinerFunctions {
      * Release the pending shares for a payee.
      * @param payee The address of the payee
      * @param tokenAddr The address of the ERC-20 token. If the token address is 0x0, then the native token is used.
-     * @param splitterAddrs The list of payments splitters to release shares from
-     * @dev Use the listReleasableSplitters function to get the list of splitters and pending shares
+     * @param splitterAddrs The list of payments splitters to release shares from. If empty then all splitters are used.
+     * @dev Use the above functions to get the list of splitters and pending shares.
+     * @dev Calling splitters with no shares to release will fail.
      */
     function release(address payable payee, address tokenAddr, address[] calldata splitterAddrs) external;
 }

@@ -72,12 +72,18 @@ contract PaymentCombiner is IPaymentCombiner, IERC165 {
         view
         returns (uint256[] memory pendingShares)
     {
-        uint256 len = splitterAddrs.length;
+        address[] memory splitters = splitterAddrs;
+        uint256 len = splitters.length;
+        if (len == 0) {
+            splitters = _payeeSplitters[payee];
+            len = splitters.length;
+        }
+
         uint256[] memory payeePendingShares = new uint256[](len);
 
         if (tokenAddr == address(0)) {
             for (uint256 i = 0; i < len;) {
-                payeePendingShares[i] = PaymentSplitter(payable(splitterAddrs[i])).releasable(payee);
+                payeePendingShares[i] = PaymentSplitter(payable(splitters[i])).releasable(payee);
                 unchecked {
                     i++;
                 }
@@ -85,7 +91,7 @@ contract PaymentCombiner is IPaymentCombiner, IERC165 {
         } else {
             IERC20Upgradeable token = IERC20Upgradeable(tokenAddr);
             for (uint256 i = 0; i < len;) {
-                payeePendingShares[i] = PaymentSplitter(payable(splitterAddrs[i])).releasable(token, payee);
+                payeePendingShares[i] = PaymentSplitter(payable(splitters[i])).releasable(token, payee);
                 unchecked {
                     i++;
                 }
@@ -97,10 +103,16 @@ contract PaymentCombiner is IPaymentCombiner, IERC165 {
 
     /// @inheritdoc IPaymentCombinerFunctions
     function release(address payable payee, address tokenAddr, address[] calldata splitterAddrs) external {
-        uint256 len = splitterAddrs.length;
+        address[] memory splitters = splitterAddrs;
+        uint256 len = splitters.length;
+        if (len == 0) {
+            splitters = _payeeSplitters[payee];
+            len = splitters.length;
+        }
+
         if (tokenAddr == address(0)) {
             for (uint256 i = 0; i < len;) {
-                PaymentSplitter(payable(splitterAddrs[i])).release(payee);
+                PaymentSplitter(payable(splitters[i])).release(payee);
                 unchecked {
                     i++;
                 }
@@ -108,7 +120,7 @@ contract PaymentCombiner is IPaymentCombiner, IERC165 {
         } else {
             IERC20Upgradeable token = IERC20Upgradeable(tokenAddr);
             for (uint256 i = 0; i < len;) {
-                PaymentSplitter(payable(splitterAddrs[i])).release(token, payee);
+                PaymentSplitter(payable(splitters[i])).release(token, payee);
                 unchecked {
                     i++;
                 }
