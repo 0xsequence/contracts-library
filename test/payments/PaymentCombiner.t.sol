@@ -65,6 +65,14 @@ contract PaymentCombinerTest is TestHelper, IPaymentCombinerSignals {
         assertEq(expectedAddr, actualAddr);
     }
 
+    function testRepeatedDeploysFail(address[] memory payees, uint256[] memory shares) public {
+        (payees, shares) = _validArrays(payees, shares);
+        combiner.deploy(payees, shares);
+
+        vm.expectRevert();
+        combiner.deploy(payees, shares);
+    }
+
     function testListPayeeSplitters(
         address[] memory payees1,
         address[] memory payees2,
