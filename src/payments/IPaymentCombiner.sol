@@ -27,11 +27,23 @@ interface IPaymentCombinerFunctions {
         returns (address proxyAddr);
 
     /**
+     * Get the amount of Payment Splitters this payee is associated with.
+     * @param payee The address of the payee
+     * @return count The amount of payments splitters
+     */
+    function countPayeeSplitters(address payee) external view returns (uint256 count);
+
+    /**
      * Get the list of Payment Splitters this payee is associated with.
      * @param payee The address of the payee
+     * @param offset The offset to start from
+     * @param limit The maximum amount of splitters to return
      * @return splitterAddrs The list of payments splitters
      */
-    function listPayeeSplitters(address payee) external view returns (address[] memory splitterAddrs);
+    function listPayeeSplitters(address payee, uint256 offset, uint256 limit)
+        external
+        view
+        returns (address[] memory splitterAddrs);
 
     /**
      * Get the list of pending shares for a payee.
@@ -63,6 +75,11 @@ interface IPaymentCombinerSignals {
      * @param proxyAddr The address of the deployed proxy.
      */
     event PaymentSplitterDeployed(address proxyAddr);
+
+    /**
+     * Thrown when the provided offset and limit are out of bounds.
+     */
+    error ParametersOutOfBounds(uint256 offset, uint256 limit, uint256 count);
 }
 
 interface IPaymentCombiner is IPaymentCombinerFunctions, IPaymentCombinerSignals {}

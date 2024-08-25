@@ -62,8 +62,26 @@ contract PaymentCombiner is IPaymentCombiner, IERC165 {
     }
 
     /// @inheritdoc IPaymentCombinerFunctions
-    function listPayeeSplitters(address payee) external view returns (address[] memory splitterAddrs) {
-        return _payeeSplitters[payee];
+    function countPayeeSplitters(address payee) external view returns (uint256 count) {
+        return _payeeSplitters[payee].length;
+    }
+
+    /// @inheritdoc IPaymentCombinerFunctions
+    function listPayeeSplitters(address payee, uint256 offset, uint256 limit)
+        external
+        view
+        returns (address[] memory splitterAddrs)
+    {
+        address[] memory payeeSplitters = _payeeSplitters[payee];
+        uint256 len = payeeSplitters.length;
+        if (offset + limit > len) {
+            revert ParametersOutOfBounds(offset, limit, len);
+        }
+        splitterAddrs = new address[](limit);
+        for (uint256 i = 0; i < limit; i++) {
+            splitterAddrs[i] = _payeeSplitters[payee][i + offset];
+        }
+        return splitterAddrs;
     }
 
     /// @inheritdoc IPaymentCombinerFunctions

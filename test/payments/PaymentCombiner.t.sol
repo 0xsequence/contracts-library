@@ -25,32 +25,41 @@ contract PaymentCombinerTest is TestHelper, IPaymentCombinerSignals {
         assertTrue(combiner.supportsInterface(type(IPaymentCombinerFunctions).interfaceId));
     }
 
+    function _shrinkArrays(address[] memory arr1, uint256[] memory arr2, uint256 maxLen)
+        internal
+        pure
+        returns (address[] memory, uint256[] memory, uint256)
+    {
+        maxLen = arr1.length < maxLen ? arr1.length : maxLen;
+        maxLen = arr2.length < maxLen ? arr2.length : maxLen;
+        assembly {
+            mstore(arr1, maxLen)
+            mstore(arr2, maxLen)
+        }
+        return (arr1, arr2, maxLen);
+    }
+
     function _validArrays(address[] memory payees, uint256[] memory shares)
         internal
         view
         returns (address[] memory, uint256[] memory)
     {
         uint256 payeeLength = payees.length;
-        vm.assume(payeeLength > 0);
+        vm.assume(payeeLength > 1);
         uint256 sharesLength = shares.length;
-        vm.assume(sharesLength > 0);
+        vm.assume(sharesLength > 1);
 
-        uint256 maxLen = 5;
-        maxLen = payeeLength < maxLen ? payeeLength : maxLen;
-        maxLen = sharesLength < maxLen ? sharesLength : maxLen;
-        assembly {
-            mstore(payees, maxLen)
-            mstore(shares, maxLen)
-        }
+        uint256 len;
+        (payees, shares, len) = _shrinkArrays(payees, shares, 5);
 
         // Make sure addr is safe
-        for (uint256 i = 0; i < maxLen; i++) {
+        for (uint256 i = 0; i < len; i++) {
             assumeSafeAddress(payees[i]);
         }
         assumeNoDuplicates(payees);
 
         // Bind shares to prevent overflow
-        for (uint256 i = 0; i < maxLen; i++) {
+        for (uint256 i = 0; i < len; i++) {
             shares[i] = _bound(shares[i], 1, 100);
         }
 
@@ -73,6 +82,60 @@ contract PaymentCombinerTest is TestHelper, IPaymentCombinerSignals {
         combiner.deploy(payees, shares);
     }
 
+    // Tested through internal calls
+    function _testCountPayeeSplitters(address expectedPayee, address[][] memory payees, uint256[] memory shares)
+        internal
+        returns (uint256 expectedCount)
+    {
+        for (uint256 i = 0; i < payees.length; i++) {
+            if (payees[i].length < 2) {
+                continue;
+            }
+            payees[i][0] = expectedPayee;
+            uint256[] memory useShares;
+            (payees[i], useShares,) = _shrinkArrays(payees[i], shares, 2);
+            try combiner.deploy(payees[i], useShares) {
+                expectedCount++;
+            } catch {}
+        }
+        assertEq(combiner.countPayeeSplitters(expectedPayee), expectedCount);
+
+        return expectedCount;
+    }
+
+    function testListPayeeSplittersOffsetLimit(
+        address expectedPayee,
+        address[][] memory payees,
+        uint256[] memory shares,
+        uint256 offset,
+        uint256 limit
+    ) public {
+        vm.assume(shares.length > 1);
+
+        uint256 maxLen = 8; // Prevent test out of gas
+        if (payees.length > maxLen) {
+            assembly {
+                mstore(payees, maxLen)
+            }
+        }
+
+        uint256 count = _testCountPayeeSplitters(expectedPayee, payees, shares);
+        if (count == 0) {
+            // We don't use vm.assume to reduce fuzz runs
+            return;
+        }
+
+        limit = _bound(limit, 0, count);
+        offset = _bound(offset, 0, count - limit);
+        address[] memory splitterAddrs = combiner.listPayeeSplitters(expectedPayee, offset, limit);
+        address[] memory fullList = combiner.listPayeeSplitters(expectedPayee, 0, count);
+
+        assertEq(splitterAddrs.length, limit);
+        for (uint256 i = 0; i < limit; i++) {
+            assertEq(splitterAddrs[i], fullList[offset + i]);
+        }
+    }
+
     function testListPayeeSplitters(
         address[] memory payees1,
         address[] memory payees2,
@@ -88,7 +151,7 @@ contract PaymentCombinerTest is TestHelper, IPaymentCombinerSignals {
 
         address splitter1 = combiner.deploy(payees1, shares1);
         address splitter2 = combiner.deploy(payees2, shares2);
-        splitterAddrs = combiner.listPayeeSplitters(targetPayee);
+        splitterAddrs = combiner.listPayeeSplitters(targetPayee, 0, 2);
         assertEq(splitterAddrs.length, 2);
         assertEq(splitterAddrs[0], splitter1);
         assertEq(splitterAddrs[1], splitter2);
