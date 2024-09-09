@@ -124,7 +124,7 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
 
     // Withdraw success ETH
     function testWithdrawETH(bool useFactory, address withdrawTo, uint256 amount) public withFactory(useFactory) {
-        assumeSafeAddress(withdrawTo);
+        assumePayable(withdrawTo);
 
         address _sale = address(sale);
         vm.deal(_sale, amount);

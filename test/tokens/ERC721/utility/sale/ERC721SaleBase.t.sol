@@ -116,7 +116,7 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals {
 
     // Withdraw success ETH
     function testWithdrawETH(bool useFactory, address withdrawTo, uint256 amount) public withFactory(useFactory) {
-        assumeSafeAddress(withdrawTo);
+        assumePayable(withdrawTo);
         vm.deal(address(sale), amount);
 
         uint256 saleBalance = address(sale).balance;

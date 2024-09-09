@@ -41,7 +41,6 @@ contract PaymentCombinerTest is TestHelper, IPaymentCombinerSignals {
 
     function _validArrays(address[] memory payees, uint256[] memory shares)
         internal
-        view
         returns (address[] memory, uint256[] memory)
     {
         uint256 payeeLength = payees.length;
@@ -55,6 +54,7 @@ contract PaymentCombinerTest is TestHelper, IPaymentCombinerSignals {
         // Make sure addr is safe
         for (uint256 i = 0; i < len; i++) {
             assumeSafeAddress(payees[i]);
+            assumePayable(payees[i]);
         }
         assumeNoDuplicates(payees);
 
