@@ -9,3 +9,4 @@ erc721a-upgradeable/=lib/chiru-labs/erc721a-upgradeable/
 @openzeppelin/=lib/openzeppelin/
 @openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable/
 solady/=lib/solady/src/
+@limitbreak/creator-token-standards/=lib/creator-token-standards/src/
