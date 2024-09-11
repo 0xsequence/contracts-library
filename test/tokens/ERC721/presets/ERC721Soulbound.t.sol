@@ -182,7 +182,7 @@ contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721Soulboun
         token.transferFrom(holder, receiver, 0);
     }
 
-    function testTransferUnLocked(address holder, address receiver) public {
+    function testTransferUnlocked(address holder, address receiver) public {
         vm.assume(holder != receiver);
         assumeSafeAddress(holder);
         assumeSafeAddress(receiver);
@@ -199,7 +199,7 @@ contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721Soulboun
         vm.assertEq(token.ownerOf(0), receiver);
     }
 
-    function testTransferUnLockedOperator(address holder, address operator, address receiver) public {
+    function testTransferUnlockedOperator(address holder, address operator, address receiver) public {
         vm.assume(holder != receiver);
         vm.assume(holder != operator);
         assumeSafeAddress(holder);
