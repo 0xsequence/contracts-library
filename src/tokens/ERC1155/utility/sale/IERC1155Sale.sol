@@ -17,7 +17,7 @@ interface IERC1155SaleFunctions {
      * @notice Global sales details apply to all tokens.
      * @notice Global sales details are overriden when token sale is active.
      */
-    function globalSaleDetails() external returns (SaleDetails memory);
+    function globalSaleDetails() external view returns (SaleDetails memory);
 
     /**
      * Get token sale details.
@@ -25,7 +25,7 @@ interface IERC1155SaleFunctions {
      * @return Sale details.
      * @notice Token sale details override global sale details.
      */
-    function tokenSaleDetails(uint256 tokenId) external returns (SaleDetails memory);
+    function tokenSaleDetails(uint256 tokenId) external view returns (SaleDetails memory);
 
     /**
      * Get payment token.
