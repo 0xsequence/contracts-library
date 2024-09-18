@@ -32,7 +32,7 @@ interface IERC1155SaleFunctions {
      * @return Payment token address.
      * @notice address(0) indicates payment in ETH.
      */
-    function paymentToken() external returns (address);
+    function paymentToken() external view returns (address);
 
     /**
      * Mint tokens.
