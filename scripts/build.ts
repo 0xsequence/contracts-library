@@ -5,7 +5,7 @@ import util from 'util'
 import {
   BUILD_DIR,
   DEPLOYABLE_CONTRACT_NAMES,
-  TOKEN_CONTRACT_NAMES,
+  PROXIED_TOKEN_CONTRACT_NAMES,
 } from './constants'
 const exec = util.promisify(execNonPromise)
 
@@ -27,7 +27,7 @@ const main = async () => {
   // Create the compiler input files
   for (const solFile of [
     ...DEPLOYABLE_CONTRACT_NAMES,
-    ...TOKEN_CONTRACT_NAMES,
+    ...PROXIED_TOKEN_CONTRACT_NAMES,
     'TransparentUpgradeableBeaconProxy',
     'UpgradeableBeacon',
   ]) {

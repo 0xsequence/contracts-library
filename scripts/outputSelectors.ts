@@ -1,4 +1,4 @@
-import { TOKEN_CONTRACT_NAMES } from './constants'
+import { PROXIED_TOKEN_CONTRACT_NAMES } from './constants'
 
 const { spawn } = require('child_process')
 
@@ -31,4 +31,4 @@ const outputSelectors = (contractName: string) => {
   })
 }
 
-TOKEN_CONTRACT_NAMES.forEach(outputSelectors)
+PROXIED_TOKEN_CONTRACT_NAMES.forEach(outputSelectors)

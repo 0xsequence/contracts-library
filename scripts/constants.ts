@@ -8,10 +8,11 @@ export const DEPLOYABLE_CONTRACT_NAMES = [
   'ERC1155SaleFactory',
   'ERC1155SoulboundFactory',
   'PaymentCombiner',
+  'PaymentsFactory',
   'Clawback',
   'ClawbackMetadata',
 ]
-export const TOKEN_CONTRACT_NAMES = [
+export const PROXIED_TOKEN_CONTRACT_NAMES = [
   'ERC20Items',
   'ERC721Items',
   'ERC721Sale',
@@ -19,4 +20,5 @@ export const TOKEN_CONTRACT_NAMES = [
   'ERC1155Items',
   'ERC1155Sale',
   'ERC1155Soulbound',
+  'Payments',
 ]
