@@ -1,0 +1,98 @@
+{
+	"deploy": {
+		"VM:-": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"main:1": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"ropsten:3": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"rinkeby:4": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"kovan:42": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"goerli:5": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"Custom": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		}
+	},
+	"data": {
+		"bytecode": {
+			"functionDebugData": {},
+			"generatedSources": [],
+			"linkReferences": {},
+			"object": "60556032600b8282823980515f1a607314602657634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040525f80fdfea2646970667358221220f2a8d9e63eb94fe4addec9cf5f0ff3815a79632304c8b447eb3e1bebcccb447e64736f6c63430008140033",
+			"opcodes": "PUSH1 0x55 PUSH1 0x32 PUSH1 0xB DUP3 DUP3 DUP3 CODECOPY DUP1 MLOAD PUSH0 BYTE PUSH1 0x73 EQ PUSH1 0x26 JUMPI PUSH4 0x4E487B71 PUSH1 0xE0 SHL PUSH0 MSTORE PUSH0 PUSH1 0x4 MSTORE PUSH1 0x24 PUSH0 REVERT JUMPDEST ADDRESS PUSH0 MSTORE PUSH1 0x73 DUP2 MSTORE8 DUP3 DUP2 RETURN INVALID PUSH20 0x0 ADDRESS EQ PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 CALLCODE 0xA8 0xD9 0xE6 RETURNDATACOPY 0xB9 0x4F 0xE4 0xAD 0xDE 0xC9 0xCF PUSH0 0xF RETURN DUP2 GAS PUSH26 0x632304C8B447EB3E1BEBCCCB447E64736F6C6343000814003300 ",
+			"sourceMap": "411:484:0:-:0;;;;;;;;;;;;;;;-1:-1:-1;;;411:484:0;;;;;;;;;;;;;;;;;"
+		},
+		"deployedBytecode": {
+			"functionDebugData": {},
+			"generatedSources": [],
+			"immutableReferences": {},
+			"linkReferences": {},
+			"object": "730000000000000000000000000000000000000000301460806040525f80fdfea2646970667358221220f2a8d9e63eb94fe4addec9cf5f0ff3815a79632304c8b447eb3e1bebcccb447e64736f6c63430008140033",
+			"opcodes": "PUSH20 0x0 ADDRESS EQ PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 CALLCODE 0xA8 0xD9 0xE6 RETURNDATACOPY 0xB9 0x4F 0xE4 0xAD 0xDE 0xC9 0xCF PUSH0 0xF RETURN DUP2 GAS PUSH26 0x632304C8B447EB3E1BEBCCCB447E64736F6C6343000814003300 ",
+			"sourceMap": "411:484:0:-:0;;;;;;;;"
+		},
+		"gasEstimates": {
+			"creation": {
+				"codeDepositCost": "17000",
+				"executionCost": "96",
+				"totalCost": "17096"
+			}
+		},
+		"methodIdentifiers": {}
+	},
+	"abi": [
+		{
+			"inputs": [],
+			"name": "FailedCall",
+			"type": "error"
+		},
+		{
+			"inputs": [],
+			"name": "FailedDeployment",
+			"type": "error"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "balance",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint256",
+					"name": "needed",
+					"type": "uint256"
+				}
+			],
+			"name": "InsufficientBalance",
+			"type": "error"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"name": "MissingPrecompile",
+			"type": "error"
+		}
+	]
+}

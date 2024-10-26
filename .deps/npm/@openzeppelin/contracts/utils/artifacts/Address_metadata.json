@@ -1,0 +1,84 @@
+{
+	"compiler": {
+		"version": "0.8.20+commit.a1b79de6"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "target",
+						"type": "address"
+					}
+				],
+				"name": "AddressEmptyCode",
+				"type": "error"
+			}
+		],
+		"devdoc": {
+			"details": "Collection of functions related to the address type",
+			"errors": {
+				"AddressEmptyCode(address)": [
+					{
+						"details": "There's no code at `target` (it is not a contract)."
+					}
+				]
+			},
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			".deps/npm/@openzeppelin/contracts/utils/Address.sol": "Address"
+		},
+		"evmVersion": "shanghai",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": [
+			":@0xsequence/contracts-library/=src/",
+			":@0xsequence/erc-1155/=lib/0xsequence/erc-1155/src/",
+			":@0xsequence/erc20-meta-token/=lib/0xsequence/erc20-meta-token/src/",
+			":@openzeppelin/=lib/openzeppelin/",
+			":ds-test/=lib/forge-std/lib/ds-test/src/",
+			":erc721a-upgradeable/=lib/chiru-labs/erc721a-upgradeable/",
+			":erc721a/=lib/chiru-labs/erc721a/",
+			":forge-std/=lib/forge-std/src/",
+			":murky/=lib/murky/src/",
+			":solady/=lib/solady/src/"
+		]
+	},
+	"sources": {
+		".deps/npm/@openzeppelin/contracts/utils/Address.sol": {
+			"keccak256": "0x9d8da059267bac779a2dbbb9a26c2acf00ca83085e105d62d5d4ef96054a47f5",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://c78e2aa4313323cecd1ef12a8d6265b96beee1a199923abf55d9a2a9e291ad23",
+				"dweb:/ipfs/QmUTs2KStXucZezzFo3EYeqYu47utu56qrF7jj1Gue65vb"
+			]
+		},
+		".deps/npm/@openzeppelin/contracts/utils/Errors.sol": {
+			"keccak256": "0x6afa713bfd42cf0f7656efa91201007ac465e42049d7de1d50753a373648c123",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://ba1d02f4847670a1b83dec9f7d37f0b0418d6043447b69f3a29a5f9efc547fcf",
+				"dweb:/ipfs/QmQ7iH2keLNUKgq2xSWcRmuBE5eZ3F5whYAkAGzCNNoEWB"
+			]
+		}
+	},
+	"version": 1
+}

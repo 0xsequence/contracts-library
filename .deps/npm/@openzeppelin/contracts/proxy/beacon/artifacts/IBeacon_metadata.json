@@ -1,0 +1,75 @@
+{
+	"compiler": {
+		"version": "0.8.20+commit.a1b79de6"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "implementation",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"details": "This is the interface that {BeaconProxy} expects of its beacon.",
+			"kind": "dev",
+			"methods": {
+				"implementation()": {
+					"details": "Must return an address that can be used as a delegate call target. {UpgradeableBeacon} will check that this address is a contract."
+				}
+			},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			".deps/npm/@openzeppelin/contracts/proxy/beacon/IBeacon.sol": "IBeacon"
+		},
+		"evmVersion": "shanghai",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": true,
+			"runs": 200
+		},
+		"remappings": [
+			":@0xsequence/contracts-library/=src/",
+			":@0xsequence/erc-1155/=lib/0xsequence/erc-1155/src/",
+			":@0xsequence/erc20-meta-token/=lib/0xsequence/erc20-meta-token/src/",
+			":@openzeppelin/=lib/openzeppelin/",
+			":ds-test/=lib/forge-std/lib/ds-test/src/",
+			":erc721a-upgradeable/=lib/chiru-labs/erc721a-upgradeable/",
+			":erc721a/=lib/chiru-labs/erc721a/",
+			":forge-std/=lib/forge-std/src/",
+			":murky/=lib/murky/src/",
+			":solady/=lib/solady/src/"
+		]
+	},
+	"sources": {
+		".deps/npm/@openzeppelin/contracts/proxy/beacon/IBeacon.sol": {
+			"keccak256": "0xc59a78b07b44b2cf2e8ab4175fca91e8eca1eee2df7357b8d2a8833e5ea1f64c",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://5aa4f07e65444784c29cd7bfcc2341b34381e4e5b5da9f0c5bd00d7f430e66fa",
+				"dweb:/ipfs/QmWRMh4Q9DpaU9GvsiXmDdoNYMyyece9if7hnfLz7uqzWM"
+			]
+		}
+	},
+	"version": 1
+}

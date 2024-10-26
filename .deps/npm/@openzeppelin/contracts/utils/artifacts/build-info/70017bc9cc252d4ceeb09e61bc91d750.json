@@ -1,0 +1,701 @@
+{
+	"id": "70017bc9cc252d4ceeb09e61bc91d750",
+	"_format": "hh-sol-build-info-1",
+	"solcVersion": "0.8.20",
+	"solcLongVersion": "0.8.20+commit.a1b79de6",
+	"input": {
+		"language": "Solidity",
+		"sources": {
+			".deps/npm/@openzeppelin/contracts/utils/Errors.sol": {
+				"content": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts (last updated v5.1.0) (utils/Errors.sol)\n\npragma solidity ^0.8.20;\n\n/**\n * @dev Collection of common custom errors used in multiple contracts\n *\n * IMPORTANT: Backwards compatibility is not guaranteed in future versions of the library.\n * It is recommended to avoid relying on the error API for critical functionality.\n *\n * _Available since v5.1._\n */\nlibrary Errors {\n    /**\n     * @dev The ETH balance of the account is not enough to perform the operation.\n     */\n    error InsufficientBalance(uint256 balance, uint256 needed);\n\n    /**\n     * @dev A call to an address target failed. The target may have reverted.\n     */\n    error FailedCall();\n\n    /**\n     * @dev The deployment failed.\n     */\n    error FailedDeployment();\n\n    /**\n     * @dev A necessary precompile is missing.\n     */\n    error MissingPrecompile(address);\n}\n"
+			}
+		},
+		"settings": {
+			"optimizer": {
+				"enabled": true,
+				"runs": 200
+			},
+			"outputSelection": {
+				"*": {
+					"": [
+						"ast"
+					],
+					"*": [
+						"abi",
+						"metadata",
+						"devdoc",
+						"userdoc",
+						"storageLayout",
+						"evm.legacyAssembly",
+						"evm.bytecode",
+						"evm.deployedBytecode",
+						"evm.methodIdentifiers",
+						"evm.gasEstimates",
+						"evm.assembly"
+					]
+				}
+			},
+			"remappings": [
+				"@0xsequence/contracts-library/=src/",
+				"ds-test/=lib/forge-std/lib/ds-test/src/",
+				"forge-std/=lib/forge-std/src/",
+				"murky/=lib/murky/src/",
+				"@0xsequence/erc20-meta-token/=lib/0xsequence/erc20-meta-token/src/",
+				"@0xsequence/erc-1155/=lib/0xsequence/erc-1155/src/",
+				"erc721a/=lib/chiru-labs/erc721a/",
+				"erc721a-upgradeable/=lib/chiru-labs/erc721a-upgradeable/",
+				"@openzeppelin/=lib/openzeppelin/",
+				"solady/=lib/solady/src/"
+			]
+		}
+	},
+	"output": {
+		"contracts": {
+			".deps/npm/@openzeppelin/contracts/utils/Errors.sol": {
+				"Errors": {
+					"abi": [
+						{
+							"inputs": [],
+							"name": "FailedCall",
+							"type": "error"
+						},
+						{
+							"inputs": [],
+							"name": "FailedDeployment",
+							"type": "error"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "uint256",
+									"name": "balance",
+									"type": "uint256"
+								},
+								{
+									"internalType": "uint256",
+									"name": "needed",
+									"type": "uint256"
+								}
+							],
+							"name": "InsufficientBalance",
+							"type": "error"
+						},
+						{
+							"inputs": [
+								{
+									"internalType": "address",
+									"name": "",
+									"type": "address"
+								}
+							],
+							"name": "MissingPrecompile",
+							"type": "error"
+						}
+					],
+					"devdoc": {
+						"details": "Collection of common custom errors used in multiple contracts IMPORTANT: Backwards compatibility is not guaranteed in future versions of the library. It is recommended to avoid relying on the error API for critical functionality. _Available since v5.1._",
+						"errors": {
+							"FailedCall()": [
+								{
+									"details": "A call to an address target failed. The target may have reverted."
+								}
+							],
+							"FailedDeployment()": [
+								{
+									"details": "The deployment failed."
+								}
+							],
+							"InsufficientBalance(uint256,uint256)": [
+								{
+									"details": "The ETH balance of the account is not enough to perform the operation."
+								}
+							],
+							"MissingPrecompile(address)": [
+								{
+									"details": "A necessary precompile is missing."
+								}
+							]
+						},
+						"kind": "dev",
+						"methods": {},
+						"version": 1
+					},
+					"evm": {
+						"assembly": "    /* \".deps/npm/@openzeppelin/contracts/utils/Errors.sol\":411:895  library Errors {... */\n  dataSize(sub_0)\n  dataOffset(sub_0)\n  0x0b\n  dup3\n  dup3\n  dup3\n  codecopy\n  dup1\n  mload\n  0x00\n  byte\n  0x73\n  eq\n  tag_1\n  jumpi\n  mstore(0x00, shl(0xe0, 0x4e487b71))\n  mstore(0x04, 0x00)\n  revert(0x00, 0x24)\ntag_1:\n  mstore(0x00, address)\n  0x73\n  dup2\n  mstore8\n  dup3\n  dup2\n  return\nstop\n\nsub_0: assembly {\n        /* \".deps/npm/@openzeppelin/contracts/utils/Errors.sol\":411:895  library Errors {... */\n      eq(address, deployTimeAddress())\n      mstore(0x40, 0x80)\n      0x00\n      dup1\n      revert\n\n    auxdata: 0xa2646970667358221220f2a8d9e63eb94fe4addec9cf5f0ff3815a79632304c8b447eb3e1bebcccb447e64736f6c63430008140033\n}\n",
+						"bytecode": {
+							"functionDebugData": {},
+							"generatedSources": [],
+							"linkReferences": {},
+							"object": "60556032600b8282823980515f1a607314602657634e487b7160e01b5f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040525f80fdfea2646970667358221220f2a8d9e63eb94fe4addec9cf5f0ff3815a79632304c8b447eb3e1bebcccb447e64736f6c63430008140033",
+							"opcodes": "PUSH1 0x55 PUSH1 0x32 PUSH1 0xB DUP3 DUP3 DUP3 CODECOPY DUP1 MLOAD PUSH0 BYTE PUSH1 0x73 EQ PUSH1 0x26 JUMPI PUSH4 0x4E487B71 PUSH1 0xE0 SHL PUSH0 MSTORE PUSH0 PUSH1 0x4 MSTORE PUSH1 0x24 PUSH0 REVERT JUMPDEST ADDRESS PUSH0 MSTORE PUSH1 0x73 DUP2 MSTORE8 DUP3 DUP2 RETURN INVALID PUSH20 0x0 ADDRESS EQ PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 CALLCODE 0xA8 0xD9 0xE6 RETURNDATACOPY 0xB9 0x4F 0xE4 0xAD 0xDE 0xC9 0xCF PUSH0 0xF RETURN DUP2 GAS PUSH26 0x632304C8B447EB3E1BEBCCCB447E64736F6C6343000814003300 ",
+							"sourceMap": "411:484:0:-:0;;;;;;;;;;;;;;;-1:-1:-1;;;411:484:0;;;;;;;;;;;;;;;;;"
+						},
+						"deployedBytecode": {
+							"functionDebugData": {},
+							"generatedSources": [],
+							"immutableReferences": {},
+							"linkReferences": {},
+							"object": "730000000000000000000000000000000000000000301460806040525f80fdfea2646970667358221220f2a8d9e63eb94fe4addec9cf5f0ff3815a79632304c8b447eb3e1bebcccb447e64736f6c63430008140033",
+							"opcodes": "PUSH20 0x0 ADDRESS EQ PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 CALLCODE 0xA8 0xD9 0xE6 RETURNDATACOPY 0xB9 0x4F 0xE4 0xAD 0xDE 0xC9 0xCF PUSH0 0xF RETURN DUP2 GAS PUSH26 0x632304C8B447EB3E1BEBCCCB447E64736F6C6343000814003300 ",
+							"sourceMap": "411:484:0:-:0;;;;;;;;"
+						},
+						"gasEstimates": {
+							"creation": {
+								"codeDepositCost": "17000",
+								"executionCost": "96",
+								"totalCost": "17096"
+							}
+						},
+						"legacyAssembly": {
+							".code": [
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "PUSH #[$]",
+									"source": 0,
+									"value": "0000000000000000000000000000000000000000000000000000000000000000"
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "PUSH [$]",
+									"source": 0,
+									"value": "0000000000000000000000000000000000000000000000000000000000000000"
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "PUSH",
+									"source": 0,
+									"value": "B"
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "DUP3",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "DUP3",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "DUP3",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "CODECOPY",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "DUP1",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "MLOAD",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "PUSH",
+									"source": 0,
+									"value": "0"
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "BYTE",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "PUSH",
+									"source": 0,
+									"value": "73"
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "EQ",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "PUSH [tag]",
+									"source": 0,
+									"value": "1"
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "JUMPI",
+									"source": 0
+								},
+								{
+									"begin": -1,
+									"end": -1,
+									"name": "PUSH",
+									"source": -1,
+									"value": "4E487B71"
+								},
+								{
+									"begin": -1,
+									"end": -1,
+									"name": "PUSH",
+									"source": -1,
+									"value": "E0"
+								},
+								{
+									"begin": -1,
+									"end": -1,
+									"name": "SHL",
+									"source": -1
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "PUSH",
+									"source": 0,
+									"value": "0"
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "MSTORE",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "PUSH",
+									"source": 0,
+									"value": "0"
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "PUSH",
+									"source": 0,
+									"value": "4"
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "MSTORE",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "PUSH",
+									"source": 0,
+									"value": "24"
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "PUSH",
+									"source": 0,
+									"value": "0"
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "REVERT",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "tag",
+									"source": 0,
+									"value": "1"
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "JUMPDEST",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "ADDRESS",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "PUSH",
+									"source": 0,
+									"value": "0"
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "MSTORE",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "PUSH",
+									"source": 0,
+									"value": "73"
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "DUP2",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "MSTORE8",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "DUP3",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "DUP2",
+									"source": 0
+								},
+								{
+									"begin": 411,
+									"end": 895,
+									"name": "RETURN",
+									"source": 0
+								}
+							],
+							".data": {
+								"0": {
+									".auxdata": "a2646970667358221220f2a8d9e63eb94fe4addec9cf5f0ff3815a79632304c8b447eb3e1bebcccb447e64736f6c63430008140033",
+									".code": [
+										{
+											"begin": 411,
+											"end": 895,
+											"name": "PUSHDEPLOYADDRESS",
+											"source": 0
+										},
+										{
+											"begin": 411,
+											"end": 895,
+											"name": "ADDRESS",
+											"source": 0
+										},
+										{
+											"begin": 411,
+											"end": 895,
+											"name": "EQ",
+											"source": 0
+										},
+										{
+											"begin": 411,
+											"end": 895,
+											"name": "PUSH",
+											"source": 0,
+											"value": "80"
+										},
+										{
+											"begin": 411,
+											"end": 895,
+											"name": "PUSH",
+											"source": 0,
+											"value": "40"
+										},
+										{
+											"begin": 411,
+											"end": 895,
+											"name": "MSTORE",
+											"source": 0
+										},
+										{
+											"begin": 411,
+											"end": 895,
+											"name": "PUSH",
+											"source": 0,
+											"value": "0"
+										},
+										{
+											"begin": 411,
+											"end": 895,
+											"name": "DUP1",
+											"source": 0
+										},
+										{
+											"begin": 411,
+											"end": 895,
+											"name": "REVERT",
+											"source": 0
+										}
+									]
+								}
+							},
+							"sourceList": [
+								".deps/npm/@openzeppelin/contracts/utils/Errors.sol",
+								"#utility.yul"
+							]
+						},
+						"methodIdentifiers": {}
+					},
+					"metadata": "{\"compiler\":{\"version\":\"0.8.20+commit.a1b79de6\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"FailedCall\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FailedDeployment\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"needed\",\"type\":\"uint256\"}],\"name\":\"InsufficientBalance\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"MissingPrecompile\",\"type\":\"error\"}],\"devdoc\":{\"details\":\"Collection of common custom errors used in multiple contracts IMPORTANT: Backwards compatibility is not guaranteed in future versions of the library. It is recommended to avoid relying on the error API for critical functionality. _Available since v5.1._\",\"errors\":{\"FailedCall()\":[{\"details\":\"A call to an address target failed. The target may have reverted.\"}],\"FailedDeployment()\":[{\"details\":\"The deployment failed.\"}],\"InsufficientBalance(uint256,uint256)\":[{\"details\":\"The ETH balance of the account is not enough to perform the operation.\"}],\"MissingPrecompile(address)\":[{\"details\":\"A necessary precompile is missing.\"}]},\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\".deps/npm/@openzeppelin/contracts/utils/Errors.sol\":\"Errors\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@0xsequence/contracts-library/=src/\",\":@0xsequence/erc-1155/=lib/0xsequence/erc-1155/src/\",\":@0xsequence/erc20-meta-token/=lib/0xsequence/erc20-meta-token/src/\",\":@openzeppelin/=lib/openzeppelin/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":erc721a-upgradeable/=lib/chiru-labs/erc721a-upgradeable/\",\":erc721a/=lib/chiru-labs/erc721a/\",\":forge-std/=lib/forge-std/src/\",\":murky/=lib/murky/src/\",\":solady/=lib/solady/src/\"]},\"sources\":{\".deps/npm/@openzeppelin/contracts/utils/Errors.sol\":{\"keccak256\":\"0x6afa713bfd42cf0f7656efa91201007ac465e42049d7de1d50753a373648c123\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://ba1d02f4847670a1b83dec9f7d37f0b0418d6043447b69f3a29a5f9efc547fcf\",\"dweb:/ipfs/QmQ7iH2keLNUKgq2xSWcRmuBE5eZ3F5whYAkAGzCNNoEWB\"]}},\"version\":1}",
+					"storageLayout": {
+						"storage": [],
+						"types": null
+					},
+					"userdoc": {
+						"kind": "user",
+						"methods": {},
+						"version": 1
+					}
+				}
+			}
+		},
+		"sources": {
+			".deps/npm/@openzeppelin/contracts/utils/Errors.sol": {
+				"ast": {
+					"absolutePath": ".deps/npm/@openzeppelin/contracts/utils/Errors.sol",
+					"exportedSymbols": {
+						"Errors": [
+							21
+						]
+					},
+					"id": 22,
+					"license": "MIT",
+					"nodeType": "SourceUnit",
+					"nodes": [
+						{
+							"id": 1,
+							"literals": [
+								"solidity",
+								"^",
+								"0.8",
+								".20"
+							],
+							"nodeType": "PragmaDirective",
+							"src": "100:24:0"
+						},
+						{
+							"abstract": false,
+							"baseContracts": [],
+							"canonicalName": "Errors",
+							"contractDependencies": [],
+							"contractKind": "library",
+							"documentation": {
+								"id": 2,
+								"nodeType": "StructuredDocumentation",
+								"src": "126:284:0",
+								"text": " @dev Collection of common custom errors used in multiple contracts\n IMPORTANT: Backwards compatibility is not guaranteed in future versions of the library.\n It is recommended to avoid relying on the error API for critical functionality.\n _Available since v5.1._"
+							},
+							"fullyImplemented": true,
+							"id": 21,
+							"linearizedBaseContracts": [
+								21
+							],
+							"name": "Errors",
+							"nameLocation": "419:6:0",
+							"nodeType": "ContractDefinition",
+							"nodes": [
+								{
+									"documentation": {
+										"id": 3,
+										"nodeType": "StructuredDocumentation",
+										"src": "432:94:0",
+										"text": " @dev The ETH balance of the account is not enough to perform the operation."
+									},
+									"errorSelector": "cf479181",
+									"id": 9,
+									"name": "InsufficientBalance",
+									"nameLocation": "537:19:0",
+									"nodeType": "ErrorDefinition",
+									"parameters": {
+										"id": 8,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 5,
+												"mutability": "mutable",
+												"name": "balance",
+												"nameLocation": "565:7:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 9,
+												"src": "557:15:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 4,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "557:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											},
+											{
+												"constant": false,
+												"id": 7,
+												"mutability": "mutable",
+												"name": "needed",
+												"nameLocation": "582:6:0",
+												"nodeType": "VariableDeclaration",
+												"scope": 9,
+												"src": "574:14:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_uint256",
+													"typeString": "uint256"
+												},
+												"typeName": {
+													"id": 6,
+													"name": "uint256",
+													"nodeType": "ElementaryTypeName",
+													"src": "574:7:0",
+													"typeDescriptions": {
+														"typeIdentifier": "t_uint256",
+														"typeString": "uint256"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "556:33:0"
+									},
+									"src": "531:59:0"
+								},
+								{
+									"documentation": {
+										"id": 10,
+										"nodeType": "StructuredDocumentation",
+										"src": "596:89:0",
+										"text": " @dev A call to an address target failed. The target may have reverted."
+									},
+									"errorSelector": "d6bda275",
+									"id": 12,
+									"name": "FailedCall",
+									"nameLocation": "696:10:0",
+									"nodeType": "ErrorDefinition",
+									"parameters": {
+										"id": 11,
+										"nodeType": "ParameterList",
+										"parameters": [],
+										"src": "706:2:0"
+									},
+									"src": "690:19:0"
+								},
+								{
+									"documentation": {
+										"id": 13,
+										"nodeType": "StructuredDocumentation",
+										"src": "715:46:0",
+										"text": " @dev The deployment failed."
+									},
+									"errorSelector": "b06ebf3d",
+									"id": 15,
+									"name": "FailedDeployment",
+									"nameLocation": "772:16:0",
+									"nodeType": "ErrorDefinition",
+									"parameters": {
+										"id": 14,
+										"nodeType": "ParameterList",
+										"parameters": [],
+										"src": "788:2:0"
+									},
+									"src": "766:25:0"
+								},
+								{
+									"documentation": {
+										"id": 16,
+										"nodeType": "StructuredDocumentation",
+										"src": "797:58:0",
+										"text": " @dev A necessary precompile is missing."
+									},
+									"errorSelector": "42b01bce",
+									"id": 20,
+									"name": "MissingPrecompile",
+									"nameLocation": "866:17:0",
+									"nodeType": "ErrorDefinition",
+									"parameters": {
+										"id": 19,
+										"nodeType": "ParameterList",
+										"parameters": [
+											{
+												"constant": false,
+												"id": 18,
+												"mutability": "mutable",
+												"name": "",
+												"nameLocation": "-1:-1:-1",
+												"nodeType": "VariableDeclaration",
+												"scope": 20,
+												"src": "884:7:0",
+												"stateVariable": false,
+												"storageLocation": "default",
+												"typeDescriptions": {
+													"typeIdentifier": "t_address",
+													"typeString": "address"
+												},
+												"typeName": {
+													"id": 17,
+													"name": "address",
+													"nodeType": "ElementaryTypeName",
+													"src": "884:7:0",
+													"stateMutability": "nonpayable",
+													"typeDescriptions": {
+														"typeIdentifier": "t_address",
+														"typeString": "address"
+													}
+												},
+												"visibility": "internal"
+											}
+										],
+										"src": "883:9:0"
+									},
+									"src": "860:33:0"
+								}
+							],
+							"scope": 22,
+							"src": "411:484:0",
+							"usedErrors": [
+								9,
+								12,
+								15,
+								20
+							],
+							"usedEvents": []
+						}
+					],
+					"src": "100:796:0"
+				},
+				"id": 0
+			}
+		}
+	}
+}
