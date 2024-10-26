@@ -788,7 +788,7 @@
 		},
 		"optimizer": {
 			"enabled": true,
-			"runs": 200
+			"runs": 500000
 		},
 		"remappings": [
 			":@0xsequence/contracts-library/=src/",
