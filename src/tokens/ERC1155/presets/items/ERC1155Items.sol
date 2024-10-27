@@ -89,8 +89,10 @@ contract ERC1155Items is ERC1155BaseToken, IERC1155Items {
      * @param interfaceId Interface id
      * @return True if supported
      */
+
     function supportsInterface(bytes4 interfaceId) public view override(ERC1155BaseToken) returns (bool) {
         return type(IERC1155ItemsFunctions).interfaceId == interfaceId
             || ERC1155BaseToken.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
+
     }
 }

@@ -1,4 +1,5 @@
 ClawbackMetadataTest:testDurationAndUnlocksAt() (gas: 500605)
+
 ClawbackMetadataTest:testMetadataPropertiesERC1155((uint8,uint32,uint56,uint256),(bool,bool,uint56,address)) (runs: 1024, μ: 157084, ~: 145004)
 ClawbackMetadataTest:testMetadataPropertiesERC20((uint8,uint32,uint56,uint256),(bool,bool,uint56,address)) (runs: 1024, μ: 160141, ~: 160126)
 ClawbackMetadataTest:testMetadataPropertiesERC721((uint8,uint32,uint56,uint256),(bool,bool,uint56,address)) (runs: 1024, μ: 258193, ~: 254340)
@@ -61,16 +62,19 @@ ERC1155ItemsTest:testBurnSuccess(address,uint256,uint256,uint256) (runs: 1024, �
 ERC1155ItemsTest:testContractURI() (gas: 83132)
 ERC1155ItemsTest:testDefaultRoyalty(address,uint96,uint256) (runs: 1024, μ: 41468, ~: 41468)
 ERC1155ItemsTest:testFactoryDetermineAddress(address,address,string,string,string,address,uint96) (runs: 1024, μ: 6720767, ~: 6720833)
+
 ERC1155ItemsTest:testMetadataInvalid(address) (runs: 1024, μ: 66770, ~: 66770)
 ERC1155ItemsTest:testMetadataOwner() (gas: 43862)
 ERC1155ItemsTest:testMetadataWithRole(address) (runs: 1024, μ: 117392, ~: 117392)
 ERC1155ItemsTest:testMintInvalidRole(address) (runs: 1024, μ: 122424, ~: 122424)
 ERC1155ItemsTest:testMintOwner(uint256,uint256) (runs: 1024, μ: 107378, ~: 107378)
+
 ERC1155ItemsTest:testMintWithRole(address,uint256,uint256) (runs: 1024, μ: 190379, ~: 191021)
 ERC1155ItemsTest:testOwnerHasRoles() (gas: 46365)
 ERC1155ItemsTest:testReinitializeFails() (gas: 27986)
 ERC1155ItemsTest:testRoyaltyInvalidRole(address,uint256,address,uint96,uint256) (runs: 1024, μ: 121054, ~: 121054)
 ERC1155ItemsTest:testRoyaltyWithRole(address,uint256,address,uint96,uint256) (runs: 1024, μ: 154212, ~: 154355)
+
 ERC1155ItemsTest:testSelectorCollision() (gas: 82659)
 ERC1155ItemsTest:testSupportsInterface() (gas: 34330)
 ERC1155ItemsTest:testTokenRoyalty(uint256,address,uint96,uint256) (runs: 1024, μ: 65161, ~: 65161)
@@ -80,14 +84,18 @@ ERC1155SaleTest:testFactoryDetermineAddress(address,address,address) (runs: 1024
 ERC1155SaleTest:testFreeGlobalMint(bool,address,uint256,uint256) (runs: 1024, μ: 2854484, ~: 162516)
 ERC1155SaleTest:testFreeTokenMint(bool,address,uint256,uint256) (runs: 1024, μ: 2901994, ~: 209295)
 ERC1155SaleTest:testMerkleFailBadProof(address[],address,uint256,bool) (runs: 1024, μ: 282258, ~: 280434)
+
 ERC1155SaleTest:testMerkleFailNoProof(address[],address,uint256,bool) (runs: 1024, μ: 278163, ~: 276267)
 ERC1155SaleTest:testMerkleReuseFail(address[],uint256,uint256,bool) (runs: 1024, μ: 404587, ~: 405176)
 ERC1155SaleTest:testMerkleSuccess(address[],uint256,uint256,bool) (runs: 1024, μ: 396015, ~: 396466)
+
 ERC1155SaleTest:testMerkleSuccessGlobalMultiple(address[],uint256,uint256[]) (runs: 1024, μ: 474665, ~: 483219)
 ERC1155SaleTest:testMintExpiredGlobalFail(bool,address,uint256,uint256,uint64,uint64) (runs: 1024, μ: 2795878, ~: 99797)
 ERC1155SaleTest:testMintExpiredSingleFail(bool,address,uint256,uint256,uint64,uint64) (runs: 1024, μ: 2796170, ~: 100087)
 ERC1155SaleTest:testMintFailMaxTotal(bool,address,uint256,uint256) (runs: 1024, μ: 2887799, ~: 188007)
+
 ERC1155SaleTest:testMintFailWrongPaymentToken(bool,address,uint256,uint256,address) (runs: 1024, μ: 3430635, ~: 6139498)
+
 ERC1155SaleTest:testMintGlobalSuccess(bool,address,uint256,uint256) (runs: 1024, μ: 2883335, ~: 191367)
 ERC1155SaleTest:testMintGlobalSupplyExceeded(bool,address,uint256,uint256,uint256) (runs: 1024, μ: 2943368, ~: 5669458)
 ERC1155SaleTest:testMintGroupSuccess(bool,address,uint256,uint256) (runs: 1024, μ: 2988942, ~: 296242)
@@ -98,12 +106,14 @@ ERC1155SaleTest:testMintSingleSuccess(bool,address,uint256,uint256) (runs: 1024,
 ERC1155SaleTest:testMintTokenSupplyExceeded(bool,address,uint256,uint256,uint256) (runs: 1024, μ: 2943463, ~: 5669556)
 ERC1155SaleTest:testSelectorCollision() (gas: 51971)
 ERC1155SaleTest:testSupportsInterface() (gas: 10893)
+
 ERC1155SaleTest:testWithdrawERC20(bool,address,uint256) (runs: 1024, μ: 3277019, ~: 6000742)
 ERC1155SaleTest:testWithdrawETH(bool,address,uint256) (runs: 1024, μ: 2868738, ~: 5593690)
 ERC1155SaleTest:testWithdrawFail(bool,address,uint256) (runs: 1024, μ: 3242654, ~: 5928350)
 ERC20ItemsTest:testBurnInsufficient(address,uint256,uint256) (runs: 1024, μ: 81152, ~: 82008)
 ERC20ItemsTest:testBurnSuccess(address,uint256,uint256) (runs: 1024, μ: 90239, ~: 90239)
 ERC20ItemsTest:testFactoryDetermineAddress(address,address,string,string,uint8) (runs: 1024, μ: 5252642, ~: 5251395)
+
 ERC20ItemsTest:testInitValues() (gas: 38152)
 ERC20ItemsTest:testMintInvalidRole(address,uint256) (runs: 1024, μ: 67321, ~: 67321)
 ERC20ItemsTest:testMintOwner(uint256) (runs: 1024, μ: 80602, ~: 80602)
@@ -118,7 +128,9 @@ ERC721ItemsTest:testBurnInvalidOwnership(address) (runs: 1024, μ: 109892, ~: 10
 ERC721ItemsTest:testBurnSuccess(address) (runs: 1024, μ: 138130, ~: 138130)
 ERC721ItemsTest:testContractURI() (gas: 85853)
 ERC721ItemsTest:testDefaultRoyalty(address,uint96,uint256) (runs: 1024, μ: 41445, ~: 41445)
+
 ERC721ItemsTest:testFactoryDetermineAddress(address,address,string,string,string,string,address,uint96) (runs: 1024, μ: 6794489, ~: 6793149)
+
 ERC721ItemsTest:testMetadataInvalid(address) (runs: 1024, μ: 69188, ~: 69188)
 ERC721ItemsTest:testMetadataOwner() (gas: 130207)
 ERC721ItemsTest:testMetadataWithRole(address) (runs: 1024, μ: 117459, ~: 117459)
@@ -130,11 +142,14 @@ ERC721ItemsTest:testNameAndSymbol() (gas: 90129)
 ERC721ItemsTest:testOwnerHasRoles() (gas: 46710)
 ERC721ItemsTest:testReinitializeFails() (gas: 28551)
 ERC721ItemsTest:testRoyaltyInvalidRole(address,uint256,address,uint96,uint256) (runs: 1024, μ: 125741, ~: 125741)
+
 ERC721ItemsTest:testRoyaltyWithRole(address,uint256,address,uint96,uint256) (runs: 1024, μ: 154113, ~: 154333)
+
 ERC721ItemsTest:testSelectorCollision() (gas: 95069)
 ERC721ItemsTest:testSupportsInterface() (gas: 37278)
 ERC721ItemsTest:testTokenMetadata() (gas: 174823)
 ERC721ItemsTest:testTokenRoyalty(uint256,address,uint96,uint256) (runs: 1024, μ: 65223, ~: 65223)
+
 ERC721SaleTest:testERC20Mint(bool,address,uint256) (runs: 1024, μ: 3160418, ~: 720351)
 ERC721SaleTest:testERC20MintFailMaxTotal(bool,address,uint256) (runs: 1024, μ: 3048389, ~: 583551)
 ERC721SaleTest:testERC20MintFailPaidETH(bool,address,uint256) (runs: 1024, μ: 3032284, ~: 567446)
@@ -155,6 +170,7 @@ ERC721SaleTest:testSupportsInterface() (gas: 10884)
 ERC721SaleTest:testWithdrawERC20(bool,address,uint256) (runs: 1024, μ: 3092352, ~: 5599117)
 ERC721SaleTest:testWithdrawETH(bool,address,uint256) (runs: 1024, μ: 2684392, ~: 5192376)
 ERC721SaleTest:testWithdrawFail(bool,address,uint256) (runs: 1024, μ: 3038633, ~: 5527463)
+
 SequenceProxyFactoryTest:testAddressCompute() (gas: 1021270)
 SequenceProxyFactoryTest:testDeployProxy() (gas: 1021715)
 SequenceProxyFactoryTest:testDeployProxyAfterUpgrade() (gas: 1033634)
