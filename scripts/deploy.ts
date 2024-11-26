@@ -68,7 +68,10 @@ const main = async () => {
 
     // Create contract for deployment
     const compilerOutput = JSON.parse(
-      await readFile(join(BUILD_DIR, `${solFile}.json`), 'utf8'),
+      await readFile(
+        join(BUILD_DIR, `${solFile}.sol`, `${solFile}.json`),
+        'utf8',
+      ),
     )
     class MyContractFactory extends ContractFactory {
       constructor(signer?: Signer) {

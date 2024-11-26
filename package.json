@@ -13,7 +13,7 @@
   "author": "Horizon Blockchain Games",
   "license": "Apache-2.0",
   "scripts": {
-    "build": "ts-node scripts/build.ts",
+    "build": "forge build --force",
     "deploy": "ts-node scripts/deploy.ts",
     "test": "forge test",
     "coverage": "forge coverage --report lcov",

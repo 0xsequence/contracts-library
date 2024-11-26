@@ -1,4 +1,4 @@
-export const BUILD_DIR = 'build'
+export const BUILD_DIR = 'out'
 export const DEPLOYABLE_CONTRACT_NAMES = [
   'ERC20ItemsFactory',
   'ERC721ItemsFactory',

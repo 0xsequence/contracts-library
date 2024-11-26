@@ -6,6 +6,7 @@ solc = "0.8.19"
 solc-version = "0.8.19"
 via_ir = true
 optimizer-runs = 20_000
+use_literal_content = true
 
 [profile.default.fuzz]
 runs = 1_024
