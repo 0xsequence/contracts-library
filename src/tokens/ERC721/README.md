@@ -16,6 +16,12 @@ This folder contains contracts that are pre-configured for specific use cases.
 
 The `ERC721Items` contract is a preset that configures the `ERC721BaseToken` contract to allow minting of tokens. It adds a `MINTER_ROLE` and a `mint(address to, uint256 amount)` function that can only be called by accounts with the `MINTER_ROLE`.
 
+### Operator Enforced
+
+The `ERC721OperatorEnforced` contract is a preset that configures the `ERC721BaseToken` contract to allow for operator enforced transfers and approvals. It adds an `operatorAllowlist` parameter to the constructor that must point to an `OperatorAllowlist` contract.
+
+For more information on Operator Allowlist Enforcement, please refer to the [Immutable Operator Allowlist Specification](https://docs.immutable.com/products/zkevm/minting/royalties/allowlist-spec) documentation.
+
 ### Sale
 
 The `ERC721Sale` contract is a preset that configures the `ERC721BaseToken` contract to allow for the sale of tokens. It adds a `mint(address to, uint256 amount, bytes32[] memory proof)` function allows for the minting of tokens under various conditions.

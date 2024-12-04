@@ -32,7 +32,7 @@ abstract contract TestHelper is Test, Merkle {
     }
 
     function assumeSafeAddress(address addr) internal view {
-        vm.assume(addr != address(0));
+        assumeNotZeroAddress(addr);
         assumeNotPrecompile(addr);
         assumeNotForgeAddress(addr);
         vm.assume(addr.code.length == 0); // Non contract
