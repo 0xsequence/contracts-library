@@ -136,7 +136,6 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         vm.prank(user);
         token.commit();
         vm.assertEq(token.balanceOf(user, 1), 0);
-        vm.assertEq(token.balanceOf(address(token), 1), 1);
     }
 
     function testCommitNoBalance(address user) public {
@@ -160,5 +159,19 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         token.commit();
         vm.expectRevert(PendingReveal.selector);
         token.refundBox(user);
+    }
+
+    function testRefundExpiredCommit(address user) public {
+        assumeSafeAddress(user);
+
+        vm.prank(owner);
+        token.mint(user, 1, 1, "");
+
+        vm.prank(user);
+        token.commit();
+
+        vm.roll(300);
+        token.refundBox(user);
+        vm.assertEq(token.balanceOf(user, 1), 1);
     }
 }

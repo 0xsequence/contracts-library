@@ -24,7 +24,7 @@ interface IERC1155LootboxFunctions {
 
     /**
      * Commit to reveal box content.
-     * @notice this function transfers user's box to the contract.
+     * @notice this function burns user box.
      */
     function commit() external;
 
@@ -39,6 +39,7 @@ interface IERC1155LootboxFunctions {
     /**
      * Ask for box refund after commit expiration.
      * @param user address of box owner.
+     * @notice this function mints a box for the user when his commit is expired.
      */
     function refundBox(address user) external;
 }

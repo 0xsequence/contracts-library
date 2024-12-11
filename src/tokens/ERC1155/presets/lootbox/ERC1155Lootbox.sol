@@ -43,13 +43,13 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
 
     /**
      * Commit to reveal box content.
-     * @notice this function transfers user's box to the contract.
+     * @notice this function burns user box.
      */
     function commit() external {
         if (balanceOf(msg.sender, 1) == 0) {
             revert NoBalance();
         }
-        _safeTransferFrom(msg.sender, address(this), 1, 1);
+        _burn(msg.sender, 1, 1);
         uint256 revealAfterBlock = block.number + 1;
         _commitments[msg.sender] = revealAfterBlock;
 
@@ -78,13 +78,12 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
                 user, boxContent.tokenIds[i], boxContent.amounts[i], ""
             );
         }
-
-        burn(1, 1);
     }
 
     /**
      * Ask for box refund after commit expiration.
      * @param user address of box owner.
+     * @notice this function mints a box for the user when his commit is expired.
      */
     function refundBox(address user) external {
         if (_commitments[user] == 0) {
@@ -94,7 +93,7 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
             revert PendingReveal();
         }
         delete _commitments[user];
-        safeTransferFrom(address(this), user, 1, 1, "");
+        _mint(user, 1, 1, "");
     }
 
     // Views
