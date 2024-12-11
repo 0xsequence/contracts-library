@@ -101,6 +101,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         assertTrue(token.hasRole(keccak256("METADATA_ADMIN_ROLE"), owner));
         assertTrue(token.hasRole(keccak256("MINTER_ROLE"), owner));
         assertTrue(token.hasRole(keccak256("ROYALTY_ADMIN_ROLE"), owner));
+        assertTrue(token.hasRole(keccak256("MINT_ADMIN_ROLE"), owner));
     }
 
     function testFactoryDetermineAddress(
@@ -142,5 +143,22 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         vm.prank(user);
         vm.expectRevert(NoBalance.selector);
         token.commit();
+    }
+
+    function testRefundNoCommit(address user) public {
+        vm.expectRevert(NoCommit.selector);
+        token.refundBox(user);
+    }
+
+    function testRefundPendingReveal(address user) public {
+        assumeSafeAddress(user);
+
+        vm.prank(owner);
+        token.mint(user, 1, 1, "");
+
+        vm.prank(user);
+        token.commit();
+        vm.expectRevert(PendingReveal.selector);
+        token.refundBox(user);
     }
 }

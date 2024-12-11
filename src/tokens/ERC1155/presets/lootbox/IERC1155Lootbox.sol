@@ -12,6 +12,7 @@ interface IERC1155LootboxFunctions {
      * Set all possible box contents.
      * @param _merkleRoot merkle root built from all possible box contents.
      * @param _boxSupply total amount of boxes.
+     * @dev Updating these values before all the boxes have been opened may lead to undesirable behavior.
      */
     function setBoxContent(bytes32 _merkleRoot, uint256 _boxSupply) external;
 
@@ -23,7 +24,7 @@ interface IERC1155LootboxFunctions {
 
     /**
      * Commit to reveal box content.
-     * @notice this function transfers user's box to the contracts.
+     * @notice this function transfers user's box to the contract.
      */
     function commit() external;
 
@@ -36,16 +37,27 @@ interface IERC1155LootboxFunctions {
     function reveal(address user, BoxContent calldata boxContent, bytes32[] calldata proof) external;
 
     /**
-     * Ask for box refund after commit expires.
+     * Ask for box refund after commit expiration.
+     * @param user address of box owner.
      */
-    function refundBox() external;
+    function refundBox(address user) external;
 }
 
 interface IERC1155LootboxSignals {
     /**
-     * Invalid commit.
+     * Commit expired or never made.
      */
     error InvalidCommit();
+
+    /**
+     * Reveal is pending.
+     */
+    error PendingReveal();
+
+    /**
+     * Commit never made.
+     */
+    error NoCommit();
 
     /**
      * No balance.
@@ -57,8 +69,13 @@ interface IERC1155LootboxSignals {
      */
     error InvalidProof();
 
+    /**
+     * All boxes opened.
+     */
+    error AllBoxesOpened();
+
     /// @notice Emits when a user make a commitment
-    event Commit(address user);
+    event Commit(address user, uint256 blockNumber);
 }
 
 // solhint-disable-next-line no-empty-blocks
