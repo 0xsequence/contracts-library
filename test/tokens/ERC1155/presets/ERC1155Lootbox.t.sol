@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {TestHelper} from "../../../TestHelper.sol";
-
+import {ERC1155Items} from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
 import {ERC1155Lootbox} from "src/tokens/ERC1155/presets/lootbox/ERC1155Lootbox.sol";
 import {IERC1155ItemsSignals, IERC1155ItemsFunctions} from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
 import {
@@ -18,14 +18,19 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
+import {console} from "forge-std/console.sol";
+
 contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155LootboxSignals {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
-    ERC1155Lootbox private token;
+    ERC1155Lootbox private lootbox;
+    ERC1155Items private token;
 
     address private proxyOwner;
     address private owner;
+
+    IERC1155LootboxFunctions.BoxContent[] private boxContents;
 
     function setUp() public {
         owner = makeAddr("owner");
@@ -34,20 +39,31 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         vm.deal(address(this), 100 ether);
         vm.deal(owner, 100 ether);
 
+        token = new ERC1155Items();
+        token.initialize(address(this), "test", "ipfs://", "ipfs://", address(this), 0);
+
         ERC1155LootboxFactory factory = new ERC1155LootboxFactory(address(this));
-        token = ERC1155Lootbox(factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0));
+        lootbox = ERC1155Lootbox(factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0));
+
+        token.grantRole(keccak256("MINTER_ROLE"), address(lootbox));
+
+        _prepareBoxContents();
+        bytes32 root = TestHelper.getMerkleRootBoxes(boxContents);
+
+        vm.prank(owner);
+        lootbox.setBoxContent(root, 3);
     }
 
     function testReinitializeFails() public {
         vm.expectRevert(InvalidInitialization.selector);
-        token.initialize(owner, "name", "baseURI", "contractURI", address(this), 0);
+        lootbox.initialize(owner, "name", "baseURI", "contractURI", address(this), 0);
     }
 
     function testSupportsInterface() public view {
-        assertTrue(token.supportsInterface(type(IERC165).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC1155).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC1155ItemsFunctions).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC1155LootboxFunctions).interfaceId));
+        assertTrue(lootbox.supportsInterface(type(IERC165).interfaceId));
+        assertTrue(lootbox.supportsInterface(type(IERC1155).interfaceId));
+        assertTrue(lootbox.supportsInterface(type(IERC1155ItemsFunctions).interfaceId));
+        assertTrue(lootbox.supportsInterface(type(IERC1155LootboxFunctions).interfaceId));
     }
 
     /**
@@ -97,11 +113,11 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     }
 
     function testOwnerHasRoles() public view {
-        assertTrue(token.hasRole(token.DEFAULT_ADMIN_ROLE(), owner));
-        assertTrue(token.hasRole(keccak256("METADATA_ADMIN_ROLE"), owner));
-        assertTrue(token.hasRole(keccak256("MINTER_ROLE"), owner));
-        assertTrue(token.hasRole(keccak256("ROYALTY_ADMIN_ROLE"), owner));
-        assertTrue(token.hasRole(keccak256("MINT_ADMIN_ROLE"), owner));
+        assertTrue(lootbox.hasRole(lootbox.DEFAULT_ADMIN_ROLE(), owner));
+        assertTrue(lootbox.hasRole(keccak256("METADATA_ADMIN_ROLE"), owner));
+        assertTrue(lootbox.hasRole(keccak256("MINTER_ROLE"), owner));
+        assertTrue(lootbox.hasRole(keccak256("ROYALTY_ADMIN_ROLE"), owner));
+        assertTrue(lootbox.hasRole(keccak256("MINT_ADMIN_ROLE"), owner));
     }
 
     function testFactoryDetermineAddress(
@@ -128,50 +144,97 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     }
 
     function testCommitWithBalance(address user) public {
-        assumeSafeAddress(user);
-
-        vm.prank(owner);
-        token.mint(user, 1, 1, "");
-
-        vm.prank(user);
-        token.commit();
-        vm.assertEq(token.balanceOf(user, 1), 0);
+        _commit(user);
+        vm.assertEq(lootbox.balanceOf(user, 1), 0);
     }
 
     function testCommitNoBalance(address user) public {
         vm.prank(user);
         vm.expectRevert(NoBalance.selector);
-        token.commit();
+        lootbox.commit();
     }
 
     function testRefundNoCommit(address user) public {
         vm.expectRevert(NoCommit.selector);
-        token.refundBox(user);
+        lootbox.refundBox(user);
     }
 
     function testRefundPendingReveal(address user) public {
-        assumeSafeAddress(user);
+        _commit(user);
 
-        vm.prank(owner);
-        token.mint(user, 1, 1, "");
-
-        vm.prank(user);
-        token.commit();
+        vm.roll(256);
         vm.expectRevert(PendingReveal.selector);
-        token.refundBox(user);
+        lootbox.refundBox(user);
     }
 
     function testRefundExpiredCommit(address user) public {
+        _commit(user);
+
+        vm.roll(300);
+        lootbox.refundBox(user);
+        vm.assertEq(lootbox.balanceOf(user, 1), 1);
+    }
+
+    function testGetRevealIdNoCommit(address user) public {
+        vm.expectRevert(NoCommit.selector);
+        lootbox.getRevealId(user);
+    }
+
+    function testGetRevealIdInvalidCommit(address user) public {
+        _commit(user);
+
+        vm.roll(300);
+        vm.expectRevert(InvalidCommit.selector);
+        lootbox.getRevealId(user);
+    }
+
+    function testGetRevealIdSuccess(address user) public {
+        vm.assertLt(_getRevealId(user), lootbox.boxSupply());
+    }
+
+    // Common functions
+
+    function _prepareBoxContents() internal {
+        boxContents = new IERC1155LootboxFunctions.BoxContent[](3);
+
+        boxContents[0].tokenAddresses = new address[](2);
+        boxContents[0].tokenAddresses[0] = address(token);
+        boxContents[0].tokenAddresses[1] = address(token);
+        boxContents[0].tokenIds = new uint256[](2);
+        boxContents[0].tokenIds[0] = 1;
+        boxContents[0].tokenIds[1] = 2;
+        boxContents[0].amounts = new uint256[](2);
+        boxContents[0].amounts[0] = 10;
+        boxContents[0].amounts[1] = 5;
+
+        boxContents[1].tokenAddresses = new address[](1);
+        boxContents[1].tokenAddresses[0] = address(token);
+        boxContents[1].tokenIds = new uint256[](1);
+        boxContents[1].tokenIds[0] = 3;
+        boxContents[1].amounts = new uint256[](1);
+        boxContents[1].amounts[0] = 15;
+
+        boxContents[2].tokenAddresses = new address[](1);
+        boxContents[2].tokenAddresses[0] = address(token);
+        boxContents[2].tokenIds = new uint256[](1);
+        boxContents[2].tokenIds[0] = 4;
+        boxContents[2].amounts = new uint256[](1);
+        boxContents[2].amounts[0] = 20;
+    }
+
+    function _commit(address user) internal {
         assumeSafeAddress(user);
 
         vm.prank(owner);
-        token.mint(user, 1, 1, "");
+        lootbox.mint(user, 1, 1, "");
 
         vm.prank(user);
-        token.commit();
+        lootbox.commit();
+    }
 
-        vm.roll(300);
-        token.refundBox(user);
-        vm.assertEq(token.balanceOf(user, 1), 1);
+    function _getRevealId(address user) internal returns (uint256 revealIdx) {
+        _commit(user);
+        vm.roll(3);
+        revealIdx = lootbox.getRevealId(user);
     }
 }

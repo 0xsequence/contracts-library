@@ -103,6 +103,10 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
      * @param user address of reward recipient.
      */
     function getRevealId(address user) public view returns (uint256 revealIdx) {
+        if (_commitments[user] == 0) {
+            revert NoCommit();
+        }
+
         bytes32 blockHash = blockhash(_commitments[user]);
 
         if (uint256(blockHash) == 0) {

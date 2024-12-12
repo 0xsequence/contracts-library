@@ -24,7 +24,7 @@ interface IERC1155LootboxFunctions {
 
     /**
      * Commit to reveal box content.
-     * @notice this function burns user box.
+     * @notice this function burns user's box.
      */
     function commit() external;
 
