@@ -12,13 +12,9 @@ import {
 } from "src/tokens/ERC1155/presets/lootbox/IERC1155Lootbox.sol";
 import {ERC1155LootboxFactory} from "src/tokens/ERC1155/presets/lootbox/ERC1155LootboxFactory.sol";
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-
 // Interfaces
 import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-
-import {console} from "forge-std/console.sol";
 
 contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155LootboxSignals {
     // Redeclare events
@@ -48,7 +44,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         token.grantRole(keccak256("MINTER_ROLE"), address(lootbox));
 
         _prepareBoxContents();
-        bytes32 root = TestHelper.getMerkleRootBoxes(boxContents);
+        (bytes32 root,) = TestHelper.getMerklePartsBoxes(boxContents, 0);
 
         vm.prank(owner);
         lootbox.setBoxContent(root, 3);
@@ -162,7 +158,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     function testRefundPendingReveal(address user) public {
         _commit(user);
 
-        vm.roll(256);
+        vm.roll(block.number + 255);
         vm.expectRevert(PendingReveal.selector);
         lootbox.refundBox(user);
     }
@@ -170,7 +166,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     function testRefundExpiredCommit(address user) public {
         _commit(user);
 
-        vm.roll(300);
+        vm.roll(block.number + 300);
         lootbox.refundBox(user);
         vm.assertEq(lootbox.balanceOf(user, 1), 1);
     }
@@ -183,13 +179,57 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     function testGetRevealIdInvalidCommit(address user) public {
         _commit(user);
 
-        vm.roll(300);
+        vm.roll(block.number + 300);
         vm.expectRevert(InvalidCommit.selector);
         lootbox.getRevealId(user);
     }
 
     function testGetRevealIdSuccess(address user) public {
         vm.assertLt(_getRevealId(user), lootbox.boxSupply());
+    }
+
+    function testRevealSuccess(address user) public {
+        uint256 revealIdx = _getRevealId(user);
+
+        (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
+
+        IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[revealIdx];
+
+        lootbox.reveal(user, boxContent, proof);
+
+        for (uint256 i = 0; i < boxContent.tokenAddresses.length; i++) {
+            vm.assertEq(token.balanceOf(user, boxContent.tokenIds[i]), boxContent.amounts[i]);
+        }
+    }
+
+    function testRevealAfterAllOpened(address user) public {
+        for (uint256 i = 0; i < lootbox.boxSupply(); i++) {
+            uint256 revealIdx = _getRevealId(user);
+
+            (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
+
+            IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[revealIdx];
+
+            lootbox.reveal(user, boxContent, proof);
+        }
+        _commit(user);
+        vm.roll(block.number + 3);
+
+        vm.expectRevert(AllBoxesOpened.selector);
+        lootbox.getRevealId(user);
+    }
+
+    function testCantRefundAfterReveal(address user) public {
+        uint256 revealIdx = _getRevealId(user);
+
+        (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
+
+        IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[revealIdx];
+
+        lootbox.reveal(user, boxContent, proof);
+
+        vm.expectRevert(NoCommit.selector);
+        lootbox.refundBox(user);
     }
 
     // Common functions
@@ -234,7 +274,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
 
     function _getRevealId(address user) internal returns (uint256 revealIdx) {
         _commit(user);
-        vm.roll(3);
+        vm.roll(block.number + 3);
         revealIdx = lootbox.getRevealId(user);
     }
 }

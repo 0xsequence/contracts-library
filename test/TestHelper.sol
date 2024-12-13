@@ -76,7 +76,7 @@ abstract contract TestHelper is Test, Merkle {
     {
         bytes32[] memory leaves = new bytes32[](boxes.length);
         for (uint256 i = 0; i < boxes.length; i++) {
-            leaves[i] = keccak256(abi.encodePacked(boxes[i].tokenAddresses, boxes[i].tokenIds, boxes[i].amounts, i + 1));
+            leaves[i] = keccak256(abi.encode(i, boxes[i]));
         }
         root = getRoot(leaves);
         proof = getProof(leaves, leafIndex);
