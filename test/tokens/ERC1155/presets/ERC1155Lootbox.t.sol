@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {TestHelper} from "../../../TestHelper.sol";
+import {LootboxReentryMock} from "../../../_mocks/LootboxReentryMock.sol";
 import {ERC1155Items} from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
 import {ERC1155Lootbox} from "src/tokens/ERC1155/presets/lootbox/ERC1155Lootbox.sol";
 import {IERC1155ItemsSignals, IERC1155ItemsFunctions} from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
@@ -22,6 +23,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
 
     ERC1155Lootbox private lootbox;
     ERC1155Items private token;
+    LootboxReentryMock private reentryAttacker;
 
     address private proxyOwner;
     address private owner;
@@ -40,6 +42,8 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
 
         ERC1155LootboxFactory factory = new ERC1155LootboxFactory(address(this));
         lootbox = ERC1155Lootbox(factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0));
+
+        reentryAttacker = new LootboxReentryMock(address(lootbox));
 
         token.grantRole(keccak256("MINTER_ROLE"), address(lootbox));
 
@@ -120,7 +124,6 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         address _proxyOwner,
         address tokenOwner,
         string memory name,
-        string memory symbol,
         string memory baseURI,
         string memory contractURI,
         address royaltyReceiver,
@@ -140,13 +143,23 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     }
 
     function testCommitWithBalance(address user) public {
+        assumeSafeAddress(user);
         _commit(user);
         vm.assertEq(lootbox.balanceOf(user, 1), 0);
     }
 
     function testCommitNoBalance(address user) public {
+        assumeSafeAddress(user);
         vm.prank(user);
         vm.expectRevert(NoBalance.selector);
+        lootbox.commit();
+    }
+
+    function testCommitPendingReveal(address user) public {
+        assumeSafeAddress(user);
+        _commit(user);
+        vm.prank(user);
+        vm.expectRevert(PendingReveal.selector);
         lootbox.commit();
     }
 
@@ -156,6 +169,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     }
 
     function testRefundPendingReveal(address user) public {
+        assumeSafeAddress(user);
         _commit(user);
 
         vm.roll(block.number + 255);
@@ -164,6 +178,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     }
 
     function testRefundExpiredCommit(address user) public {
+        assumeSafeAddress(user);
         _commit(user);
 
         vm.roll(block.number + 300);
@@ -177,6 +192,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     }
 
     function testGetRevealIdInvalidCommit(address user) public {
+        assumeSafeAddress(user);
         _commit(user);
 
         vm.roll(block.number + 300);
@@ -185,10 +201,12 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     }
 
     function testGetRevealIdSuccess(address user) public {
+        assumeSafeAddress(user);
         vm.assertLt(_getRevealId(user), lootbox.boxSupply());
     }
 
     function testRevealSuccess(address user) public {
+        assumeSafeAddress(user);
         uint256 revealIdx = _getRevealId(user);
 
         (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
@@ -202,7 +220,36 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         }
     }
 
+    function testRevealInvalidBoxContent(address user) public {
+        assumeSafeAddress(user);
+        uint256 revealIdx = _getRevealId(user);
+
+        vm.assume(revealIdx > 0);
+
+        (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
+
+        IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[revealIdx - 1];
+
+        vm.expectRevert(InvalidProof.selector);
+        lootbox.reveal(user, boxContent, proof);
+    }
+
+    function testRevealInvalidRevealIdx(address user) public {
+        assumeSafeAddress(user);
+        uint256 revealIdx = _getRevealId(user);
+
+        vm.assume(revealIdx > 0);
+
+        (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx - 1);
+
+        IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[revealIdx];
+
+        vm.expectRevert(InvalidProof.selector);
+        lootbox.reveal(user, boxContent, proof);
+    }
+
     function testRevealAfterAllOpened(address user) public {
+        assumeSafeAddress(user);
         for (uint256 i = 0; i < lootbox.boxSupply(); i++) {
             uint256 revealIdx = _getRevealId(user);
 
@@ -219,7 +266,27 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         lootbox.getRevealId(user);
     }
 
+    function testRevealReentryAttack() public {
+        vm.prank(owner);
+        lootbox.mint(address(reentryAttacker), 1, 1, "box");
+
+        reentryAttacker.commit();
+
+        vm.roll(block.number + 3);
+        uint256 revealIdx = lootbox.getRevealId(address(reentryAttacker));
+
+        (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
+
+        IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[revealIdx];
+
+        reentryAttacker.setBoxAndProof(proof, boxContent);
+
+        vm.expectRevert(NoCommit.selector);
+        lootbox.reveal(address(reentryAttacker), boxContent, proof);
+    }
+
     function testCantRefundAfterReveal(address user) public {
+        assumeSafeAddress(user);
         uint256 revealIdx = _getRevealId(user);
 
         (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
@@ -263,10 +330,8 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     }
 
     function _commit(address user) internal {
-        assumeSafeAddress(user);
-
         vm.prank(owner);
-        lootbox.mint(user, 1, 1, "");
+        lootbox.mint(user, 1, 1, "box");
 
         vm.prank(user);
         lootbox.commit();

@@ -30,22 +30,17 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
         super.initialize(owner, tokenName, tokenBaseURI, tokenContractURI, royaltyReceiver, royaltyFeeNumerator);
     }
 
-    /**
-     * Set all possible box contents.
-     * @param _merkleRoot merkle root built from all possible box contents.
-     * @param _boxSupply total amount of boxes.
-     * @dev Updating these values before all the boxes have been opened may lead to undesirable behavior.
-     */
+    /// @inheritdoc IERC1155LootboxFunctions
     function setBoxContent(bytes32 _merkleRoot, uint256 _boxSupply) external onlyRole(MINT_ADMIN_ROLE) {
         merkleRoot = _merkleRoot;
         boxSupply = _boxSupply;
     }
 
-    /**
-     * Commit to reveal box content.
-     * @notice this function burns user box.
-     */
+    /// @inheritdoc IERC1155LootboxFunctions
     function commit() external {
+        if (_commitments[msg.sender] != 0) {
+            revert PendingReveal();
+        }
         if (balanceOf(msg.sender, 1) == 0) {
             revert NoBalance();
         }
@@ -56,12 +51,7 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
         emit Commit(msg.sender, revealAfterBlock);
     }
 
-    /**
-     * Reveal box content.
-     * @param user address of reward recipient.
-     * @param boxContent reward selected with random index.
-     * @param proof Box contents merkle proof.
-     */
+    /// @inheritdoc IERC1155LootboxFunctions
     function reveal(address user, BoxContent calldata boxContent, bytes32[] calldata proof) external {
         uint256 revealIdx = getRevealId(user);
         bytes32 leaf = keccak256(abi.encode(revealIdx, boxContent));
@@ -80,11 +70,7 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
         }
     }
 
-    /**
-     * Ask for box refund after commit expiration.
-     * @param user address of box owner.
-     * @notice this function mints a box for the user when his commit is expired.
-     */
+    /// @inheritdoc IERC1155LootboxFunctions
     function refundBox(address user) external {
         if (_commitments[user] == 0) {
             revert NoCommit();
@@ -96,12 +82,7 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
         _mint(user, 1, 1, "");
     }
 
-    // Views
-
-    /**
-     * Get random reveal index.
-     * @param user address of reward recipient.
-     */
+    /// @inheritdoc IERC1155LootboxFunctions
     function getRevealId(address user) public view returns (uint256 revealIdx) {
         if (_commitments[user] == 0) {
             revert NoCommit();
