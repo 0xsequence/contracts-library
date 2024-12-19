@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {TestHelper} from "../../../TestHelper.sol";
+import {TestHelper, console} from "../../../TestHelper.sol";
 import {LootboxReentryMock} from "../../../_mocks/LootboxReentryMock.sol";
 import {ERC1155Items} from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
 import {ERC1155Lootbox} from "src/tokens/ERC1155/presets/lootbox/ERC1155Lootbox.sol";
@@ -16,6 +16,15 @@ import {ERC1155LootboxFactory} from "src/tokens/ERC1155/presets/lootbox/ERC1155L
 // Interfaces
 import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+
+contract ERC1155LootboxHack is ERC1155Lootbox {
+    function setAllExceptOneClaimed(uint256 _idx) public {
+        for (uint256 i = 0; i < boxSupply; i++) {
+            if (i == _idx) continue;
+            _claimedIdxs[i] = true;
+        }
+    }
+}
 
 contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155LootboxSignals {
     // Redeclare events
@@ -218,6 +227,42 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         for (uint256 i = 0; i < boxContent.tokenAddresses.length; i++) {
             vm.assertEq(token.balanceOf(user, boxContent.tokenIds[i]), boxContent.amounts[i]);
         }
+    }
+
+    function testFinalRevealSuccess(address user, uint256 size, uint256 unclaimedIdx) public {
+        assumeSafeAddress(user);
+        size = bound(size, 2, 1000); //FIXME 10000
+        unclaimedIdx = bound(unclaimedIdx, 0, size - 1);
+
+        ERC1155LootboxHack lootboxHack = new ERC1155LootboxHack();
+        lootboxHack.initialize(owner, "name", "baseURI", "contractURI", address(this), 0);
+        lootbox = lootboxHack;
+
+        // Prepare massive box contents (empty)
+        boxContents = new IERC1155LootboxFunctions.BoxContent[](size);
+        (bytes32 root,) = TestHelper.getMerklePartsBoxes(boxContents, 0);
+        vm.prank(owner);
+        lootbox.setBoxContent(root, size);
+
+        // Mark all claimed except one
+        lootboxHack.setAllExceptOneClaimed(unclaimedIdx);
+
+        // Mint box to user
+        vm.prank(owner);
+        lootbox.mint(user, 1, 1, "box");
+
+        // Commit
+        vm.prank(user);
+        lootbox.commit();
+
+        // Reveal
+        vm.roll(block.number + 3);
+        uint256 revealIdx = lootbox.getRevealId(user);
+        (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
+        IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[unclaimedIdx];
+        lootbox.reveal(user, boxContent, proof);
+
+        vm.assertEq(token.balanceOf(user, 1), 0);
     }
 
     function testRevealInvalidBoxContent(address user) public {

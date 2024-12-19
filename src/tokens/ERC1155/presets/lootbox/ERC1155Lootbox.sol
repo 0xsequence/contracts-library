@@ -12,8 +12,8 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
     bytes32 public merkleRoot;
     uint256 public boxSupply;
 
-    mapping(address => uint256) private _commitments;
-    mapping(uint256 => bool) private _claimedIdxs;
+    mapping(address => uint256) internal _commitments;
+    mapping(uint256 => bool) internal _claimedIdxs;
 
     constructor() ERC1155Items() {}
 
