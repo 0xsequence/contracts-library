@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {TestHelper, console} from "../../../TestHelper.sol";
+import {TestHelper} from "../../../TestHelper.sol";
 import {LootboxReentryMock} from "../../../_mocks/LootboxReentryMock.sol";
 import {ERC1155Items} from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
 import {ERC1155Lootbox} from "src/tokens/ERC1155/presets/lootbox/ERC1155Lootbox.sol";
@@ -19,10 +19,9 @@ import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 contract ERC1155LootboxHack is ERC1155Lootbox {
     function setAllExceptOneClaimed(uint256 _idx) public {
-        for (uint256 i = 0; i < boxSupply; i++) {
-            if (i == _idx) continue;
-            _claimedIdxs[i] = true;
-        }
+        remainingSupply = 1;
+        // Update _availableIndices to point to the last index
+        _availableIndices[0] = _idx;
     }
 }
 
@@ -296,8 +295,10 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     function testRevealAfterAllOpened(address user) public {
         assumeSafeAddress(user);
 
-        bool[] memory revealed = new bool[](lootbox.boxSupply());
-        for (uint256 i = 0; i < lootbox.boxSupply(); i++) {
+        uint256 boxSupply = lootbox.boxSupply();
+
+        bool[] memory revealed = new bool[](boxSupply);
+        for (uint256 i = 0; i < boxSupply; i++) {
             uint256 revealIdx = _getRevealId(user);
             vm.assertEq(revealed[revealIdx], false);
 
