@@ -250,14 +250,18 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
 
     function testRevealAfterAllOpened(address user) public {
         assumeSafeAddress(user);
+
+        bool[] memory revealed = new bool[](lootbox.boxSupply());
         for (uint256 i = 0; i < lootbox.boxSupply(); i++) {
             uint256 revealIdx = _getRevealId(user);
+            vm.assertEq(revealed[revealIdx], false);
 
             (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
 
             IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[revealIdx];
 
             lootbox.reveal(user, boxContent, proof);
+            revealed[revealIdx] = true;
         }
         _commit(user);
         vm.roll(block.number + 3);
