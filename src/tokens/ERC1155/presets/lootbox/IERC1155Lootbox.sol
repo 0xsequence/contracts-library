@@ -4,8 +4,8 @@ pragma solidity ^0.8.19;
 interface IERC1155LootboxFunctions {
     struct BoxContent {
         address[] tokenAddresses;
-        uint256[] tokenIds;
-        uint256[] amounts;
+        uint256[][] tokenIds;
+        uint256[][] amounts;
     }
 
     /**

@@ -31,6 +31,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
 
     ERC1155Lootbox private lootbox;
     ERC1155Items private token;
+    ERC1155Items private token2;
     LootboxReentryMock private reentryAttacker;
 
     address private proxyOwner;
@@ -48,12 +49,16 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         token = new ERC1155Items();
         token.initialize(address(this), "test", "ipfs://", "ipfs://", address(this), 0);
 
+        token2 = new ERC1155Items();
+        token2.initialize(address(this), "test2", "ipfs://", "ipfs://", address(this), 0);
+
         ERC1155LootboxFactory factory = new ERC1155LootboxFactory(address(this));
         lootbox = ERC1155Lootbox(factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0));
 
         reentryAttacker = new LootboxReentryMock(address(lootbox));
 
         token.grantRole(keccak256("MINTER_ROLE"), address(lootbox));
+        token2.grantRole(keccak256("MINTER_ROLE"), address(lootbox));
 
         _prepareBoxContents();
         (bytes32 root,) = TestHelper.getMerklePartsBoxes(boxContents, 0);
@@ -224,7 +229,12 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         lootbox.reveal(user, boxContent, proof);
 
         for (uint256 i = 0; i < boxContent.tokenAddresses.length; i++) {
-            vm.assertEq(token.balanceOf(user, boxContent.tokenIds[i]), boxContent.amounts[i]);
+            for (uint256 j = 0; j < boxContent.tokenIds[i].length; j++) {
+                vm.assertEq(
+                    IERC1155(boxContent.tokenAddresses[i]).balanceOf(user, boxContent.tokenIds[i][j]),
+                    boxContent.amounts[i][j]
+                );
+            }
         }
     }
 
@@ -354,29 +364,42 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     function _prepareBoxContents() internal {
         boxContents = new IERC1155LootboxFunctions.BoxContent[](3);
 
-        boxContents[0].tokenAddresses = new address[](2);
+        // Multiple tokens on single address
+        boxContents[0].tokenAddresses = new address[](1);
         boxContents[0].tokenAddresses[0] = address(token);
-        boxContents[0].tokenAddresses[1] = address(token);
-        boxContents[0].tokenIds = new uint256[](2);
-        boxContents[0].tokenIds[0] = 1;
-        boxContents[0].tokenIds[1] = 2;
-        boxContents[0].amounts = new uint256[](2);
-        boxContents[0].amounts[0] = 10;
-        boxContents[0].amounts[1] = 5;
+        boxContents[0].tokenIds = new uint256[][](1);
+        boxContents[0].tokenIds[0] = new uint256[](2);
+        boxContents[0].tokenIds[0][0] = 1;
+        boxContents[0].tokenIds[0][1] = 2;
+        boxContents[0].amounts = new uint256[][](1);
+        boxContents[0].amounts[0] = new uint256[](2);
+        boxContents[0].amounts[0][0] = 10;
+        boxContents[0].amounts[0][1] = 5;
 
+        // Single token on single address
         boxContents[1].tokenAddresses = new address[](1);
         boxContents[1].tokenAddresses[0] = address(token);
-        boxContents[1].tokenIds = new uint256[](1);
-        boxContents[1].tokenIds[0] = 3;
-        boxContents[1].amounts = new uint256[](1);
-        boxContents[1].amounts[0] = 15;
+        boxContents[1].tokenIds = new uint256[][](1);
+        boxContents[1].tokenIds[0] = new uint256[](1);
+        boxContents[1].tokenIds[0][0] = 3;
+        boxContents[1].amounts = new uint256[][](1);
+        boxContents[1].amounts[0] = new uint256[](1);
+        boxContents[1].amounts[0][0] = 15;
 
-        boxContents[2].tokenAddresses = new address[](1);
+        // Single token on multiple addresses
+        boxContents[2].tokenAddresses = new address[](2);
         boxContents[2].tokenAddresses[0] = address(token);
-        boxContents[2].tokenIds = new uint256[](1);
-        boxContents[2].tokenIds[0] = 4;
-        boxContents[2].amounts = new uint256[](1);
-        boxContents[2].amounts[0] = 20;
+        boxContents[2].tokenAddresses[1] = address(token2);
+        boxContents[2].tokenIds = new uint256[][](2);
+        boxContents[2].tokenIds[0] = new uint256[](1);
+        boxContents[2].tokenIds[0][0] = 4;
+        boxContents[2].tokenIds[1] = new uint256[](1);
+        boxContents[2].tokenIds[1][0] = 5;
+        boxContents[2].amounts = new uint256[][](2);
+        boxContents[2].amounts[0] = new uint256[](1);
+        boxContents[2].amounts[0][0] = 20;
+        boxContents[2].amounts[1] = new uint256[](1);
+        boxContents[2].amounts[1][0] = 10;
     }
 
     function _commit(address user) internal {

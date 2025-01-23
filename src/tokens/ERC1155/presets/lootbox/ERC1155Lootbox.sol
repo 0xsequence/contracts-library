@@ -69,7 +69,7 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
         _availableIndices[randomIndex] = _getIndexOrDefault(remainingSupply);
 
         for (uint256 i = 0; i < boxContent.tokenAddresses.length; i++) {
-            IERC1155ItemsFunctions(boxContent.tokenAddresses[i]).mint(
+            IERC1155ItemsFunctions(boxContent.tokenAddresses[i]).batchMint(
                 user, boxContent.tokenIds[i], boxContent.amounts[i], ""
             );
         }
