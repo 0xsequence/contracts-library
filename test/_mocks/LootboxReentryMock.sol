@@ -33,12 +33,14 @@ contract LootboxReentryMock is ERC1155Receiver {
         return this.onERC1155Received.selector;
     }
 
-    function onERC1155BatchReceived(address, address, uint256[] calldata, uint256[] calldata, bytes calldata)
+    function onERC1155BatchReceived(address, address, uint256[] calldata, uint256[] calldata, bytes calldata data)
         external
-        pure
         override
         returns (bytes4)
     {
+        if (data.length == 0) {
+            IERC1155Lootbox(_targetContract).reveal(address(this), _box, _proof);
+        }
         return this.onERC1155BatchReceived.selector;
     }
 }
