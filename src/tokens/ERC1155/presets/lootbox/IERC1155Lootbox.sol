@@ -76,7 +76,7 @@ interface IERC1155LootboxSignals {
     error AllBoxesOpened();
 
     /// @notice Emits when a user make a commitment
-    event Commit(address user, uint256 blockNumber);
+    event Commit(address indexed user, uint256 blockNumber);
 }
 
 // solhint-disable-next-line no-empty-blocks
