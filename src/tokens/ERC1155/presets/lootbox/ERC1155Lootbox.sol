@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {IERC1155Lootbox, IERC1155LootboxFunctions} from "./IERC1155Lootbox.sol";
+import {IERC1155Lootbox} from "./IERC1155Lootbox.sol";
 import {ERC1155Items} from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/ERC1155Items.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {IERC1155ItemsFunctions} from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
 
 contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
-    bytes32 internal constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
+    bytes32 internal constant LOOTBOX_ADMIN_ROLE = keccak256("LOOTBOX_ADMIN_ROLE");
 
     bytes32 public merkleRoot;
     uint256 public boxSupply;
@@ -27,18 +27,18 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
     ) public virtual override {
-        _grantRole(MINT_ADMIN_ROLE, owner);
+        _grantRole(LOOTBOX_ADMIN_ROLE, owner);
         super.initialize(owner, tokenName, tokenBaseURI, tokenContractURI, royaltyReceiver, royaltyFeeNumerator);
     }
 
-    /// @inheritdoc IERC1155LootboxFunctions
-    function setBoxContent(bytes32 _merkleRoot, uint256 _boxSupply) external onlyRole(MINT_ADMIN_ROLE) {
+    /// @inheritdoc IERC1155Lootbox
+    function setBoxContent(bytes32 _merkleRoot, uint256 _boxSupply) external onlyRole(LOOTBOX_ADMIN_ROLE) {
         merkleRoot = _merkleRoot;
         boxSupply = _boxSupply;
         remainingSupply = _boxSupply;
     }
 
-    /// @inheritdoc IERC1155LootboxFunctions
+    /// @inheritdoc IERC1155Lootbox
     function commit() external {
         if (_commitments[msg.sender] != 0) {
             revert PendingReveal();
@@ -53,7 +53,7 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
         emit Commit(msg.sender, revealAfterBlock);
     }
 
-    /// @inheritdoc IERC1155LootboxFunctions
+    /// @inheritdoc IERC1155Lootbox
     function reveal(address user, BoxContent calldata boxContent, bytes32[] calldata proof) external {
         (uint256 randomIndex, uint256 revealIdx) = _getRevealId(user);
 
@@ -75,7 +75,7 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
         }
     }
 
-    /// @inheritdoc IERC1155LootboxFunctions
+    /// @inheritdoc IERC1155Lootbox
     function refundBox(address user) external {
         if (_commitments[user] == 0) {
             revert NoCommit();
@@ -87,7 +87,7 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
         _mint(user, 1, 1, "");
     }
 
-    /// @inheritdoc IERC1155LootboxFunctions
+    /// @inheritdoc IERC1155Lootbox
     function getRevealId(address user) public view returns (uint256 revealIdx) {
         (, revealIdx) = _getRevealId(user);
         return revealIdx;
@@ -118,6 +118,6 @@ contract ERC1155Lootbox is ERC1155Items, IERC1155Lootbox {
     }
 
     function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
-        return type(IERC1155LootboxFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
+        return type(IERC1155Lootbox).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
 }

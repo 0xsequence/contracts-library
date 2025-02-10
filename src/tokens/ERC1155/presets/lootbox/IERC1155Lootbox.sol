@@ -1,12 +1,45 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-interface IERC1155LootboxFunctions {
+interface IERC1155Lootbox {
     struct BoxContent {
         address[] tokenAddresses;
         uint256[][] tokenIds;
         uint256[][] amounts;
     }
+
+    /**
+     * Commit expired or never made.
+     */
+    error InvalidCommit();
+
+    /**
+     * Reveal is pending.
+     */
+    error PendingReveal();
+
+    /**
+     * Commit never made.
+     */
+    error NoCommit();
+
+    /**
+     * No balance.
+     */
+    error NoBalance();
+
+    /**
+     * Invalid proof.
+     */
+    error InvalidProof();
+
+    /**
+     * All boxes opened.
+     */
+    error AllBoxesOpened();
+
+    /// @notice Emits when a user make a commitment
+    event Commit(address indexed user, uint256 blockNumber);
 
     /**
      * Set all possible box contents.
@@ -43,41 +76,3 @@ interface IERC1155LootboxFunctions {
      */
     function refundBox(address user) external;
 }
-
-interface IERC1155LootboxSignals {
-    /**
-     * Commit expired or never made.
-     */
-    error InvalidCommit();
-
-    /**
-     * Reveal is pending.
-     */
-    error PendingReveal();
-
-    /**
-     * Commit never made.
-     */
-    error NoCommit();
-
-    /**
-     * No balance.
-     */
-    error NoBalance();
-
-    /**
-     * Invalid proof.
-     */
-    error InvalidProof();
-
-    /**
-     * All boxes opened.
-     */
-    error AllBoxesOpened();
-
-    /// @notice Emits when a user make a commitment
-    event Commit(address indexed user, uint256 blockNumber);
-}
-
-// solhint-disable-next-line no-empty-blocks
-interface IERC1155Lootbox is IERC1155LootboxFunctions, IERC1155LootboxSignals {}

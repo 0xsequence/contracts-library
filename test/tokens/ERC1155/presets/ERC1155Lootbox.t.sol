@@ -5,12 +5,8 @@ import {TestHelper} from "../../../TestHelper.sol";
 import {LootboxReentryMock} from "../../../_mocks/LootboxReentryMock.sol";
 import {ERC1155Items} from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
 import {ERC1155Lootbox} from "src/tokens/ERC1155/presets/lootbox/ERC1155Lootbox.sol";
+import {IERC1155Lootbox} from "src/tokens/ERC1155/presets/lootbox/IERC1155Lootbox.sol";
 import {IERC1155ItemsSignals, IERC1155ItemsFunctions} from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
-import {
-    IERC1155LootboxSignals,
-    IERC1155LootboxFunctions,
-    IERC1155Lootbox
-} from "src/tokens/ERC1155/presets/lootbox/IERC1155Lootbox.sol";
 import {ERC1155LootboxFactory} from "src/tokens/ERC1155/presets/lootbox/ERC1155LootboxFactory.sol";
 
 // Interfaces
@@ -25,7 +21,7 @@ contract ERC1155LootboxHack is ERC1155Lootbox {
     }
 }
 
-contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155LootboxSignals {
+contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals {
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
@@ -37,7 +33,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     address private proxyOwner;
     address private owner;
 
-    IERC1155LootboxFunctions.BoxContent[] private boxContents;
+    IERC1155Lootbox.BoxContent[] private boxContents;
 
     function setUp() public {
         owner = makeAddr("owner");
@@ -76,7 +72,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         assertTrue(lootbox.supportsInterface(type(IERC165).interfaceId));
         assertTrue(lootbox.supportsInterface(type(IERC1155).interfaceId));
         assertTrue(lootbox.supportsInterface(type(IERC1155ItemsFunctions).interfaceId));
-        assertTrue(lootbox.supportsInterface(type(IERC1155LootboxFunctions).interfaceId));
+        assertTrue(lootbox.supportsInterface(type(IERC1155Lootbox).interfaceId));
     }
 
     /**
@@ -130,7 +126,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         assertTrue(lootbox.hasRole(keccak256("METADATA_ADMIN_ROLE"), owner));
         assertTrue(lootbox.hasRole(keccak256("MINTER_ROLE"), owner));
         assertTrue(lootbox.hasRole(keccak256("ROYALTY_ADMIN_ROLE"), owner));
-        assertTrue(lootbox.hasRole(keccak256("MINT_ADMIN_ROLE"), owner));
+        assertTrue(lootbox.hasRole(keccak256("LOOTBOX_ADMIN_ROLE"), owner));
     }
 
     function testFactoryDetermineAddress(
@@ -164,7 +160,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     function testCommitNoBalance(address user) public {
         assumeSafeAddress(user);
         vm.prank(user);
-        vm.expectRevert(NoBalance.selector);
+        vm.expectRevert(IERC1155Lootbox.NoBalance.selector);
         lootbox.commit();
     }
 
@@ -172,12 +168,12 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         assumeSafeAddress(user);
         _commit(user);
         vm.prank(user);
-        vm.expectRevert(PendingReveal.selector);
+        vm.expectRevert(IERC1155Lootbox.PendingReveal.selector);
         lootbox.commit();
     }
 
     function testRefundNoCommit(address user) public {
-        vm.expectRevert(NoCommit.selector);
+        vm.expectRevert(IERC1155Lootbox.NoCommit.selector);
         lootbox.refundBox(user);
     }
 
@@ -186,7 +182,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         _commit(user);
 
         vm.roll(block.number + 255);
-        vm.expectRevert(PendingReveal.selector);
+        vm.expectRevert(IERC1155Lootbox.PendingReveal.selector);
         lootbox.refundBox(user);
     }
 
@@ -200,7 +196,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
     }
 
     function testGetRevealIdNoCommit(address user) public {
-        vm.expectRevert(NoCommit.selector);
+        vm.expectRevert(IERC1155Lootbox.NoCommit.selector);
         lootbox.getRevealId(user);
     }
 
@@ -209,7 +205,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         _commit(user);
 
         vm.roll(block.number + 300);
-        vm.expectRevert(InvalidCommit.selector);
+        vm.expectRevert(IERC1155Lootbox.InvalidCommit.selector);
         lootbox.getRevealId(user);
     }
 
@@ -224,7 +220,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
 
         (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
 
-        IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[revealIdx];
+        IERC1155Lootbox.BoxContent memory boxContent = boxContents[revealIdx];
 
         lootbox.reveal(user, boxContent, proof);
 
@@ -248,7 +244,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         lootbox = lootboxHack;
 
         // Prepare massive box contents (empty)
-        boxContents = new IERC1155LootboxFunctions.BoxContent[](size);
+        boxContents = new IERC1155Lootbox.BoxContent[](size);
         (bytes32 root,) = TestHelper.getMerklePartsBoxes(boxContents, 0);
         vm.prank(owner);
         lootbox.setBoxContent(root, size);
@@ -268,7 +264,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         vm.roll(block.number + 3);
         uint256 revealIdx = lootbox.getRevealId(user);
         (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
-        IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[unclaimedIdx];
+        IERC1155Lootbox.BoxContent memory boxContent = boxContents[unclaimedIdx];
         lootbox.reveal(user, boxContent, proof);
 
         vm.assertEq(token.balanceOf(user, 1), 0);
@@ -282,9 +278,9 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
 
         (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
 
-        IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[revealIdx - 1];
+        IERC1155Lootbox.BoxContent memory boxContent = boxContents[revealIdx - 1];
 
-        vm.expectRevert(InvalidProof.selector);
+        vm.expectRevert(IERC1155Lootbox.InvalidProof.selector);
         lootbox.reveal(user, boxContent, proof);
     }
 
@@ -296,9 +292,9 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
 
         (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx - 1);
 
-        IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[revealIdx];
+        IERC1155Lootbox.BoxContent memory boxContent = boxContents[revealIdx];
 
-        vm.expectRevert(InvalidProof.selector);
+        vm.expectRevert(IERC1155Lootbox.InvalidProof.selector);
         lootbox.reveal(user, boxContent, proof);
     }
 
@@ -314,7 +310,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
 
             (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
 
-            IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[revealIdx];
+            IERC1155Lootbox.BoxContent memory boxContent = boxContents[revealIdx];
 
             lootbox.reveal(user, boxContent, proof);
             revealed[revealIdx] = true;
@@ -322,7 +318,7 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
         _commit(user);
         vm.roll(block.number + 3);
 
-        vm.expectRevert(AllBoxesOpened.selector);
+        vm.expectRevert(IERC1155Lootbox.AllBoxesOpened.selector);
         lootbox.getRevealId(user);
     }
 
@@ -337,11 +333,11 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
 
         (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
 
-        IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[revealIdx];
+        IERC1155Lootbox.BoxContent memory boxContent = boxContents[revealIdx];
 
         reentryAttacker.setBoxAndProof(proof, boxContent);
 
-        vm.expectRevert(NoCommit.selector);
+        vm.expectRevert(IERC1155Lootbox.NoCommit.selector);
         lootbox.reveal(address(reentryAttacker), boxContent, proof);
     }
 
@@ -351,18 +347,18 @@ contract ERC1155LootboxTest is TestHelper, IERC1155ItemsSignals, IERC1155Lootbox
 
         (, bytes32[] memory proof) = TestHelper.getMerklePartsBoxes(boxContents, revealIdx);
 
-        IERC1155LootboxFunctions.BoxContent memory boxContent = boxContents[revealIdx];
+        IERC1155Lootbox.BoxContent memory boxContent = boxContents[revealIdx];
 
         lootbox.reveal(user, boxContent, proof);
 
-        vm.expectRevert(NoCommit.selector);
+        vm.expectRevert(IERC1155Lootbox.NoCommit.selector);
         lootbox.refundBox(user);
     }
 
     // Common functions
 
     function _prepareBoxContents() internal {
-        boxContents = new IERC1155LootboxFunctions.BoxContent[](3);
+        boxContents = new IERC1155Lootbox.BoxContent[](3);
 
         // Multiple tokens on single address
         boxContents[0].tokenAddresses = new address[](1);
