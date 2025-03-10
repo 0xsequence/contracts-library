@@ -6,7 +6,7 @@ import "forge-std/Test.sol";
 import {ITransparentUpgradeableBeaconProxy} from "src/proxies/TransparentUpgradeableBeaconProxy.sol";
 import {ITransparentUpgradeableProxy} from "src/proxies/openzeppelin/TransparentUpgradeableProxy.sol";
 
-import {IERC1155Lootbox} from "src/tokens/ERC1155/presets/lootbox/IERC1155Lootbox.sol";
+import {IERC1155Pack} from "src/tokens/ERC1155/presets/pack/IERC1155Pack.sol";
 
 import {Merkle} from "murky/Merkle.sol";
 
@@ -69,14 +69,14 @@ abstract contract TestHelper is Test, Merkle {
         proof = getProof(leaves, leafIndex);
     }
 
-    function getMerklePartsBoxes(IERC1155Lootbox.BoxContent[] memory boxes, uint256 leafIndex)
+    function getMerklePartsPacks(IERC1155Pack.PackContent[] memory packs, uint256 leafIndex)
         internal
         pure
         returns (bytes32 root, bytes32[] memory proof)
     {
-        bytes32[] memory leaves = new bytes32[](boxes.length);
-        for (uint256 i = 0; i < boxes.length; i++) {
-            leaves[i] = keccak256(abi.encode(i, boxes[i]));
+        bytes32[] memory leaves = new bytes32[](packs.length);
+        for (uint256 i = 0; i < packs.length; i++) {
+            leaves[i] = keccak256(abi.encode(i, packs[i]));
         }
         root = getRoot(leaves);
         proof = getProof(leaves, leafIndex);
