@@ -38,8 +38,11 @@ interface IERC1155Pack {
      */
     error AllPacksOpened();
 
-    /// @notice Emits when a user make a commitment
+    /// @notice Emitted when a user make a commitment
     event Commit(address indexed user, uint256 blockNumber);
+
+    /// @notice Emitted when a reveal is successful
+    event Reveal(address user, PackContent packContent);
 
     /**
      * Initialize the contract.

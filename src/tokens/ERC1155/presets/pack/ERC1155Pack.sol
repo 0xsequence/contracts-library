@@ -78,6 +78,8 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
                 user, packContent.tokenIds[i], packContent.amounts[i], ""
             );
         }
+
+        emit Reveal(user, packContent);
     }
 
     /// @inheritdoc IERC1155Pack
