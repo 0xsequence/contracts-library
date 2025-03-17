@@ -79,7 +79,7 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
             );
         }
 
-        emit Reveal(user, packContent);
+        emit Reveal(user);
     }
 
     /// @inheritdoc IERC1155Pack

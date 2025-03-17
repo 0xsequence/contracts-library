@@ -42,7 +42,7 @@ interface IERC1155Pack {
     event Commit(address indexed user, uint256 blockNumber);
 
     /// @notice Emitted when a reveal is successful
-    event Reveal(address user, PackContent packContent);
+    event Reveal(address indexed user);
 
     /**
      * Initialize the contract.
