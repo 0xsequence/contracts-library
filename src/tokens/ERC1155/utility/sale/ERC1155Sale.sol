@@ -194,6 +194,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         }
 
         IERC1155ItemsFunctions(_items).batchMint(to, tokenIds, amounts, data);
+        emit ItemsMinted(to, tokenIds, amounts);
     }
 
     //

@@ -72,6 +72,7 @@ interface IERC1155SaleSignals {
 
     event GlobalSaleDetailsUpdated(uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
     event TokenSaleDetailsUpdated(uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
+    event ItemsMinted(address to, uint256[] tokenIds, uint256[] amounts);
 
     /**
      * Contract already initialized.
