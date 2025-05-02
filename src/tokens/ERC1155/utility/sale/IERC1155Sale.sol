@@ -33,7 +33,7 @@ interface IERC1155SaleFunctions {
      * @return Array of sale details corresponding to each token ID.
      * @notice Each token's sale details override the global sale details if set.
      */ 
-    function tokenSaleDetailsBatch(uint256[] tokenIds) external view returns (SaleDetails[] memory);
+    function tokenSaleDetailsBatch(uint256[] calldata tokenIds) external view returns (SaleDetails[] memory);
 
     /**
      * Get payment token.
