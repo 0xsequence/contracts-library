@@ -292,6 +292,21 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
     }
 
     /**
+     * Get sale details for multiple tokens.
+     * @param tokenIds Array of token IDs to retrieve sale details for.
+     * @return Array of sale details corresponding to each token ID.
+     * @notice Each token's sale details override the global sale details if set.
+     */ 
+    function tokenSaleDetailsBatch(uint256[] calldata tokenIds) external view returns (SaleDetails[] memory) {
+        SaleDetails[] memory details = new SaleDetails[](tokenIds.length);
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            details[i] = _tokenSaleDetails[tokenIds[i]];
+        }
+        return details;
+    }
+
+
+    /**
      * Get payment token.
      * @return Payment token address.
      * @notice address(0) indicates payment in ETH.
