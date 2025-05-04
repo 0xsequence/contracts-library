@@ -68,9 +68,7 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
         address _expectedPaymentToken,
         uint256 _maxTotal,
         bytes32[] calldata _proof
-    )
-        private
-    {
+    ) private {
         // Active sale test
         if (_blockTimeOutOfBounds(_saleDetails.startTime, _saleDetails.endTime)) {
             revert SaleInactive();
@@ -129,6 +127,7 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
         }
 
         IERC721ItemsFunctions(_items).mint(to, amount);
+        emit ItemsMinted(to, amount);
     }
 
     /**
@@ -148,10 +147,7 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
         uint64 startTime,
         uint64 endTime,
         bytes32 merkleRoot
-    )
-        public
-        onlyRole(MINT_ADMIN_ROLE)
-    {
+    ) public onlyRole(MINT_ADMIN_ROLE) {
         // solhint-disable-next-line not-rely-on-time
         if (endTime < startTime || endTime <= block.timestamp) {
             revert InvalidSaleDetails();
