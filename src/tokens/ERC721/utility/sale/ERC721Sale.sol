@@ -120,12 +120,14 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
         public
         payable
     {
+        _payForActiveMint(amount, paymentToken, maxTotal, proof);
+
         uint256 currentSupply = IERC721A(_items).totalSupply();
         uint256 supplyCap = _saleDetails.supplyCap;
         if (supplyCap > 0 && currentSupply + amount > supplyCap) {
             revert InsufficientSupply(currentSupply, amount, supplyCap);
         }
-        _payForActiveMint(amount, paymentToken, maxTotal, proof);
+
         IERC721ItemsFunctions(_items).mint(to, amount);
     }
 
