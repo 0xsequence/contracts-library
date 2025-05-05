@@ -1,30 +1,30 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {TestHelper} from "../../../TestHelper.sol";
+import { TestHelper } from "../../../TestHelper.sol";
 
-import {ERC721Soulbound} from "src/tokens/ERC721/presets/soulbound/ERC721Soulbound.sol";
+import { IERC721ItemsFunctions, IERC721ItemsSignals } from "src/tokens/ERC721/presets/items/IERC721Items.sol";
+import { ERC721Soulbound } from "src/tokens/ERC721/presets/soulbound/ERC721Soulbound.sol";
+
+import { ERC721SoulboundFactory } from "src/tokens/ERC721/presets/soulbound/ERC721SoulboundFactory.sol";
 import {
-    IERC721ItemsSignals,
-    IERC721ItemsFunctions
-} from "src/tokens/ERC721/presets/items/IERC721Items.sol";
-import {
-    IERC721SoulboundSignals,
+    IERC721Soulbound,
     IERC721SoulboundFunctions,
-    IERC721Soulbound
+    IERC721SoulboundSignals
 } from "src/tokens/ERC721/presets/soulbound/IERC721Soulbound.sol";
-import {ERC721SoulboundFactory} from "src/tokens/ERC721/presets/soulbound/ERC721SoulboundFactory.sol";
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 // Interfaces
-import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import {IERC721A} from "erc721a/contracts/interfaces/IERC721A.sol";
-import {IERC721AQueryable} from "erc721a/contracts/extensions/IERC721AQueryable.sol";
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+
+import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import { IERC721AQueryable } from "erc721a/contracts/extensions/IERC721AQueryable.sol";
+import { IERC721A } from "erc721a/contracts/interfaces/IERC721A.sol";
 
 contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721SoulboundSignals {
+
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
@@ -41,7 +41,9 @@ contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721Soulboun
         vm.deal(owner, 100 ether);
 
         ERC721SoulboundFactory factory = new ERC721SoulboundFactory(address(this));
-        token = ERC721Soulbound(factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", "contractURI", address(this), 0));
+        token = ERC721Soulbound(
+            factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", "contractURI", address(this), 0)
+        );
     }
 
     function testReinitializeFails() public {
@@ -141,15 +143,15 @@ contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721Soulboun
     //
     // Transfers
     //
-
-    function testUnlockInvalidRole(address invalid) public {
+    function testUnlockInvalidRole(
+        address invalid
+    ) public {
         vm.assume(invalid != owner);
 
         vm.expectRevert();
         vm.prank(invalid);
         token.setTransferLocked(false);
     }
-
 
     function testTransferLocked(address holder, address receiver) public {
         vm.assume(holder != receiver);
@@ -220,4 +222,5 @@ contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721Soulboun
 
         vm.assertEq(token.ownerOf(0), receiver);
     }
+
 }

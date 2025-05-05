@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 interface IERC1155Pack {
+
     struct PackContent {
         address[] tokenAddresses;
         uint256[][] tokenIds;
@@ -79,7 +80,9 @@ interface IERC1155Pack {
      * Get random reveal index.
      * @param user address of reward recipient.
      */
-    function getRevealIdx(address user) external view returns (uint256);
+    function getRevealIdx(
+        address user
+    ) external view returns (uint256);
 
     /**
      * Commit to reveal pack content.
@@ -93,16 +96,15 @@ interface IERC1155Pack {
      * @param packContent reward selected with random index.
      * @param proof Pack contents merkle proof.
      */
-    function reveal(
-        address user,
-        PackContent calldata packContent,
-        bytes32[] calldata proof
-    ) external;
+    function reveal(address user, PackContent calldata packContent, bytes32[] calldata proof) external;
 
     /**
      * Ask for pack refund after commit expiration.
      * @param user address of pack owner.
      * @notice this function mints a pack for the user when his commit is expired.
      */
-    function refundPack(address user) external;
+    function refundPack(
+        address user
+    ) external;
+
 }

@@ -1,19 +1,21 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {TestHelper} from "../TestHelper.sol";
+import { TestHelper } from "../TestHelper.sol";
 
-import {PaymentsFactory} from "src/payments/PaymentsFactory.sol";
-import {Payments, IERC165} from "src/payments/Payments.sol";
-import {IPayments, IPaymentsFunctions, IPaymentsSignals} from "src/payments/IPayments.sol";
+import { IPayments, IPaymentsFunctions, IPaymentsSignals } from "src/payments/IPayments.sol";
+import { IERC165, Payments } from "src/payments/Payments.sol";
+import { PaymentsFactory } from "src/payments/PaymentsFactory.sol";
 
-import {ERC1155Mock} from "test/_mocks/ERC1155Mock.sol";
-import {ERC20Mock} from "test/_mocks/ERC20Mock.sol";
-import {ERC721Mock} from "test/_mocks/ERC721Mock.sol";
-import {IGenericToken} from "test/_mocks/IGenericToken.sol";
-import {ERC1271Mock} from "test/_mocks/ERC1271Mock.sol";
+import { ERC1155Mock } from "test/_mocks/ERC1155Mock.sol";
+
+import { ERC1271Mock } from "test/_mocks/ERC1271Mock.sol";
+import { ERC20Mock } from "test/_mocks/ERC20Mock.sol";
+import { ERC721Mock } from "test/_mocks/ERC721Mock.sol";
+import { IGenericToken } from "test/_mocks/IGenericToken.sol";
 
 contract PaymentsTest is TestHelper, IPaymentsSignals {
+
     Payments public payments;
     address public owner;
     address public signer;
@@ -48,7 +50,9 @@ contract PaymentsTest is TestHelper, IPaymentsSignals {
         string productId;
     }
 
-    function _toTokenType(uint8 tokenType) internal pure returns (IPaymentsFunctions.TokenType) {
+    function _toTokenType(
+        uint8 tokenType
+    ) internal pure returns (IPaymentsFunctions.TokenType) {
         tokenType = tokenType % 3;
         if (tokenType == 0) {
             return IPaymentsFunctions.TokenType.ERC20;
@@ -59,11 +63,11 @@ contract PaymentsTest is TestHelper, IPaymentsSignals {
         return IPaymentsFunctions.TokenType.ERC1155;
     }
 
-    function _validTokenParams(IPaymentsFunctions.TokenType tokenType, uint256 tokenId, uint256 amount)
-        internal
-        view
-        returns (address, uint256, uint256)
-    {
+    function _validTokenParams(
+        IPaymentsFunctions.TokenType tokenType,
+        uint256 tokenId,
+        uint256 amount
+    ) internal view returns (address, uint256, uint256) {
         // / 10 to avoid overflow when paying multiple
         if (tokenType == IPaymentsFunctions.TokenType.ERC20) {
             return (address(erc20), 0, bound(amount, 1, type(uint256).max / 10));
@@ -74,18 +78,20 @@ contract PaymentsTest is TestHelper, IPaymentsSignals {
         return (address(erc1155), tokenId, bound(amount, 1, type(uint128).max / 10));
     }
 
-    function _signPayment(IPaymentsFunctions.PaymentDetails memory details, bool isERC1271, bool isValid)
-        internal
-        returns (bytes memory signature)
-    {
+    function _signPayment(
+        IPaymentsFunctions.PaymentDetails memory details,
+        bool isERC1271,
+        bool isValid
+    ) internal returns (bytes memory signature) {
         bytes32 digest = payments.hashPaymentDetails(details);
         return _signDigest(digest, isERC1271, isValid);
     }
 
-    function _signChainedCall(IPaymentsFunctions.ChainedCallDetails memory details, bool isERC1271, bool isValid)
-        internal
-        returns (bytes memory signature)
-    {
+    function _signChainedCall(
+        IPaymentsFunctions.ChainedCallDetails memory details,
+        bool isERC1271,
+        bool isValid
+    ) internal returns (bytes memory signature) {
         bytes32 digest = payments.hashChainedCallDetails(details);
         return _signDigest(digest, isERC1271, isValid);
     }
@@ -130,11 +136,11 @@ contract PaymentsTest is TestHelper, IPaymentsSignals {
         checkSelectorCollision(0xa7ecd37e); // updateSigner(address)
     }
 
-    function testMakePaymentSuccess(address caller, DetailsInput calldata input, bool isERC1271)
-        public
-        safeAddress(caller)
-        safeAddress(input.paymentRecipient.recipient)
-    {
+    function testMakePaymentSuccess(
+        address caller,
+        DetailsInput calldata input,
+        bool isERC1271
+    ) public safeAddress(caller) safeAddress(input.paymentRecipient.recipient) {
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
         IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
         (address tokenAddr, uint256 tokenId, uint256 amount) =
@@ -176,12 +182,11 @@ contract PaymentsTest is TestHelper, IPaymentsSignals {
         payments.makePayment(details, sig);
     }
 
-    function testMakePaymentSuccessChainedCall(address caller, DetailsInput calldata input, bool isERC1271)
-        public
-        safeAddress(caller)
-        safeAddress(input.paymentRecipient.recipient)
-        safeAddress(input.productRecipient)
-    {
+    function testMakePaymentSuccessChainedCall(
+        address caller,
+        DetailsInput calldata input,
+        bool isERC1271
+    ) public safeAddress(caller) safeAddress(input.paymentRecipient.recipient) safeAddress(input.productRecipient) {
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
         IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
         (address tokenAddr, uint256 tokenId, uint256 amount) =
@@ -312,11 +317,12 @@ contract PaymentsTest is TestHelper, IPaymentsSignals {
         payments.makePayment(details, sig);
     }
 
-    function testMakePaymentExpired(address caller, DetailsInput calldata input, uint64 blockTimestamp, bool isERC1271)
-        public
-        safeAddress(caller)
-        safeAddress(input.paymentRecipient.recipient)
-    {
+    function testMakePaymentExpired(
+        address caller,
+        DetailsInput calldata input,
+        uint64 blockTimestamp,
+        bool isERC1271
+    ) public safeAddress(caller) safeAddress(input.paymentRecipient.recipient) {
         vm.assume(blockTimestamp > input.expiration);
         vm.warp(blockTimestamp);
 
@@ -352,11 +358,11 @@ contract PaymentsTest is TestHelper, IPaymentsSignals {
         payments.makePayment(details, sig);
     }
 
-    function testMakePaymentInvalidPayment(address caller, DetailsInput calldata input, bool isERC1271)
-        public
-        safeAddress(caller)
-        safeAddress(input.paymentRecipient.recipient)
-    {
+    function testMakePaymentInvalidPayment(
+        address caller,
+        DetailsInput calldata input,
+        bool isERC1271
+    ) public safeAddress(caller) safeAddress(input.paymentRecipient.recipient) {
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
         IPaymentsFunctions.TokenType tokenType = _toTokenType(input.tokenType);
         (address tokenAddr, uint256 tokenId, uint256 amount) =
@@ -424,11 +430,11 @@ contract PaymentsTest is TestHelper, IPaymentsSignals {
         payments.makePayment(details, sig);
     }
 
-    function testMakePaymentInvalidTokenSettingsERC721(address caller, DetailsInput calldata input, bool isERC1271)
-        public
-        safeAddress(caller)
-        safeAddress(input.paymentRecipient.recipient)
-    {
+    function testMakePaymentInvalidTokenSettingsERC721(
+        address caller,
+        DetailsInput calldata input,
+        bool isERC1271
+    ) public safeAddress(caller) safeAddress(input.paymentRecipient.recipient) {
         uint64 expiration = uint64(_bound(input.expiration, block.timestamp, type(uint64).max));
         IPaymentsFunctions.TokenType tokenType = IPaymentsFunctions.TokenType.ERC721;
         (address tokenAddr, uint256 tokenId, uint256 amount) =
@@ -572,7 +578,9 @@ contract PaymentsTest is TestHelper, IPaymentsSignals {
 
     // Update signer
 
-    function testUpdateSignerSuccess(address newSigner) public {
+    function testUpdateSignerSuccess(
+        address newSigner
+    ) public {
         vm.prank(owner);
         payments.updateSigner(newSigner);
         assertEq(payments.signer(), newSigner);
@@ -596,11 +604,14 @@ contract PaymentsTest is TestHelper, IPaymentsSignals {
 
     // Helper
 
-    modifier safeAddress(address addr) {
+    modifier safeAddress(
+        address addr
+    ) {
         vm.assume(addr != address(0));
         vm.assume(addr.code.length <= 2);
         assumeNotPrecompile(addr);
         assumeNotForgeAddress(addr);
         _;
     }
+
 }

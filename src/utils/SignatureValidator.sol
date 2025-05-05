@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {ECDSA} from "solady/utils/ECDSA.sol";
-import {IERC1271Wallet} from "@0xsequence/erc-1155/contracts/interfaces/IERC1271Wallet.sol";
+import { IERC1271Wallet } from "@0xsequence/erc-1155/contracts/interfaces/IERC1271Wallet.sol";
+import { ECDSA } from "solady/utils/ECDSA.sol";
 
 library SignatureValidator {
+
     using ECDSA for bytes32;
 
     uint8 private constant SIG_TYPE_ERC712 = 1;
@@ -41,4 +42,5 @@ library SignatureValidator {
             }
         }
     }
+
 }

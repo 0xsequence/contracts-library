@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {ERC1155Items} from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/ERC1155Items.sol";
+import { ERC1155Items } from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/ERC1155Items.sol";
 import {
     IERC1155Soulbound,
     IERC1155SoulboundFunctions
@@ -11,11 +11,12 @@ import {
  * An implementation of ERC-1155 that prevents transfers.
  */
 contract ERC1155Soulbound is ERC1155Items, IERC1155Soulbound {
+
     bytes32 public constant TRANSFER_ADMIN_ROLE = keccak256("TRANSFER_ADMIN_ROLE");
 
     bool internal _transferLocked;
 
-    constructor() ERC1155Items() {}
+    constructor() ERC1155Items() { }
 
     /// @inheritdoc ERC1155Items
     function initialize(
@@ -32,7 +33,9 @@ contract ERC1155Soulbound is ERC1155Items, IERC1155Soulbound {
     }
 
     /// @inheritdoc IERC1155SoulboundFunctions
-    function setTransferLocked(bool locked) external override onlyRole(TRANSFER_ADMIN_ROLE) {
+    function setTransferLocked(
+        bool locked
+    ) external override onlyRole(TRANSFER_ADMIN_ROLE) {
         _transferLocked = locked;
     }
 
@@ -51,11 +54,12 @@ contract ERC1155Soulbound is ERC1155Items, IERC1155Soulbound {
         super._safeTransferFrom(from, to, id, amount);
     }
 
-    function _safeBatchTransferFrom(address from, address to, uint256[] memory ids, uint256[] memory amounts)
-        internal
-        virtual
-        override
-    {
+    function _safeBatchTransferFrom(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) internal virtual override {
         // Mint transactions allowed
         if (_transferLocked && from != address(0)) {
             revert TransfersLocked();
@@ -79,7 +83,10 @@ contract ERC1155Soulbound is ERC1155Items, IERC1155Soulbound {
 
     // Views
 
-    function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override returns (bool) {
         return type(IERC1155SoulboundFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
+
 }

@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {ERC1155} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155.sol";
 import {
     IERC1155Supply,
     IERC1155SupplyFunctions
 } from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
+import { ERC1155 } from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155.sol";
 
 /**
  * An ERC-1155 extension that tracks token supply.
  */
 abstract contract ERC1155Supply is ERC1155, IERC1155Supply {
+
     // Current supply
     uint256 public totalSupply;
     mapping(uint256 => uint256) public tokenSupply;
@@ -39,10 +40,12 @@ abstract contract ERC1155Supply is ERC1155, IERC1155Supply {
      * @param _amounts Array of amount of tokens to mint per id
      * @param _data Data to pass if receiver is contract
      */
-    function _batchMint(address _to, uint256[] memory _ids, uint256[] memory _amounts, bytes memory _data)
-        internal
-        virtual
-    {
+    function _batchMint(
+        address _to,
+        uint256[] memory _ids,
+        uint256[] memory _amounts,
+        bytes memory _data
+    ) internal virtual {
         uint256 nMint = _ids.length;
         if (nMint != _amounts.length) {
             revert InvalidArrayLength();
@@ -116,7 +119,10 @@ abstract contract ERC1155Supply is ERC1155, IERC1155Supply {
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override (ERC1155) returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC1155) returns (bool) {
         return type(IERC1155SupplyFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
+
 }

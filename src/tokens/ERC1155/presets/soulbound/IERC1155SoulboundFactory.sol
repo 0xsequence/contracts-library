@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 interface IERC1155SoulboundFactoryFunctions {
+
     /**
      * Creates an ERC-1155 Soulbound proxy.
      * @param proxyOwner The owner of the ERC-1155 Soulbound proxy
@@ -43,14 +44,17 @@ interface IERC1155SoulboundFactoryFunctions {
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
     ) external returns (address proxyAddr);
+
 }
 
 interface IERC1155SoulboundFactorySignals {
+
     /**
      * Event emitted when a new ERC-1155 Soulbound proxy contract is deployed.
      * @param proxyAddr The address of the deployed proxy.
      */
     event ERC1155SoulboundDeployed(address proxyAddr);
+
 }
 
-interface IERC1155SoulboundFactory is IERC1155SoulboundFactoryFunctions, IERC1155SoulboundFactorySignals {}
+interface IERC1155SoulboundFactory is IERC1155SoulboundFactoryFunctions, IERC1155SoulboundFactorySignals { }

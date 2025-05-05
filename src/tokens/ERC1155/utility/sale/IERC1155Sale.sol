@@ -25,15 +25,19 @@ interface IERC1155SaleFunctions {
      * @return Sale details.
      * @notice Token sale details override global sale details.
      */
-    function tokenSaleDetails(uint256 tokenId) external view returns (SaleDetails memory);
+    function tokenSaleDetails(
+        uint256 tokenId
+    ) external view returns (SaleDetails memory);
 
     /**
      * Get sale details for multiple tokens.
      * @param tokenIds Array of token IDs to retrieve sale details for.
      * @return Array of sale details corresponding to each token ID.
      * @notice Each token's sale details override the global sale details if set.
-     */ 
-    function tokenSaleDetailsBatch(uint256[] calldata tokenIds) external view returns (SaleDetails[] memory);
+     */
+    function tokenSaleDetailsBatch(
+        uint256[] calldata tokenIds
+    ) external view returns (SaleDetails[] memory);
 
     /**
      * Get payment token.
@@ -63,15 +67,18 @@ interface IERC1155SaleFunctions {
         address paymentToken,
         uint256 maxTotal,
         bytes32[] calldata proof
-    )
-        external
-        payable;
+    ) external payable;
+
 }
 
 interface IERC1155SaleSignals {
 
-    event GlobalSaleDetailsUpdated(uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
-    event TokenSaleDetailsUpdated(uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
+    event GlobalSaleDetailsUpdated(
+        uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot
+    );
+    event TokenSaleDetailsUpdated(
+        uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot
+    );
     event ItemsMinted(address to, uint256[] tokenIds, uint256[] amounts);
 
     /**
@@ -112,6 +119,7 @@ interface IERC1155SaleSignals {
      * Insufficient supply of tokens.
      */
     error InsufficientSupply(uint256 currentSupply, uint256 requestedAmount, uint256 maxSupply);
+
 }
 
-interface IERC1155Sale is IERC1155SaleFunctions, IERC1155SaleSignals {}
+interface IERC1155Sale is IERC1155SaleFunctions, IERC1155SaleSignals { }

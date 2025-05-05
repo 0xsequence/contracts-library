@@ -1,27 +1,29 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {TestHelper} from "../../../../TestHelper.sol";
+import { TestHelper } from "../../../../TestHelper.sol";
 
-import {ERC721Sale} from "src/tokens/ERC721/utility/sale/ERC721Sale.sol";
-import {IERC721SaleSignals, IERC721SaleFunctions, IERC721Sale} from "src/tokens/ERC721/utility/sale/IERC721Sale.sol";
-import {ERC721SaleFactory} from "src/tokens/ERC721/utility/sale/ERC721SaleFactory.sol";
-import {ERC721Items} from "src/tokens/ERC721/presets/items/ERC721Items.sol";
+import { ERC721Items } from "src/tokens/ERC721/presets/items/ERC721Items.sol";
+import { ERC721Sale } from "src/tokens/ERC721/utility/sale/ERC721Sale.sol";
+import { ERC721SaleFactory } from "src/tokens/ERC721/utility/sale/ERC721SaleFactory.sol";
+import { IERC721Sale, IERC721SaleFunctions, IERC721SaleSignals } from "src/tokens/ERC721/utility/sale/IERC721Sale.sol";
 
-import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import { ERC20Mock } from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 // Interfaces
-import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-import {IERC721A} from "erc721a/contracts/interfaces/IERC721A.sol";
-import {IERC721AQueryable} from "erc721a/contracts/interfaces/IERC721AQueryable.sol";
-import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
+import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import { IERC721A } from "erc721a/contracts/interfaces/IERC721A.sol";
+import { IERC721AQueryable } from "erc721a/contracts/interfaces/IERC721AQueryable.sol";
 
 // solhint-disable not-rely-on-time
 
 contract ERC721SaleTest is TestHelper, IERC721SaleSignals {
+
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
@@ -141,7 +143,9 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals {
     //
     // Helpers
     //
-    modifier withFactory(bool useFactory) {
+    modifier withFactory(
+        bool useFactory
+    ) {
         if (useFactory) {
             setUpFromFactory();
         }
@@ -153,4 +157,5 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals {
         vm.assume(amount > 0 && amount < 20);
         _;
     }
+
 }

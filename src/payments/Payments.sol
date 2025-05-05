@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {IPayments, IPaymentsFunctions} from "./IPayments.sol";
+import { IPayments, IPaymentsFunctions } from "./IPayments.sol";
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-import {SignatureValidator} from "../utils/SignatureValidator.sol";
-import {IERC721Transfer} from "../tokens/common/IERC721Transfer.sol";
-import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
-import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
+import { IERC721Transfer } from "../tokens/common/IERC721Transfer.sol";
+import { SignatureValidator } from "../utils/SignatureValidator.sol";
+import { IERC1155 } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
+import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 contract Payments is Ownable, IPayments, IERC165 {
+
     using SignatureValidator for bytes32;
 
     bool private _initialized;
@@ -41,7 +42,9 @@ contract Payments is Ownable, IPayments, IERC165 {
     /**
      * Update the signer address.
      */
-    function updateSigner(address newSigner) external onlyOwner {
+    function updateSigner(
+        address newSigner
+    ) external onlyOwner {
         signer = newSigner;
     }
 
@@ -85,11 +88,10 @@ contract Payments is Ownable, IPayments, IERC165 {
 
     /// @inheritdoc IPaymentsFunctions
     /// @notice A valid signature does not guarantee that the payment will be accepted.
-    function isValidPaymentSignature(PaymentDetails calldata paymentDetails, bytes calldata signature)
-        public
-        view
-        returns (bool)
-    {
+    function isValidPaymentSignature(
+        PaymentDetails calldata paymentDetails,
+        bytes calldata signature
+    ) public view returns (bool) {
         bytes32 messageHash = hashPaymentDetails(paymentDetails);
         address sigSigner = messageHash.recoverSigner(signature);
         return sigSigner == signer;
@@ -97,7 +99,9 @@ contract Payments is Ownable, IPayments, IERC165 {
 
     /// @inheritdoc IPaymentsFunctions
     /// @dev This hash includes the chain ID.
-    function hashPaymentDetails(PaymentDetails calldata paymentDetails) public view returns (bytes32) {
+    function hashPaymentDetails(
+        PaymentDetails calldata paymentDetails
+    ) public view returns (bytes32) {
         return keccak256(
             abi.encode(
                 block.chainid,
@@ -116,10 +120,10 @@ contract Payments is Ownable, IPayments, IERC165 {
 
     /// @inheritdoc IPaymentsFunctions
     /// @dev As the signer can validate any payment (including zero) this function does not increase the security surface.
-    function performChainedCall(ChainedCallDetails calldata chainedCallDetails, bytes calldata signature)
-        external
-        override
-    {
+    function performChainedCall(
+        ChainedCallDetails calldata chainedCallDetails,
+        bytes calldata signature
+    ) external override {
         if (!isValidChainedCallSignature(chainedCallDetails, signature)) {
             revert InvalidSignature();
         }
@@ -127,11 +131,10 @@ contract Payments is Ownable, IPayments, IERC165 {
     }
 
     /// @inheritdoc IPaymentsFunctions
-    function isValidChainedCallSignature(ChainedCallDetails calldata chainedCallDetails, bytes calldata signature)
-        public
-        view
-        returns (bool)
-    {
+    function isValidChainedCallSignature(
+        ChainedCallDetails calldata chainedCallDetails,
+        bytes calldata signature
+    ) public view returns (bool) {
         bytes32 messageHash = hashChainedCallDetails(chainedCallDetails);
         address sigSigner = messageHash.recoverSigner(signature);
         return sigSigner == signer;
@@ -139,7 +142,9 @@ contract Payments is Ownable, IPayments, IERC165 {
 
     /// @inheritdoc IPaymentsFunctions
     /// @dev This hash includes the chain ID.
-    function hashChainedCallDetails(ChainedCallDetails calldata chainedCallDetails) public view returns (bytes32) {
+    function hashChainedCallDetails(
+        ChainedCallDetails calldata chainedCallDetails
+    ) public view returns (bytes32) {
         return keccak256(
             abi.encode(block.chainid, chainedCallDetails.chainedCallAddress, chainedCallDetails.chainedCallData)
         );
@@ -148,8 +153,10 @@ contract Payments is Ownable, IPayments, IERC165 {
     /**
      * Perform a chained call and revert on error.
      */
-    function _performChainedCall(ChainedCallDetails calldata chainedCallDetails) internal {
-        (bool success,) = chainedCallDetails.chainedCallAddress.call{value: 0}(chainedCallDetails.chainedCallData);
+    function _performChainedCall(
+        ChainedCallDetails calldata chainedCallDetails
+    ) internal {
+        (bool success,) = chainedCallDetails.chainedCallAddress.call{ value: 0 }(chainedCallDetails.chainedCallData);
         if (!success) {
             revert ChainedCallFailed();
         }
@@ -187,8 +194,11 @@ contract Payments is Ownable, IPayments, IERC165 {
     }
 
     /// @inheritdoc IERC165
-    function supportsInterface(bytes4 _interfaceID) public view virtual returns (bool) {
+    function supportsInterface(
+        bytes4 _interfaceID
+    ) public view virtual returns (bool) {
         return _interfaceID == type(IPayments).interfaceId || _interfaceID == type(IPaymentsFunctions).interfaceId
             || _interfaceID == type(IERC165).interfaceId;
     }
+
 }

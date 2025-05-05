@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 interface IPaymentCombinerFunctions {
+
     /**
      * Get the address of the PaymentSplitter implementation.
      * @return implementationAddr The address of the PaymentSplitter implementation.
@@ -22,16 +23,19 @@ interface IPaymentCombinerFunctions {
      * @param shares The number of shares each payee has
      * @return proxyAddr The address of the proxy
      */
-    function determineAddress(address[] calldata payees, uint256[] calldata shares)
-        external
-        returns (address proxyAddr);
+    function determineAddress(
+        address[] calldata payees,
+        uint256[] calldata shares
+    ) external returns (address proxyAddr);
 
     /**
      * Get the amount of Payment Splitters this payee is associated with.
      * @param payee The address of the payee
      * @return count The amount of payments splitters
      */
-    function countPayeeSplitters(address payee) external view returns (uint256 count);
+    function countPayeeSplitters(
+        address payee
+    ) external view returns (uint256 count);
 
     /**
      * Get the list of Payment Splitters this payee is associated with.
@@ -40,10 +44,11 @@ interface IPaymentCombinerFunctions {
      * @param limit The maximum amount of splitters to return
      * @return splitterAddrs The list of payments splitters
      */
-    function listPayeeSplitters(address payee, uint256 offset, uint256 limit)
-        external
-        view
-        returns (address[] memory splitterAddrs);
+    function listPayeeSplitters(
+        address payee,
+        uint256 offset,
+        uint256 limit
+    ) external view returns (address[] memory splitterAddrs);
 
     /**
      * Get the list of pending shares for a payee.
@@ -53,10 +58,11 @@ interface IPaymentCombinerFunctions {
      * @return pendingShares The list of pending shares
      * @dev The list includes zero balances. These should be removed before releasing shares.
      */
-    function listReleasable(address payee, address tokenAddr, address[] memory splitterAddrs)
-        external
-        view
-        returns (uint256[] memory pendingShares);
+    function listReleasable(
+        address payee,
+        address tokenAddr,
+        address[] memory splitterAddrs
+    ) external view returns (uint256[] memory pendingShares);
 
     /**
      * Release the pending shares for a payee.
@@ -67,9 +73,11 @@ interface IPaymentCombinerFunctions {
      * @dev Calling splitters with no shares to release will fail.
      */
     function release(address payable payee, address tokenAddr, address[] calldata splitterAddrs) external;
+
 }
 
 interface IPaymentCombinerSignals {
+
     /**
      * Event emitted when a new proxy contract is deployed.
      * @param proxyAddr The address of the deployed proxy.
@@ -80,6 +88,7 @@ interface IPaymentCombinerSignals {
      * Thrown when the provided offset and limit are out of bounds.
      */
     error ParametersOutOfBounds(uint256 offset, uint256 limit, uint256 count);
+
 }
 
-interface IPaymentCombiner is IPaymentCombinerFunctions, IPaymentCombinerSignals {}
+interface IPaymentCombiner is IPaymentCombinerFunctions, IPaymentCombinerSignals { }

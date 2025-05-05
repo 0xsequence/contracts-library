@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 interface IERC721SoulboundFactoryFunctions {
+
     /**
      * Creates an ERC-721 Soulbound proxy.
      * @param proxyOwner The owner of the ERC-721 Soulbound proxy
@@ -23,9 +24,7 @@ interface IERC721SoulboundFactoryFunctions {
         string memory contractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
-    )
-        external
-        returns (address proxyAddr);
+    ) external returns (address proxyAddr);
 
     /**
      * Computes the address of a proxy instance.
@@ -48,17 +47,18 @@ interface IERC721SoulboundFactoryFunctions {
         string memory contractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
-    )
-        external
-        returns (address proxyAddr);
+    ) external returns (address proxyAddr);
+
 }
 
 interface IERC721SoulboundFactorySignals {
+
     /**
      * Event emitted when a new ERC-721 Soulbound proxy contract is deployed.
      * @param proxyAddr The address of the deployed proxy.
      */
     event ERC721SoulboundDeployed(address proxyAddr);
+
 }
 
-interface IERC721SoulboundFactory is IERC721SoulboundFactoryFunctions, IERC721SoulboundFactorySignals {}
+interface IERC721SoulboundFactory is IERC721SoulboundFactoryFunctions, IERC721SoulboundFactorySignals { }

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 interface IClawbackFunctions {
+
     enum TokenType {
         ERC20,
         ERC721,
@@ -88,7 +89,9 @@ interface IClawbackFunctions {
      * @param wrappedTokenId The wrapped token ID.
      * @return The token details.
      */
-    function getTokenDetails(uint256 wrappedTokenId) external view returns (TokenDetails memory);
+    function getTokenDetails(
+        uint256 wrappedTokenId
+    ) external view returns (TokenDetails memory);
 
     // Template functions
 
@@ -97,7 +100,9 @@ interface IClawbackFunctions {
      * @param templateId The template ID.
      * @return The template details.
      */
-    function getTemplate(uint32 templateId) external view returns (Template memory);
+    function getTemplate(
+        uint32 templateId
+    ) external view returns (Template memory);
 
     /**
      * Add a new template.
@@ -107,9 +112,11 @@ interface IClawbackFunctions {
      * @return templateId The template ID.
      * @notice The msg.sender will be set as the admin of this template.
      */
-    function addTemplate(uint56 duration, bool destructionOnly, bool transferOpen)
-        external
-        returns (uint32 templateId);
+    function addTemplate(
+        uint56 duration,
+        bool destructionOnly,
+        bool transferOpen
+    ) external returns (uint32 templateId);
 
     /**
      * Update a template.
@@ -148,9 +155,11 @@ interface IClawbackFunctions {
      * @dev Transferring to address(0) is not allowed.
      */
     function updateTemplateAdmin(uint32 templateId, address admin) external;
+
 }
 
 interface IClawbackSignals {
+
     /// @notice Thrown when the template ID is invalid
     error InvalidTemplate();
 
@@ -235,7 +244,8 @@ interface IClawbackSignals {
 
     /// @notice Emits when an operator is updated
     event TemplateOperatorUpdated(uint32 indexed templateId, address operator, bool allowed);
+
 }
 
 // solhint-disable-next-line no-empty-blocks
-interface IClawback is IClawbackFunctions, IClawbackSignals {}
+interface IClawback is IClawbackFunctions, IClawbackSignals { }

@@ -2,10 +2,11 @@
 pragma solidity ^0.8.19;
 
 import {
-    ERC1155Supply, ERC1155
+    ERC1155, ERC1155Supply
 } from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
-import {ERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
-import {ERC2981Controlled} from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
+
+import { ERC2981Controlled } from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
+import { ERC1155Metadata } from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 
 error InvalidInitialization();
 
@@ -13,6 +14,7 @@ error InvalidInitialization();
  * A standard base implementation of ERC-1155 for use in Sequence library contracts.
  */
 abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Controlled {
+
     bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
     string private _contractURI;
@@ -20,7 +22,7 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Con
     /**
      * Deploy contract.
      */
-    constructor() ERC1155Metadata("", "") {}
+    constructor() ERC1155Metadata("", "") { }
 
     /**
      * Initialize the contract.
@@ -35,9 +37,7 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Con
         string memory tokenName,
         string memory tokenBaseURI,
         string memory tokenContractURI
-    )
-        internal
-    {
+    ) internal {
         name = tokenName;
         baseURI = tokenBaseURI;
         _contractURI = tokenContractURI;
@@ -55,7 +55,9 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Con
      * Update the base URI of token's URI.
      * @param tokenBaseURI New base URI of token's URI
      */
-    function setBaseMetadataURI(string memory tokenBaseURI) external onlyRole(METADATA_ADMIN_ROLE) {
+    function setBaseMetadataURI(
+        string memory tokenBaseURI
+    ) external onlyRole(METADATA_ADMIN_ROLE) {
         _setBaseMetadataURI(tokenBaseURI);
     }
 
@@ -63,7 +65,9 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Con
      * Update the name of the contract.
      * @param tokenName New contract name
      */
-    function setContractName(string memory tokenName) external onlyRole(METADATA_ADMIN_ROLE) {
+    function setContractName(
+        string memory tokenName
+    ) external onlyRole(METADATA_ADMIN_ROLE) {
         _setContractName(tokenName);
     }
 
@@ -72,7 +76,9 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Con
      * @param tokenContractURI New contract URI of token's URI
      * @notice Refer to https://docs.opensea.io/docs/contract-level-metadata
      */
-    function setContractURI(string memory tokenContractURI) external onlyRole(METADATA_ADMIN_ROLE) {
+    function setContractURI(
+        string memory tokenContractURI
+    ) external onlyRole(METADATA_ADMIN_ROLE) {
         _contractURI = tokenContractURI;
     }
 
@@ -116,14 +122,11 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Con
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override (ERC1155Supply, ERC1155Metadata, ERC2981Controlled)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC1155Supply, ERC1155Metadata, ERC2981Controlled) returns (bool) {
         return ERC1155Supply.supportsInterface(interfaceId) || ERC1155Metadata.supportsInterface(interfaceId)
             || ERC2981Controlled.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
     }
+
 }

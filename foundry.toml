@@ -10,3 +10,18 @@ use_literal_content = true
 
 [profile.default.fuzz]
 runs = 1_024
+
+[fmt]
+# Explicitly define all formatting rules
+multiline_func_header = "params_first"
+single_line_statement_blocks = "multi"
+sort_imports = true
+contract_new_lines = true
+override_spacing = false
+line_length = 120
+tab_width = 4
+bracket_spacing = true
+int_types = "long"
+quote_style = "double"
+hex_underscore = "remove"
+wrap_comments = false

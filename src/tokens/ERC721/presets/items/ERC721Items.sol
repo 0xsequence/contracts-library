@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {ERC721BaseToken} from "@0xsequence/contracts-library/tokens/ERC721/ERC721BaseToken.sol";
+import { ERC721BaseToken } from "@0xsequence/contracts-library/tokens/ERC721/ERC721BaseToken.sol";
 import {
     IERC721Items,
     IERC721ItemsFunctions
@@ -11,6 +11,7 @@ import {
  * An implementation of ERC-721 capable of minting when role provided.
  */
 contract ERC721Items is ERC721BaseToken, IERC721Items {
+
     bytes32 internal constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address private immutable _initializer;
@@ -42,10 +43,7 @@ contract ERC721Items is ERC721BaseToken, IERC721Items {
         string memory tokenContractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
-    )
-        public
-        virtual
-    {
+    ) public virtual {
         if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }
@@ -80,7 +78,10 @@ contract ERC721Items is ERC721BaseToken, IERC721Items {
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override returns (bool) {
         return type(IERC721ItemsFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
+
 }

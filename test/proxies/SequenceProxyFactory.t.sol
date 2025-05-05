@@ -2,28 +2,35 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
-import {SequenceProxyFactory} from "src/proxies/SequenceProxyFactory.sol";
-import {ITransparentUpgradeableProxy} from "src/proxies/openzeppelin/TransparentUpgradeableProxy.sol";
+import { SequenceProxyFactory } from "src/proxies/SequenceProxyFactory.sol";
+import { ITransparentUpgradeableProxy } from "src/proxies/openzeppelin/TransparentUpgradeableProxy.sol";
 
 contract MockImplementationV1 {
+
     function getValue() public pure virtual returns (uint256) {
         return 1;
     }
+
 }
 
 contract MockImplementationV2 is MockImplementationV1 {
+
     function getValue() public pure virtual override returns (uint256) {
         return 2;
     }
+
 }
 
 contract MockImplementationV3 is MockImplementationV1 {
+
     function getValue() public pure virtual override returns (uint256) {
         return 3;
     }
+
 }
 
 contract PublicSequenceProxyFactory is SequenceProxyFactory {
+
     constructor(address implementation, address factoryOwner) {
         _initialize(implementation, factoryOwner);
     }
@@ -35,6 +42,7 @@ contract PublicSequenceProxyFactory is SequenceProxyFactory {
     function computeProxyAddress(bytes32 salt, address proxyOwner, bytes memory data) external view returns (address) {
         return _computeProxyAddress(salt, proxyOwner, data);
     }
+
 }
 
 contract SequenceProxyFactoryTest is Test {

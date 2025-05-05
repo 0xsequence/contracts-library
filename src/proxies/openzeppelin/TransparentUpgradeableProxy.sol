@@ -18,15 +18,21 @@ import "./ERC1967Proxy.sol";
  * include them in the ABI so this interface must be used to interact with it.
  */
 interface ITransparentUpgradeableProxy is IERC1967 {
+
     function admin() external view returns (address);
 
     function implementation() external view returns (address);
 
-    function changeAdmin(address) external;
+    function changeAdmin(
+        address
+    ) external;
 
-    function upgradeTo(address) external;
+    function upgradeTo(
+        address
+    ) external;
 
     function upgradeToAndCall(address, bytes memory) external payable;
+
 }
 
 /**
@@ -55,6 +61,7 @@ interface ITransparentUpgradeableProxy is IERC1967 {
  * render the admin operations inaccessible, which could prevent upgradeability. Transparency may also be compromised.
  */
 contract TransparentUpgradeableProxy is ERC1967Proxy {
+
     /**
      * @dev Modifier used internally that will delegate the call to the implementation unless the sender is the admin.
      *
@@ -180,4 +187,5 @@ contract TransparentUpgradeableProxy is ERC1967Proxy {
     function _requireZeroValue() internal {
         require(msg.value == 0);
     }
+
 }

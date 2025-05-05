@@ -1,26 +1,28 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {stdError} from "forge-std/Test.sol";
-import {TestHelper} from "../../../TestHelper.sol";
+import { TestHelper } from "../../../TestHelper.sol";
+import { stdError } from "forge-std/Test.sol";
 
-import {ERC1155Items} from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
+import { IERC1155SupplyFunctions } from "src/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
+import { ERC1155Items } from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
+import { ERC1155ItemsFactory } from "src/tokens/ERC1155/presets/items/ERC1155ItemsFactory.sol";
 import {
-    IERC1155ItemsSignals,
+    IERC1155Items,
     IERC1155ItemsFunctions,
-    IERC1155Items
+    IERC1155ItemsSignals
 } from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
-import {ERC1155ItemsFactory} from "src/tokens/ERC1155/presets/items/ERC1155ItemsFactory.sol";
-import {IERC1155SupplyFunctions} from "src/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 // Interfaces
-import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
-import {IERC1155Metadata} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
+
+import { IERC1155 } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
+import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+import { IERC1155Metadata } from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 
 contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
+
     // Redeclare events
     event TransferSingle(
         address indexed _operator, address indexed _from, address indexed _to, uint256 _id, uint256 _amount
@@ -129,7 +131,6 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
     //
     // Metadata
     //
-
     function testContractURI() external {
         address nonOwner = makeAddr("nonOwner");
         vm.expectRevert(); // Missing role
@@ -144,7 +145,9 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
     //
     // Minting
     //
-    function testMintInvalidRole(address caller) public {
+    function testMintInvalidRole(
+        address caller
+    ) public {
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);
 
@@ -253,7 +256,6 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
     //
     // Burn
     //
-
     function testBurnSuccess(address caller, uint256 tokenId, uint256 amount, uint256 burnAmount) public {
         assumeSafeAddress(caller);
         vm.assume(caller != owner);
@@ -341,9 +343,11 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         assertEq(token.totalSupply(), totalAmount - totalBurnAmount);
     }
 
-    function testBurnBatchInvalidOwnership(address caller, uint256[] memory tokenIds, uint256[] memory amounts)
-        public
-    {
+    function testBurnBatchInvalidOwnership(
+        address caller,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts
+    ) public {
         assumeSafeAddress(caller);
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);
@@ -384,7 +388,9 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         assertEq(token.uri(1), "ipfs://newURI/1.json");
     }
 
-    function testMetadataInvalid(address caller) public {
+    function testMetadataInvalid(
+        address caller
+    ) public {
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);
         vm.expectRevert(
@@ -399,7 +405,9 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         token.setBaseMetadataURI("ipfs://newURI/");
     }
 
-    function testMetadataWithRole(address caller) public {
+    function testMetadataWithRole(
+        address caller
+    ) public {
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);
         vm.assume(caller != address(0));
@@ -524,4 +532,5 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         }
         return arr;
     }
+
 }

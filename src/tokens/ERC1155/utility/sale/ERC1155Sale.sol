@@ -1,25 +1,27 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
+import { ERC1155Supply } from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
 import {
     IERC1155Sale,
     IERC1155SaleFunctions
 } from "@0xsequence/contracts-library/tokens/ERC1155/utility/sale/IERC1155Sale.sol";
-import {ERC1155Supply} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
-import {
-    WithdrawControlled,
-    AccessControlEnumerable,
-    SafeERC20,
-    IERC20
-} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
-import {MerkleProofSingleUse} from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
 
-import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
-import {IERC1155SupplyFunctions} from
+import { MerkleProofSingleUse } from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
+import {
+    AccessControlEnumerable,
+    IERC20,
+    SafeERC20,
+    WithdrawControlled
+} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
+
+import { IERC1155SupplyFunctions } from
     "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
-import {IERC1155ItemsFunctions} from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
+import { IERC1155ItemsFunctions } from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
+import { IERC1155 } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 
 contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
+
     bytes32 internal constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
     bool private _initialized;
@@ -76,9 +78,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         address _expectedPaymentToken,
         uint256 _maxTotal,
         bytes32[] calldata _proof
-    )
-        private
-    {
+    ) private {
         uint256 lastTokenId;
         uint256 totalCost;
         uint256 totalAmount;
@@ -169,10 +169,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         address expectedPaymentToken,
         uint256 maxTotal,
         bytes32[] calldata proof
-    )
-        public
-        payable
-    {
+    ) public payable {
         _payForActiveMint(tokenIds, amounts, expectedPaymentToken, maxTotal, proof);
 
         IERC1155SupplyFunctions items = IERC1155SupplyFunctions(_items);
@@ -181,9 +178,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         for (uint256 i = 0; i < nMint; i++) {
             // Update storage balance
             uint256 tokenSupplyCap = _tokenSaleDetails[tokenIds[i]].supplyCap;
-            if (
-                tokenSupplyCap > 0 && items.tokenSupply(tokenIds[i]) + amounts[i] > tokenSupplyCap
-            ) {
+            if (tokenSupplyCap > 0 && items.tokenSupply(tokenIds[i]) + amounts[i] > tokenSupplyCap) {
                 revert InsufficientSupply(items.tokenSupply(tokenIds[i]), amounts[i], tokenSupplyCap);
             }
             totalAmount += amounts[i];
@@ -206,7 +201,9 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
      * @param paymentTokenAddr The ERC20 token address to accept payment in. address(0) indicates ETH.
      * @dev This should be set before the sale starts.
      */
-    function setPaymentToken(address paymentTokenAddr) public onlyRole(MINT_ADMIN_ROLE) {
+    function setPaymentToken(
+        address paymentTokenAddr
+    ) public onlyRole(MINT_ADMIN_ROLE) {
         _paymentToken = paymentTokenAddr;
     }
 
@@ -226,10 +223,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         uint64 startTime,
         uint64 endTime,
         bytes32 merkleRoot
-    )
-        public
-        onlyRole(MINT_ADMIN_ROLE)
-    {
+    ) public onlyRole(MINT_ADMIN_ROLE) {
         // solhint-disable-next-line not-rely-on-time
         if (endTime < startTime || endTime <= block.timestamp) {
             revert InvalidSaleDetails();
@@ -256,10 +250,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         uint64 startTime,
         uint64 endTime,
         bytes32 merkleRoot
-    )
-        public
-        onlyRole(MINT_ADMIN_ROLE)
-    {
+    ) public onlyRole(MINT_ADMIN_ROLE) {
         // solhint-disable-next-line not-rely-on-time
         if (endTime < startTime || endTime <= block.timestamp) {
             revert InvalidSaleDetails();
@@ -288,7 +279,9 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
      * @return Sale details.
      * @notice Token sale details override global sale details.
      */
-    function tokenSaleDetails(uint256 tokenId) external view returns (SaleDetails memory) {
+    function tokenSaleDetails(
+        uint256 tokenId
+    ) external view returns (SaleDetails memory) {
         return _tokenSaleDetails[tokenId];
     }
 
@@ -297,15 +290,16 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
      * @param tokenIds Array of token IDs to retrieve sale details for.
      * @return Array of sale details corresponding to each token ID.
      * @notice Each token's sale details override the global sale details if set.
-     */ 
-    function tokenSaleDetailsBatch(uint256[] calldata tokenIds) external view returns (SaleDetails[] memory) {
+     */
+    function tokenSaleDetailsBatch(
+        uint256[] calldata tokenIds
+    ) external view returns (SaleDetails[] memory) {
         SaleDetails[] memory details = new SaleDetails[](tokenIds.length);
         for (uint256 i = 0; i < tokenIds.length; i++) {
             details[i] = _tokenSaleDetails[tokenIds[i]];
         }
         return details;
     }
-
 
     /**
      * Get payment token.
@@ -321,13 +315,10 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override (AccessControlEnumerable)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(AccessControlEnumerable) returns (bool) {
         return type(IERC1155SaleFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
+
 }

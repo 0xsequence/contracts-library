@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {ERC20BaseToken} from "@0xsequence/contracts-library/tokens/ERC20/ERC20BaseToken.sol";
+import { ERC20BaseToken } from "@0xsequence/contracts-library/tokens/ERC20/ERC20BaseToken.sol";
 import {
-    IERC20Items,
-    IERC20ItemsFunctions
+    IERC20Items, IERC20ItemsFunctions
 } from "@0xsequence/contracts-library/tokens/ERC20/presets/items/IERC20Items.sol";
 
 /**
  * A ready made implementation of ERC-20 capable of minting when role provided.
  */
 contract ERC20Items is ERC20BaseToken, IERC20Items {
+
     bytes32 internal constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address private immutable _initializer;
@@ -28,11 +28,12 @@ contract ERC20Items is ERC20BaseToken, IERC20Items {
      * @param tokenDecimals Number of decimals
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, string memory tokenName, string memory tokenSymbol, uint8 tokenDecimals)
-        public
-        virtual
-        override
-    {
+    function initialize(
+        address owner,
+        string memory tokenName,
+        string memory tokenSymbol,
+        uint8 tokenDecimals
+    ) public virtual override {
         if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }
@@ -67,10 +68,10 @@ contract ERC20Items is ERC20BaseToken, IERC20Items {
      * @param tokenName Name of token.
      * @param tokenSymbol Symbol of token.
      */
-    function setNameAndSymbol(string memory tokenName, string memory tokenSymbol)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
+    function setNameAndSymbol(
+        string memory tokenName,
+        string memory tokenSymbol
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _tokenName = tokenName;
         _tokenSymbol = tokenSymbol;
     }
@@ -84,8 +85,11 @@ contract ERC20Items is ERC20BaseToken, IERC20Items {
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override returns (bool) {
         return type(IERC20ItemsFunctions).interfaceId == interfaceId || ERC20BaseToken.supportsInterface(interfaceId)
             || super.supportsInterface(interfaceId);
     }
+
 }

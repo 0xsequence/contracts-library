@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 interface IERC721ItemsFactoryFunctions {
+
     /**
      * Creates an ERC-721 Items proxy.
      * @param proxyOwner The owner of the ERC-721 Items proxy
@@ -23,9 +24,7 @@ interface IERC721ItemsFactoryFunctions {
         string memory contractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
-    )
-        external
-        returns (address proxyAddr);
+    ) external returns (address proxyAddr);
 
     /**
      * Computes the address of a proxy instance.
@@ -48,17 +47,18 @@ interface IERC721ItemsFactoryFunctions {
         string memory contractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
-    )
-        external
-        returns (address proxyAddr);
+    ) external returns (address proxyAddr);
+
 }
 
 interface IERC721ItemsFactorySignals {
+
     /**
      * Event emitted when a new ERC-721 Items proxy contract is deployed.
      * @param proxyAddr The address of the deployed proxy.
      */
     event ERC721ItemsDeployed(address proxyAddr);
+
 }
 
-interface IERC721ItemsFactory is IERC721ItemsFactoryFunctions, IERC721ItemsFactorySignals {}
+interface IERC721ItemsFactory is IERC721ItemsFactoryFunctions, IERC721ItemsFactorySignals { }

@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {TestHelper} from "../../../../TestHelper.sol";
+import { TestHelper } from "../../../../TestHelper.sol";
 
-import {ERC721Sale} from "src/tokens/ERC721/utility/sale/ERC721Sale.sol";
-import {IERC721SaleSignals, IERC721SaleFunctions, IERC721Sale} from "src/tokens/ERC721/utility/sale/IERC721Sale.sol";
-import {ERC721SaleFactory} from "src/tokens/ERC721/utility/sale/ERC721SaleFactory.sol";
-import {ERC721Items} from "src/tokens/ERC721/presets/items/ERC721Items.sol";
+import { ERC721Items } from "src/tokens/ERC721/presets/items/ERC721Items.sol";
+import { ERC721Sale } from "src/tokens/ERC721/utility/sale/ERC721Sale.sol";
+import { ERC721SaleFactory } from "src/tokens/ERC721/utility/sale/ERC721SaleFactory.sol";
+import { IERC721Sale, IERC721SaleFunctions, IERC721SaleSignals } from "src/tokens/ERC721/utility/sale/IERC721Sale.sol";
 
-import {ERC20Mock} from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {IMerkleProofSingleUseSignals} from "@0xsequence/contracts-library/tokens/common/IMerkleProofSingleUse.sol";
+import { IMerkleProofSingleUseSignals } from "@0xsequence/contracts-library/tokens/common/IMerkleProofSingleUse.sol";
+import { ERC20Mock } from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 // solhint-disable not-rely-on-time
 
 contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUseSignals {
+
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
@@ -50,22 +51,24 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
     //
 
     // Minting denied when no sale active.
-    function testMintInactiveFail(bool useFactory, address mintTo, uint256 amount)
-        public
-        assumeSafe(mintTo, amount)
-        withFactory(useFactory)
-    {
+    function testMintInactiveFail(
+        bool useFactory,
+        address mintTo,
+        uint256 amount
+    ) public assumeSafe(mintTo, amount) withFactory(useFactory) {
         uint256 cost = amount * perTokenCost;
         vm.expectRevert(SaleInactive.selector);
-        sale.mint{value: cost}(mintTo, amount, address(0), cost, TestHelper.blankProof());
+        sale.mint{ value: cost }(mintTo, amount, address(0), cost, TestHelper.blankProof());
     }
 
     // Minting denied when sale is expired or not started.
-    function testMintExpiredFail(bool useFactory, address mintTo, uint256 amount, uint64 startTime, uint64 endTime)
-        public
-        assumeSafe(mintTo, amount)
-        withFactory(useFactory)
-    {
+    function testMintExpiredFail(
+        bool useFactory,
+        address mintTo,
+        uint256 amount,
+        uint64 startTime,
+        uint64 endTime
+    ) public assumeSafe(mintTo, amount) withFactory(useFactory) {
         if (startTime > endTime) {
             uint64 temp = startTime;
             startTime = endTime;
@@ -82,15 +85,16 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
         uint256 cost = amount * perTokenCost;
 
         vm.expectRevert(SaleInactive.selector);
-        sale.mint{value: cost}(mintTo, amount, address(0), cost, TestHelper.blankProof());
+        sale.mint{ value: cost }(mintTo, amount, address(0), cost, TestHelper.blankProof());
     }
 
     // Minting denied when supply exceeded.
-    function testMintSupplyExceeded(bool useFactory, address mintTo, uint256 amount, uint256 supplyCap)
-        public
-        assumeSafe(mintTo, amount)
-        withFactory(useFactory)
-    {
+    function testMintSupplyExceeded(
+        bool useFactory,
+        address mintTo,
+        uint256 amount,
+        uint256 supplyCap
+    ) public assumeSafe(mintTo, amount) withFactory(useFactory) {
         if (supplyCap == 0 || supplyCap > 20) {
             supplyCap = 1;
         }
@@ -103,32 +107,31 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
         uint256 cost = amount * perTokenCost;
 
         vm.expectRevert(abi.encodeWithSelector(InsufficientSupply.selector, 0, amount, supplyCap));
-        sale.mint{value: cost}(mintTo, amount, address(0), cost, TestHelper.blankProof());
+        sale.mint{ value: cost }(mintTo, amount, address(0), cost, TestHelper.blankProof());
     }
 
     // Minting allowed when sale is active.
-    function testMintSuccess(bool useFactory, address mintTo, uint256 amount)
-        public
-        assumeSafe(mintTo, amount)
-        withFactory(useFactory)
-        withSaleActive
-    {
+    function testMintSuccess(
+        bool useFactory,
+        address mintTo,
+        uint256 amount
+    ) public assumeSafe(mintTo, amount) withFactory(useFactory) withSaleActive {
         uint256 count = token.balanceOf(mintTo);
         uint256 cost = amount * perTokenCost;
         vm.expectEmit(true, true, true, true, address(token));
         emit Transfer(address(0), mintTo, 0);
         vm.expectEmit(true, true, true, true, address(sale));
         emit ItemsMinted(mintTo, amount);
-        sale.mint{value: cost}(mintTo, amount, address(0), cost, TestHelper.blankProof());
+        sale.mint{ value: cost }(mintTo, amount, address(0), cost, TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo));
     }
 
     // Minting allowed when sale is free.
-    function testFreeMint(bool useFactory, address mintTo, uint256 amount)
-        public
-        assumeSafe(mintTo, amount)
-        withFactory(useFactory)
-    {
+    function testFreeMint(
+        bool useFactory,
+        address mintTo,
+        uint256 amount
+    ) public assumeSafe(mintTo, amount) withFactory(useFactory) {
         sale.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
 
         uint256 count = token.balanceOf(mintTo);
@@ -141,12 +144,11 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
     }
 
     // Minting allowed when mint charged with ERC20.
-    function testERC20Mint(bool useFactory, address mintTo, uint256 amount)
-        public
-        assumeSafe(mintTo, amount)
-        withFactory(useFactory)
-        withERC20
-    {
+    function testERC20Mint(
+        bool useFactory,
+        address mintTo,
+        uint256 amount
+    ) public assumeSafe(mintTo, amount) withFactory(useFactory) withERC20 {
         sale.setSaleDetails(
             0, perTokenCost, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
         );
@@ -165,12 +167,11 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
     }
 
     // Minting fails with invalid maxTotal.
-    function testERC20MintFailMaxTotal(bool useFactory, address mintTo, uint256 amount)
-        public
-        assumeSafe(mintTo, amount)
-        withFactory(useFactory)
-        withERC20
-    {
+    function testERC20MintFailMaxTotal(
+        bool useFactory,
+        address mintTo,
+        uint256 amount
+    ) public assumeSafe(mintTo, amount) withFactory(useFactory) withERC20 {
         sale.setSaleDetails(
             0, perTokenCost, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
         );
@@ -181,11 +182,11 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
     }
 
     // Minting fails with invalid maxTotal.
-    function testETHMintFailMaxTotal(bool useFactory, address mintTo, uint256 amount)
-        public
-        assumeSafe(mintTo, amount)
-        withFactory(useFactory)
-    {
+    function testETHMintFailMaxTotal(
+        bool useFactory,
+        address mintTo,
+        uint256 amount
+    ) public assumeSafe(mintTo, amount) withFactory(useFactory) {
         sale.setSaleDetails(0, perTokenCost, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
         uint256 cost = amount * perTokenCost;
         vm.deal(address(this), cost);
@@ -195,12 +196,12 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
     }
 
     // Minting fails with invalid payment token.
-    function testMintFailWrongPaymentToken(bool useFactory, address mintTo, uint256 amount, address wrongToken)
-        public
-        assumeSafe(mintTo, amount)
-        withFactory(useFactory)
-        withERC20
-    {
+    function testMintFailWrongPaymentToken(
+        bool useFactory,
+        address mintTo,
+        uint256 amount,
+        address wrongToken
+    ) public assumeSafe(mintTo, amount) withFactory(useFactory) withERC20 {
         address paymentToken = wrongToken == address(0) ? address(erc20) : address(0);
         sale.setSaleDetails(0, 0, paymentToken, uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
 
@@ -209,16 +210,15 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
     }
 
     // Minting fails with invalid payment token.
-    function testERC20MintFailPaidETH(bool useFactory, address mintTo, uint256 amount)
-        public
-        assumeSafe(mintTo, amount)
-        withFactory(useFactory)
-        withERC20
-    {
+    function testERC20MintFailPaidETH(
+        bool useFactory,
+        address mintTo,
+        uint256 amount
+    ) public assumeSafe(mintTo, amount) withFactory(useFactory) withERC20 {
         sale.setSaleDetails(0, 0, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
 
         vm.expectRevert(abi.encodeWithSelector(InsufficientPayment.selector, address(0), 0, 1));
-        sale.mint{value: 1}(mintTo, amount, address(erc20), 0, TestHelper.blankProof());
+        sale.mint{ value: 1 }(mintTo, amount, address(erc20), 0, TestHelper.blankProof());
     }
 
     // Minting with merkle success.
@@ -296,7 +296,9 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
     //
     // Helpers
     //
-    modifier withFactory(bool useFactory) {
+    modifier withFactory(
+        bool useFactory
+    ) {
         if (useFactory) {
             setUpFromFactory();
         }
@@ -321,4 +323,5 @@ contract ERC721SaleTest is TestHelper, IERC721SaleSignals, IMerkleProofSingleUse
         sale.setSaleDetails(0, perTokenCost, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
         _;
     }
+
 }

@@ -1,20 +1,22 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {TestHelper} from "../../TestHelper.sol";
+import { TestHelper } from "../../TestHelper.sol";
 
-import {ERC20Items} from "src/tokens/ERC20/presets/items/ERC20Items.sol";
-import {IERC20Items, IERC20ItemsSignals, IERC20ItemsFunctions} from "src/tokens/ERC20/presets/items/IERC20Items.sol";
-import {ERC20ItemsFactory} from "src/tokens/ERC20/presets/items/ERC20ItemsFactory.sol";
+import { ERC20Items } from "src/tokens/ERC20/presets/items/ERC20Items.sol";
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import { ERC20ItemsFactory } from "src/tokens/ERC20/presets/items/ERC20ItemsFactory.sol";
+import { IERC20Items, IERC20ItemsFunctions, IERC20ItemsSignals } from "src/tokens/ERC20/presets/items/IERC20Items.sol";
+
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 // Interfaces
-import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
+
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 value);
 
@@ -124,7 +126,9 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
         token.mint(caller, amount);
     }
 
-    function testMintOwner(uint256 amount) public {
+    function testMintOwner(
+        uint256 amount
+    ) public {
         vm.assume(amount > 0);
 
         vm.expectEmit(true, true, true, false, address(token));
@@ -157,7 +161,6 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
     //
     // Burn
     //
-
     function testBurnSuccess(address caller, uint256 amount, uint256 burnAmount) public {
         assumeSafeCaller(caller);
         vm.assume(amount >= burnAmount);
@@ -190,10 +193,12 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
     //
     // Helpers
     //
-
-    function assumeSafeCaller(address caller) private view {
+    function assumeSafeCaller(
+        address caller
+    ) private view {
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);
         vm.assume(caller != address(0));
     }
+
 }

@@ -4,21 +4,23 @@ pragma solidity ^0.8.19;
 import {
     IERC721Sale, IERC721SaleFunctions
 } from "@0xsequence/contracts-library/tokens/ERC721/utility/sale/IERC721Sale.sol";
-import {
-    WithdrawControlled,
-    AccessControlEnumerable,
-    SafeERC20,
-    IERC20
-} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
-import {MerkleProofSingleUse} from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
 
-import {IERC721A} from "erc721a/contracts/extensions/ERC721AQueryable.sol";
-import {IERC721ItemsFunctions} from "@0xsequence/contracts-library/tokens/ERC721/presets/items/IERC721Items.sol";
+import { MerkleProofSingleUse } from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
+import {
+    AccessControlEnumerable,
+    IERC20,
+    SafeERC20,
+    WithdrawControlled
+} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
+
+import { IERC721ItemsFunctions } from "@0xsequence/contracts-library/tokens/ERC721/presets/items/IERC721Items.sol";
+import { IERC721A } from "erc721a/contracts/extensions/ERC721AQueryable.sol";
 
 /**
  * An ERC-721 token contract with primary sale mechanisms.
  */
 contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
+
     bytes32 internal constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
     bool private _initialized;
@@ -114,10 +116,13 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
      * @dev An empty proof is supplied when no proof is required.
      * @dev `paymentToken` must match the `paymentToken` in the sale details.
      */
-    function mint(address to, uint256 amount, address paymentToken, uint256 maxTotal, bytes32[] calldata proof)
-        public
-        payable
-    {
+    function mint(
+        address to,
+        uint256 amount,
+        address paymentToken,
+        uint256 maxTotal,
+        bytes32[] calldata proof
+    ) public payable {
         _payForActiveMint(amount, paymentToken, maxTotal, proof);
 
         uint256 currentSupply = IERC721A(_items).totalSupply();
@@ -159,7 +164,6 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
     //
     // Views
     //
-
     function itemsContract() external view returns (address) {
         return address(_items);
     }
@@ -177,13 +181,10 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override (AccessControlEnumerable)
-        returns (bool)
-    {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(AccessControlEnumerable) returns (bool) {
         return interfaceId == type(IERC721SaleFunctions).interfaceId || super.supportsInterface(interfaceId);
     }
+
 }

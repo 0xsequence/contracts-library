@@ -17,6 +17,7 @@ interface IWithdrawControlledFunctions {
      * @param value Amount to withdraw.
      */
     function withdrawETH(address to, uint256 value) external;
+
 }
 
 interface IWithdrawControlledSignals {
@@ -25,6 +26,7 @@ interface IWithdrawControlledSignals {
      * Withdraw failed error.
      */
     error WithdrawFailed();
+
 }
 
-interface IWithdrawControlled is IWithdrawControlledFunctions, IWithdrawControlledSignals {}
+interface IWithdrawControlled is IWithdrawControlledFunctions, IWithdrawControlledSignals { }

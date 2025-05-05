@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {IERC721ItemsFunctions} from "@0xsequence/contracts-library/tokens/ERC721/presets/items/IERC721Items.sol";
+import { IERC721ItemsFunctions } from "@0xsequence/contracts-library/tokens/ERC721/presets/items/IERC721Items.sol";
 
 /**
  * An ERC-721 contract that allows permissive minting.

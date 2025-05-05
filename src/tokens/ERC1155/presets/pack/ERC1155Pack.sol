@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {IERC1155Pack} from "./IERC1155Pack.sol";
-import {ERC1155Items} from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/ERC1155Items.sol";
-import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import {IERC1155ItemsFunctions} from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
+import { IERC1155Pack } from "./IERC1155Pack.sol";
+import { ERC1155Items } from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/ERC1155Items.sol";
+
+import { IERC1155ItemsFunctions } from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
+import { MerkleProof } from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 contract ERC1155Pack is ERC1155Items, IERC1155Pack {
+
     bytes32 internal constant PACK_ADMIN_ROLE = keccak256("PACK_ADMIN_ROLE");
 
     bytes32 public merkleRoot;
@@ -16,7 +18,7 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
     mapping(address => uint256) internal _commitments;
     mapping(uint256 => uint256) internal _availableIndices;
 
-    constructor() ERC1155Items() {}
+    constructor() ERC1155Items() { }
 
     /// @inheritdoc IERC1155Pack
     function initialize(
@@ -83,7 +85,9 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
     }
 
     /// @inheritdoc IERC1155Pack
-    function refundPack(address user) external {
+    function refundPack(
+        address user
+    ) external {
         if (_commitments[user] == 0) {
             revert NoCommit();
         }
@@ -95,12 +99,16 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
     }
 
     /// @inheritdoc IERC1155Pack
-    function getRevealIdx(address user) public view returns (uint256 revealIdx) {
+    function getRevealIdx(
+        address user
+    ) public view returns (uint256 revealIdx) {
         (, revealIdx) = _getRevealIdx(user);
         return revealIdx;
     }
 
-    function _getRevealIdx(address user) internal view returns (uint256 randomIdx, uint256 revealIdx) {
+    function _getRevealIdx(
+        address user
+    ) internal view returns (uint256 randomIdx, uint256 revealIdx) {
         if (remainingSupply == 0) {
             revert AllPacksOpened();
         }
@@ -119,12 +127,17 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
         return (randomIdx, revealIdx);
     }
 
-    function _getIndexOrDefault(uint256 index) internal view returns (uint256) {
+    function _getIndexOrDefault(
+        uint256 index
+    ) internal view returns (uint256) {
         uint256 value = _availableIndices[index];
         return value == 0 ? index : value;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override returns (bool) {
         return type(IERC1155Pack).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
+
 }

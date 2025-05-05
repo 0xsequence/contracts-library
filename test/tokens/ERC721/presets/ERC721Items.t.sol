@@ -1,24 +1,27 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {TestHelper} from "../../../TestHelper.sol";
+import { TestHelper } from "../../../TestHelper.sol";
 
-import {ERC721Items} from "src/tokens/ERC721/presets/items/ERC721Items.sol";
+import { ERC721Items } from "src/tokens/ERC721/presets/items/ERC721Items.sol";
+
+import { ERC721ItemsFactory } from "src/tokens/ERC721/presets/items/ERC721ItemsFactory.sol";
 import {
-    IERC721ItemsSignals, IERC721ItemsFunctions, IERC721Items
+    IERC721Items, IERC721ItemsFunctions, IERC721ItemsSignals
 } from "src/tokens/ERC721/presets/items/IERC721Items.sol";
-import {ERC721ItemsFactory} from "src/tokens/ERC721/presets/items/ERC721ItemsFactory.sol";
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 // Interfaces
-import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import {IERC721A} from "erc721a/contracts/interfaces/IERC721A.sol";
-import {IERC721AQueryable} from "erc721a/contracts/extensions/IERC721AQueryable.sol";
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+
+import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import { IERC721AQueryable } from "erc721a/contracts/extensions/IERC721AQueryable.sol";
+import { IERC721A } from "erc721a/contracts/interfaces/IERC721A.sol";
 
 contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
+
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
@@ -131,7 +134,6 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
     //
     // Metadata
     //
-
     function testNameAndSymbol() external {
         address nonOwner = makeAddr("nonOwner");
         vm.expectRevert(); // Missing role
@@ -173,7 +175,9 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
     //
     // Minting
     //
-    function testMintInvalidRole(address caller) public {
+    function testMintInvalidRole(
+        address caller
+    ) public {
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);
 
@@ -199,7 +203,9 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         assertEq(token.balanceOf(owner), 1);
     }
 
-    function testMintWithRole(address minter) public {
+    function testMintWithRole(
+        address minter
+    ) public {
         vm.assume(minter != owner);
         vm.assume(minter != proxyOwner);
         vm.assume(minter != address(0));
@@ -234,8 +240,9 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
     //
     // Burn
     //
-
-    function testBurnSuccess(address caller) public {
+    function testBurnSuccess(
+        address caller
+    ) public {
         assumeSafeAddress(caller);
 
         vm.prank(owner);
@@ -251,7 +258,9 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         token.ownerOf(0);
     }
 
-    function testBurnInvalidOwnership(address caller) public {
+    function testBurnInvalidOwnership(
+        address caller
+    ) public {
         assumeSafeAddress(caller);
 
         vm.prank(owner);
@@ -261,7 +270,9 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         token.burn(0);
     }
 
-    function testBurnBatchSuccess(address caller) public {
+    function testBurnBatchSuccess(
+        address caller
+    ) public {
         assumeSafeAddress(caller);
 
         vm.prank(owner);
@@ -283,7 +294,9 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         token.ownerOf(0);
     }
 
-    function testBurnBatchInvalidOwnership(address caller) public {
+    function testBurnBatchInvalidOwnership(
+        address caller
+    ) public {
         assumeSafeAddress(caller);
 
         vm.prank(owner);
@@ -316,7 +329,9 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         token.tokenURI(2);
     }
 
-    function testMetadataInvalid(address caller) public {
+    function testMetadataInvalid(
+        address caller
+    ) public {
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);
         vm.expectRevert(
@@ -331,7 +346,9 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         token.setBaseMetadataURI("ipfs://newURI/");
     }
 
-    function testMetadataWithRole(address caller) public {
+    function testMetadataWithRole(
+        address caller
+    ) public {
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);
         vm.assume(caller != address(0));
@@ -445,4 +462,5 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         vm.prank(caller);
         token.setTokenRoyalty(tokenId, receiver, feeNumerator);
     }
+
 }

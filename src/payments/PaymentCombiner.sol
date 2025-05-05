@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {PaymentSplitter, IERC20Upgradeable} from "@0xsequence/contracts-library/payments/PaymentSplitter.sol";
 import {
     IPaymentCombiner, IPaymentCombinerFunctions
 } from "@0xsequence/contracts-library/payments/IPaymentCombiner.sol";
-import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import { IERC20Upgradeable, PaymentSplitter } from "@0xsequence/contracts-library/payments/PaymentSplitter.sol";
+import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
 
 /**
  * Deployer of Payment Splitter proxies.
  * @dev Unlike other factories in this library, payment splitters are unowned and not upgradeable.
  */
 contract PaymentCombiner is IPaymentCombiner, IERC165 {
+
     using Clones for address;
 
     address private immutable _IMPLEMENTATION;
@@ -47,11 +48,10 @@ contract PaymentCombiner is IPaymentCombiner, IERC165 {
     }
 
     /// @inheritdoc IPaymentCombinerFunctions
-    function determineAddress(address[] calldata payees, uint256[] calldata shares)
-        external
-        view
-        returns (address proxyAddr)
-    {
+    function determineAddress(
+        address[] calldata payees,
+        uint256[] calldata shares
+    ) external view returns (address proxyAddr) {
         bytes32 salt = _determineSalt(payees, shares);
         return _IMPLEMENTATION.predictDeterministicAddress(salt);
     }
@@ -62,16 +62,18 @@ contract PaymentCombiner is IPaymentCombiner, IERC165 {
     }
 
     /// @inheritdoc IPaymentCombinerFunctions
-    function countPayeeSplitters(address payee) external view returns (uint256 count) {
+    function countPayeeSplitters(
+        address payee
+    ) external view returns (uint256 count) {
         return _payeeSplitters[payee].length;
     }
 
     /// @inheritdoc IPaymentCombinerFunctions
-    function listPayeeSplitters(address payee, uint256 offset, uint256 limit)
-        external
-        view
-        returns (address[] memory splitterAddrs)
-    {
+    function listPayeeSplitters(
+        address payee,
+        uint256 offset,
+        uint256 limit
+    ) external view returns (address[] memory splitterAddrs) {
         address[] memory payeeSplitters = _payeeSplitters[payee];
         uint256 len = payeeSplitters.length;
         if (offset + limit > len) {
@@ -85,11 +87,11 @@ contract PaymentCombiner is IPaymentCombiner, IERC165 {
     }
 
     /// @inheritdoc IPaymentCombinerFunctions
-    function listReleasable(address payee, address tokenAddr, address[] calldata splitterAddrs)
-        external
-        view
-        returns (uint256[] memory pendingShares)
-    {
+    function listReleasable(
+        address payee,
+        address tokenAddr,
+        address[] calldata splitterAddrs
+    ) external view returns (uint256[] memory pendingShares) {
         address[] memory splitters = splitterAddrs;
         uint256 len = splitters.length;
         if (len == 0) {
@@ -147,8 +149,11 @@ contract PaymentCombiner is IPaymentCombiner, IERC165 {
     }
 
     /// @inheritdoc IERC165
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override returns (bool) {
         return type(IPaymentCombiner).interfaceId == interfaceId
             || type(IPaymentCombinerFunctions).interfaceId == interfaceId || type(IERC165).interfaceId == interfaceId;
     }
+
 }

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 interface IERC1155PackFactoryFunctions {
+
     /**
      * Creates an ERC-1155 Pack proxy.
      * @param proxyOwner The owner of the ERC-1155 Pack proxy
@@ -47,14 +48,17 @@ interface IERC1155PackFactoryFunctions {
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
     ) external returns (address proxyAddr);
+
 }
 
 interface IERC1155PackFactorySignals {
+
     /**
      * Event emitted when a new ERC-1155 Pack proxy contract is deployed.
      * @param proxyAddr The address of the deployed proxy.
      */
     event ERC1155PackDeployed(address proxyAddr);
+
 }
 
-interface IERC1155PackFactory is IERC1155PackFactoryFunctions, IERC1155PackFactorySignals {}
+interface IERC1155PackFactory is IERC1155PackFactoryFunctions, IERC1155PackFactorySignals { }

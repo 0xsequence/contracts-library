@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {IMerkleProofSingleUse} from "@0xsequence/contracts-library/tokens/common/IMerkleProofSingleUse.sol";
-import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import { IMerkleProofSingleUse } from "@0xsequence/contracts-library/tokens/common/IMerkleProofSingleUse.sol";
+import { MerkleProof } from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 /**
  * Require single use merkle proofs per address.
  */
 abstract contract MerkleProofSingleUse is IMerkleProofSingleUse {
+
     // Stores proofs used by an address
     mapping(address => mapping(bytes32 => bool)) private _proofUsed;
 
@@ -37,11 +38,13 @@ abstract contract MerkleProofSingleUse is IMerkleProofSingleUse {
      * @param salt Salt used to generate the merkle leaf.
      * @return True if the proof is valid and has not yet been used by {addr}.
      */
-    function checkMerkleProof(bytes32 root, bytes32[] calldata proof, address addr, bytes32 salt)
-        public
-        view
-        returns (bool)
-    {
+    function checkMerkleProof(
+        bytes32 root,
+        bytes32[] calldata proof,
+        address addr,
+        bytes32 salt
+    ) public view returns (bool) {
         return !_proofUsed[addr][root] && MerkleProof.verify(proof, root, keccak256(abi.encodePacked(addr, salt)));
     }
+
 }

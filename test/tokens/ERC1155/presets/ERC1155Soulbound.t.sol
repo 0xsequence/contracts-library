@@ -1,24 +1,26 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {TestHelper} from "../../../TestHelper.sol";
+import { TestHelper } from "../../../TestHelper.sol";
 
-import {ERC1155Soulbound} from "src/tokens/ERC1155/presets/soulbound/ERC1155Soulbound.sol";
-import {IERC1155ItemsSignals, IERC1155ItemsFunctions} from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
+import { IERC1155ItemsFunctions, IERC1155ItemsSignals } from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
+import { ERC1155Soulbound } from "src/tokens/ERC1155/presets/soulbound/ERC1155Soulbound.sol";
+
+import { ERC1155SoulboundFactory } from "src/tokens/ERC1155/presets/soulbound/ERC1155SoulboundFactory.sol";
 import {
-    IERC1155SoulboundSignals,
+    IERC1155Soulbound,
     IERC1155SoulboundFunctions,
-    IERC1155Soulbound
+    IERC1155SoulboundSignals
 } from "src/tokens/ERC1155/presets/soulbound/IERC1155Soulbound.sol";
-import {ERC1155SoulboundFactory} from "src/tokens/ERC1155/presets/soulbound/ERC1155SoulboundFactory.sol";
 
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 // Interfaces
-import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+import { IERC1155 } from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 contract ERC1155SoulboundTest is TestHelper, IERC1155ItemsSignals, IERC1155SoulboundSignals {
+
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
@@ -35,9 +37,7 @@ contract ERC1155SoulboundTest is TestHelper, IERC1155ItemsSignals, IERC1155Soulb
         vm.deal(owner, 100 ether);
 
         ERC1155SoulboundFactory factory = new ERC1155SoulboundFactory(address(this));
-        token = ERC1155Soulbound(
-            factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0)
-        );
+        token = ERC1155Soulbound(factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0));
     }
 
     function testReinitializeFails() public {
@@ -117,9 +117,8 @@ contract ERC1155SoulboundTest is TestHelper, IERC1155ItemsSignals, IERC1155Soulb
         vm.assume(royaltyReceiver != address(0));
         royaltyFeeNumerator = uint96(bound(royaltyFeeNumerator, 0, 10_000));
         ERC1155SoulboundFactory factory = new ERC1155SoulboundFactory(address(this));
-        address deployedAddr = factory.deploy(
-            _proxyOwner, tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator
-        );
+        address deployedAddr =
+            factory.deploy(_proxyOwner, tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator);
         address predictedAddr = factory.determineAddress(
             _proxyOwner, tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator
         );
@@ -129,7 +128,9 @@ contract ERC1155SoulboundTest is TestHelper, IERC1155ItemsSignals, IERC1155Soulb
     //
     // Transfers
     //
-    function testUnlockInvalidRole(address invalid) public {
+    function testUnlockInvalidRole(
+        address invalid
+    ) public {
         vm.assume(invalid != owner);
 
         vm.expectRevert();
@@ -230,4 +231,5 @@ contract ERC1155SoulboundTest is TestHelper, IERC1155ItemsSignals, IERC1155Soulb
         vm.expectRevert(TransfersLocked.selector);
         token.batchBurn(tokenIds, amounts);
     }
+
 }

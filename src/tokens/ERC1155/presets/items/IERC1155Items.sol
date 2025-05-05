@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 interface IERC1155ItemsFunctions {
+
     /**
      * Mint tokens.
      * @param to Address to mint tokens to.
@@ -19,13 +20,16 @@ interface IERC1155ItemsFunctions {
      * @param data Data to pass if receiver is contract.
      */
     function batchMint(address to, uint256[] memory tokenIds, uint256[] memory amounts, bytes memory data) external;
+
 }
 
 interface IERC1155ItemsSignals {
+
     /**
      * Invalid initialization error.
      */
     error InvalidInitialization();
+
 }
 
-interface IERC1155Items is IERC1155ItemsFunctions, IERC1155ItemsSignals {}
+interface IERC1155Items is IERC1155ItemsFunctions, IERC1155ItemsSignals { }

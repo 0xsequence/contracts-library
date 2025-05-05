@@ -2,13 +2,13 @@
 pragma solidity ^0.8.19;
 
 import {
-    TransparentUpgradeableBeaconProxy,
-    ITransparentUpgradeableBeaconProxy
+    ITransparentUpgradeableBeaconProxy,
+    TransparentUpgradeableBeaconProxy
 } from "./TransparentUpgradeableBeaconProxy.sol";
 
-import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { UpgradeableBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
 /**
  * An proxy factory that deploys upgradeable beacon proxies.
@@ -16,6 +16,7 @@ import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/Upgradeabl
  * @dev Proxy deployers are able to override the beacon reference with their own.
  */
 abstract contract SequenceProxyFactory is Ownable {
+
     UpgradeableBeacon public beacon;
 
     /**
@@ -35,10 +36,11 @@ abstract contract SequenceProxyFactory is Ownable {
      * @param _data The initialization data.
      * @return proxyAddress The address of the deployed proxy.
      */
-    function _createProxy(bytes32 _salt, address _proxyOwner, bytes memory _data)
-        internal
-        returns (address proxyAddress)
-    {
+    function _createProxy(
+        bytes32 _salt,
+        address _proxyOwner,
+        bytes memory _data
+    ) internal returns (address proxyAddress) {
         bytes32 saltedHash = keccak256(abi.encodePacked(_salt, _proxyOwner, address(beacon), _data));
         bytes memory bytecode = type(TransparentUpgradeableBeaconProxy).creationCode;
 
@@ -52,11 +54,11 @@ abstract contract SequenceProxyFactory is Ownable {
      * @param _proxyOwner The owner of the proxy.
      * @return proxy The expected address of the deployed proxy.
      */
-    function _computeProxyAddress(bytes32 _salt, address _proxyOwner, bytes memory _data)
-        internal
-        view
-        returns (address)
-    {
+    function _computeProxyAddress(
+        bytes32 _salt,
+        address _proxyOwner,
+        bytes memory _data
+    ) internal view returns (address) {
         bytes32 saltedHash = keccak256(abi.encodePacked(_salt, _proxyOwner, address(beacon), _data));
         bytes32 bytecodeHash = keccak256(type(TransparentUpgradeableBeaconProxy).creationCode);
 
@@ -67,7 +69,10 @@ abstract contract SequenceProxyFactory is Ownable {
      * Upgrades the beacon implementation.
      * @param implementation The new beacon implementation.
      */
-    function upgradeBeacon(address implementation) public onlyOwner {
+    function upgradeBeacon(
+        address implementation
+    ) public onlyOwner {
         beacon.upgradeTo(implementation);
     }
+
 }

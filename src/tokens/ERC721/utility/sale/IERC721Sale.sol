@@ -53,9 +53,11 @@ interface IERC721SaleFunctions {
      * @return Sale details.
      */
     function saleDetails() external view returns (SaleDetails memory);
+
 }
 
 interface IERC721SaleSignals {
+
     event SaleDetailsUpdated(
         uint256 supplyCap, uint256 cost, address paymentToken, uint64 startTime, uint64 endTime, bytes32 merkleRoot
     );
@@ -91,6 +93,7 @@ interface IERC721SaleSignals {
      * @param actual Actual amount of tokens.
      */
     error InsufficientPayment(address currency, uint256 expected, uint256 actual);
+
 }
 
-interface IERC721Sale is IERC721SaleFunctions, IERC721SaleSignals {}
+interface IERC721Sale is IERC721SaleFunctions, IERC721SaleSignals { }

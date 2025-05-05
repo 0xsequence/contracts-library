@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {IGenericToken} from "./IGenericToken.sol";
-import {ERC721BaseToken} from "src/tokens/ERC721/ERC721BaseToken.sol";
+import { IGenericToken } from "./IGenericToken.sol";
+import { ERC721BaseToken } from "src/tokens/ERC721/ERC721BaseToken.sol";
 
 contract ERC721Mock is ERC721BaseToken, IGenericToken {
+
     constructor(address owner, string memory tokenBaseURI) {
         _initialize(owner, "", "", tokenBaseURI, "");
     }
@@ -29,4 +30,5 @@ contract ERC721Mock is ERC721BaseToken, IGenericToken {
             return 0;
         }
     }
+
 }

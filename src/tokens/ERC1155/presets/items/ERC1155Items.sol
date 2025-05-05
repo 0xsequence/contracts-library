@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
+import { ERC1155BaseToken } from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155BaseToken.sol";
 import {
     IERC1155Items,
     IERC1155ItemsFunctions
 } from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
-import {ERC1155BaseToken} from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155BaseToken.sol";
-import {ERC2981Controlled} from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
+import { ERC2981Controlled } from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
 
 /**
  * An implementation of ERC-1155 capable of minting when role provided.
  */
 contract ERC1155Items is ERC1155BaseToken, IERC1155Items {
+
     bytes32 internal constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     address private immutable initializer;
@@ -38,10 +39,7 @@ contract ERC1155Items is ERC1155BaseToken, IERC1155Items {
         string memory tokenContractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator
-    )
-        public
-        virtual
-    {
+    ) public virtual {
         if (msg.sender != initializer || initialized) {
             revert InvalidInitialization();
         }
@@ -76,10 +74,12 @@ contract ERC1155Items is ERC1155BaseToken, IERC1155Items {
      * @param amounts Amounts of tokens to mint.
      * @param data Data to pass if receiver is contract.
      */
-    function batchMint(address to, uint256[] memory tokenIds, uint256[] memory amounts, bytes memory data)
-        external
-        onlyRole(MINTER_ROLE)
-    {
+    function batchMint(
+        address to,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts,
+        bytes memory data
+    ) external onlyRole(MINTER_ROLE) {
         _batchMint(to, tokenIds, amounts, data);
     }
 
@@ -92,8 +92,11 @@ contract ERC1155Items is ERC1155BaseToken, IERC1155Items {
      * @param interfaceId Interface id
      * @return True if supported
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override (ERC1155BaseToken) returns (bool) {
-        return type(IERC1155ItemsFunctions).interfaceId == interfaceId || ERC1155BaseToken.supportsInterface(interfaceId)
-            || super.supportsInterface(interfaceId);
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC1155BaseToken) returns (bool) {
+        return type(IERC1155ItemsFunctions).interfaceId == interfaceId
+            || ERC1155BaseToken.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
     }
+
 }

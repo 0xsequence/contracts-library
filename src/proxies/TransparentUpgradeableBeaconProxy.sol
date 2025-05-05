@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {BeaconProxy, Proxy} from "./openzeppelin/BeaconProxy.sol";
-import {TransparentUpgradeableProxy, ERC1967Proxy} from "./openzeppelin/TransparentUpgradeableProxy.sol";
+import { BeaconProxy, Proxy } from "./openzeppelin/BeaconProxy.sol";
+import { ERC1967Proxy, TransparentUpgradeableProxy } from "./openzeppelin/TransparentUpgradeableProxy.sol";
 
 interface ITransparentUpgradeableBeaconProxy {
+
     function initialize(address admin, address beacon, bytes memory data) external;
+
 }
 
 error InvalidInitialization();
@@ -23,6 +25,7 @@ error InvalidInitialization();
  * - 0x5c60da1b: implementation (from TransparentUpgradeableProxy)
  */
 contract TransparentUpgradeableBeaconProxy is TransparentUpgradeableProxy, BeaconProxy {
+
     /**
      * Decode the initialization data from the msg.data and call the initialize function.
      */
@@ -48,7 +51,7 @@ contract TransparentUpgradeableBeaconProxy is TransparentUpgradeableProxy, Beaco
      * @dev If the admin is not set, the fallback function is used to initialize the proxy.
      * @dev If the admin is set, the fallback function is used to delegatecall the implementation.
      */
-    function _fallback() internal override (TransparentUpgradeableProxy, Proxy) {
+    function _fallback() internal override(TransparentUpgradeableProxy, Proxy) {
         if (_getAdmin() == address(0)) {
             bytes memory ret;
             bytes4 selector = msg.sig;
@@ -69,11 +72,12 @@ contract TransparentUpgradeableBeaconProxy is TransparentUpgradeableProxy, Beaco
      * Returns the current implementation address.
      * @dev This is the implementation address set by the admin, or the beacon implementation.
      */
-    function _implementation() internal view override (ERC1967Proxy, BeaconProxy) returns (address) {
+    function _implementation() internal view override(ERC1967Proxy, BeaconProxy) returns (address) {
         address implementation = ERC1967Proxy._implementation();
         if (implementation != address(0)) {
             return implementation;
         }
         return BeaconProxy._implementation();
     }
+
 }

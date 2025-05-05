@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {TestHelper} from "../TestHelper.sol";
-import {ERC20Mock} from "../_mocks/ERC20Mock.sol";
+import { TestHelper } from "../TestHelper.sol";
+import { ERC20Mock } from "../_mocks/ERC20Mock.sol";
 
-import {PaymentCombiner, PaymentSplitter, IERC20Upgradeable} from "src/payments/PaymentCombiner.sol";
-import {IPaymentCombiner, IPaymentCombinerSignals, IPaymentCombinerFunctions} from "src/payments/IPaymentCombiner.sol";
-import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+import { IPaymentCombiner, IPaymentCombinerFunctions, IPaymentCombinerSignals } from "src/payments/IPaymentCombiner.sol";
+import { IERC20Upgradeable, PaymentCombiner, PaymentSplitter } from "src/payments/PaymentCombiner.sol";
 
 // Note we are not testing the OZ PaymentSplitter contract implementation, only the PaymentCombiner contract
 
 contract PaymentCombinerTest is TestHelper, IPaymentCombinerSignals {
+
     PaymentCombiner public combiner;
     ERC20Mock public erc20;
 
@@ -25,11 +26,11 @@ contract PaymentCombinerTest is TestHelper, IPaymentCombinerSignals {
         assertTrue(combiner.supportsInterface(type(IPaymentCombinerFunctions).interfaceId));
     }
 
-    function _shrinkArrays(address[] memory arr1, uint256[] memory arr2, uint256 maxLen)
-        internal
-        pure
-        returns (address[] memory, uint256[] memory, uint256)
-    {
+    function _shrinkArrays(
+        address[] memory arr1,
+        uint256[] memory arr2,
+        uint256 maxLen
+    ) internal pure returns (address[] memory, uint256[] memory, uint256) {
         maxLen = arr1.length < maxLen ? arr1.length : maxLen;
         maxLen = arr2.length < maxLen ? arr2.length : maxLen;
         assembly {
@@ -39,10 +40,10 @@ contract PaymentCombinerTest is TestHelper, IPaymentCombinerSignals {
         return (arr1, arr2, maxLen);
     }
 
-    function _validArrays(address[] memory payees, uint256[] memory shares)
-        internal
-        returns (address[] memory, uint256[] memory)
-    {
+    function _validArrays(
+        address[] memory payees,
+        uint256[] memory shares
+    ) internal returns (address[] memory, uint256[] memory) {
         uint256 payeeLength = payees.length;
         vm.assume(payeeLength > 1);
         uint256 sharesLength = shares.length;
@@ -83,10 +84,11 @@ contract PaymentCombinerTest is TestHelper, IPaymentCombinerSignals {
     }
 
     // Tested through internal calls
-    function _testCountPayeeSplitters(address expectedPayee, address[][] memory payees, uint256[] memory shares)
-        internal
-        returns (uint256 expectedCount)
-    {
+    function _testCountPayeeSplitters(
+        address expectedPayee,
+        address[][] memory payees,
+        uint256[] memory shares
+    ) internal returns (uint256 expectedCount) {
         for (uint256 i = 0; i < payees.length; i++) {
             if (payees[i].length < 2) {
                 continue;
@@ -96,7 +98,7 @@ contract PaymentCombinerTest is TestHelper, IPaymentCombinerSignals {
             (payees[i], useShares,) = _shrinkArrays(payees[i], shares, 2);
             try combiner.deploy(payees[i], useShares) {
                 expectedCount++;
-            } catch {}
+            } catch { }
         }
         assertEq(combiner.countPayeeSplitters(expectedPayee), expectedCount);
 
@@ -244,4 +246,5 @@ contract PaymentCombinerTest is TestHelper, IPaymentCombinerSignals {
             assertEq(splitter.released(targetPayee), 0);
         }
     }
+
 }

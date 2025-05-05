@@ -16,13 +16,16 @@ interface IERC20ItemsFunctions {
      * @param tokenSymbol Symbol of token.
      */
     function setNameAndSymbol(string memory tokenName, string memory tokenSymbol) external;
+
 }
 
 interface IERC20ItemsSignals {
+
     /**
      * Invalid initialization error.
      */
     error InvalidInitialization();
+
 }
 
-interface IERC20Items is IERC20ItemsFunctions, IERC20ItemsSignals {}
+interface IERC20Items is IERC20ItemsFunctions, IERC20ItemsSignals { }

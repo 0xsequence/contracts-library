@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {ERC721Items} from "@0xsequence/contracts-library/tokens/ERC721/presets/items/ERC721Items.sol";
+import { ERC721Items } from "@0xsequence/contracts-library/tokens/ERC721/presets/items/ERC721Items.sol";
 import {
     IERC721Soulbound,
     IERC721SoulboundFunctions
@@ -11,11 +11,12 @@ import {
  * An implementation of ERC-721 that prevents transfers.
  */
 contract ERC721Soulbound is ERC721Items, IERC721Soulbound {
+
     bytes32 public constant TRANSFER_ADMIN_ROLE = keccak256("TRANSFER_ADMIN_ROLE");
 
     bool internal _transferLocked;
 
-    constructor() ERC721Items() {}
+    constructor() ERC721Items() { }
 
     /// @inheritdoc ERC721Items
     function initialize(
@@ -35,7 +36,9 @@ contract ERC721Soulbound is ERC721Items, IERC721Soulbound {
     }
 
     /// @inheritdoc IERC721SoulboundFunctions
-    function setTransferLocked(bool locked) external override onlyRole(TRANSFER_ADMIN_ROLE) {
+    function setTransferLocked(
+        bool locked
+    ) external override onlyRole(TRANSFER_ADMIN_ROLE) {
         _transferLocked = locked;
     }
 
@@ -44,11 +47,12 @@ contract ERC721Soulbound is ERC721Items, IERC721Soulbound {
         return _transferLocked;
     }
 
-    function _beforeTokenTransfers(address from, address to, uint256 startTokenId, uint256 quantity)
-        internal
-        virtual
-        override
-    {
+    function _beforeTokenTransfers(
+        address from,
+        address to,
+        uint256 startTokenId,
+        uint256 quantity
+    ) internal virtual override {
         // Mint transactions allowed
         if (_transferLocked && from != address(0)) {
             revert TransfersLocked();
@@ -56,7 +60,10 @@ contract ERC721Soulbound is ERC721Items, IERC721Soulbound {
         super._beforeTokenTransfers(from, to, startTokenId, quantity);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override returns (bool) {
         return type(IERC721SoulboundFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
     }
+
 }

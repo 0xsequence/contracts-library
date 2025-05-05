@@ -1,23 +1,24 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {IMetadataProvider} from "../../common/IMetadataProvider.sol";
-import {IClawbackFunctions} from "./IClawback.sol";
+import { IMetadataProvider } from "../../common/IMetadataProvider.sol";
+import { IClawbackFunctions } from "./IClawback.sol";
 
-import {Duration} from "../../../utils/Duration.sol";
+import { Duration } from "../../../utils/Duration.sol";
 
-import {LibString} from "solady/utils/LibString.sol";
-import {Base64} from "solady/utils/Base64.sol";
+import { Base64 } from "solady/utils/Base64.sol";
+import { LibString } from "solady/utils/LibString.sol";
 
-import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 
-import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
-import {IERC721Metadata} from "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
-import {IERC1155MetadataURI} from "@openzeppelin/contracts/interfaces/IERC1155MetadataURI.sol";
+import { IERC1155MetadataURI } from "@openzeppelin/contracts/interfaces/IERC1155MetadataURI.sol";
+import { IERC20Metadata } from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
+import { IERC721Metadata } from "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
 
 error InvalidTokenType();
 
 contract ClawbackMetadata is IMetadataProvider, IERC165 {
+
     using LibString for *;
 
     struct MetadataProperty {
@@ -48,7 +49,9 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
                 json = json.concat(", ");
             }
             json = json.concat('"').concat(properties[i].key).concat('": "').concat(properties[i].value).concat('"');
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
         json = json.concat("}}");
 
@@ -57,7 +60,9 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
         return "data:application/json;base64,".concat(Base64.encode(bytes(json)));
     }
 
-    function _toTokenTypeStr(IClawbackFunctions.TokenType tokenType) internal pure returns (string memory) {
+    function _toTokenTypeStr(
+        IClawbackFunctions.TokenType tokenType
+    ) internal pure returns (string memory) {
         if (tokenType == IClawbackFunctions.TokenType.ERC20) {
             return "ERC-20";
         } else if (tokenType == IClawbackFunctions.TokenType.ERC721) {
@@ -107,7 +112,10 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
                 properties, "original_name", details.tokenAddr, abi.encodeWithSelector(IERC721Metadata.name.selector)
             );
             properties = _safeAddStringProperty(
-                properties, "original_symbol", details.tokenAddr, abi.encodeWithSelector(IERC721Metadata.symbol.selector)
+                properties,
+                "original_symbol",
+                details.tokenAddr,
+                abi.encodeWithSelector(IERC721Metadata.symbol.selector)
             );
             properties = _safeAddStringProperty(
                 properties,
@@ -125,7 +133,9 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
         }
     }
 
-    function _boolToString(bool value) internal pure returns (string memory) {
+    function _boolToString(
+        bool value
+    ) internal pure returns (string memory) {
         return value ? "true" : "false";
     }
 
@@ -137,7 +147,7 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
     ) internal view returns (MetadataProperty[] memory) {
         try this.getStringProperty(key, tokenAddr, callData) returns (MetadataProperty memory prop) {
             properties = _appendProperty(properties, prop);
-        } catch {}
+        } catch { }
         return properties;
     }
 
@@ -149,15 +159,15 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
     ) internal view returns (MetadataProperty[] memory) {
         try this.getUint256Property(key, tokenAddr, callData) returns (MetadataProperty memory prop) {
             properties = _appendProperty(properties, prop);
-        } catch {}
+        } catch { }
         return properties;
     }
 
-    function getStringProperty(string memory key, address tokenAddr, bytes calldata callData)
-        external
-        view
-        returns (MetadataProperty memory)
-    {
+    function getStringProperty(
+        string memory key,
+        address tokenAddr,
+        bytes calldata callData
+    ) external view returns (MetadataProperty memory) {
         (bool success, bytes memory prop) = tokenAddr.staticcall(callData);
         if (success) {
             return MetadataProperty(key, abi.decode(prop, (string)));
@@ -166,11 +176,11 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
         revert();
     }
 
-    function getUint256Property(string memory key, address tokenAddr, bytes calldata callData)
-        external
-        view
-        returns (MetadataProperty memory)
-    {
+    function getUint256Property(
+        string memory key,
+        address tokenAddr,
+        bytes calldata callData
+    ) external view returns (MetadataProperty memory) {
         (bool success, bytes memory prop) = tokenAddr.staticcall(callData);
         if (success) {
             return MetadataProperty(key, abi.decode(prop, (uint256)).toString());
@@ -179,23 +189,26 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
         revert();
     }
 
-    function _appendProperty(MetadataProperty[] memory properties, MetadataProperty memory prop)
-        internal
-        pure
-        returns (MetadataProperty[] memory)
-    {
+    function _appendProperty(
+        MetadataProperty[] memory properties,
+        MetadataProperty memory prop
+    ) internal pure returns (MetadataProperty[] memory) {
         MetadataProperty[] memory newProperties = new MetadataProperty[](properties.length + 1);
         uint256 len = properties.length;
         for (uint256 i = 0; i < len;) {
             newProperties[i] = properties[i];
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
         newProperties[properties.length] = prop;
         return newProperties;
     }
 
     /// @inheritdoc IERC165
-    function supportsInterface(bytes4 interfaceID) public view virtual returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceID
+    ) public view virtual returns (bool) {
         if (interfaceID == type(IERC165).interfaceId || interfaceID == type(IMetadataProvider).interfaceId) {
             return true;
         }
@@ -215,4 +228,5 @@ contract ClawbackMetadata is IMetadataProvider, IERC165 {
 
         return Duration.format(remaining);
     }
+
 }

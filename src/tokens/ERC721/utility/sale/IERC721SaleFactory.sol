@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 interface IERC721SaleFactoryFunctions {
+
     /**
      * Creates an ERC-721 Sale for given token contract
      * @param proxyOwner The owner of the ERC-721 Sale proxy
@@ -19,15 +20,22 @@ interface IERC721SaleFactoryFunctions {
      * @param items The ERC-721 Items contract address
      * @return proxyAddr The address of the ERC-721 Sale Proxy
      */
-    function determineAddress(address proxyOwner, address tokenOwner, address items) external returns (address proxyAddr);
+    function determineAddress(
+        address proxyOwner,
+        address tokenOwner,
+        address items
+    ) external returns (address proxyAddr);
+
 }
 
 interface IERC721SaleFactorySignals {
+
     /**
      * Event emitted when a new ERC-721 Sale proxy contract is deployed.
      * @param proxyAddr The address of the deployed proxy.
      */
     event ERC721SaleDeployed(address proxyAddr);
+
 }
 
-interface IERC721SaleFactory is IERC721SaleFactoryFunctions, IERC721SaleFactorySignals {}
+interface IERC721SaleFactory is IERC721SaleFactoryFunctions, IERC721SaleFactorySignals { }

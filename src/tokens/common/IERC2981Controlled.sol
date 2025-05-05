@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 interface IERC2981ControlledFunctions {
+
     /**
      * Sets the royalty information that all ids in this contract will default to.
      * @param receiver Address of who should be sent the royalty payment
@@ -17,6 +18,7 @@ interface IERC2981ControlledFunctions {
      * @notice This overrides the default royalty information for this token id
      */
     function setTokenRoyalty(uint256 tokenId, address receiver, uint96 feeNumerator) external;
+
 }
 
-interface IERC2981Controlled is IERC2981ControlledFunctions {}
+interface IERC2981Controlled is IERC2981ControlledFunctions { }

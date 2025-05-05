@@ -1,22 +1,25 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {ERC1155Soulbound} from "@0xsequence/contracts-library/tokens/ERC1155/presets/soulbound/ERC1155Soulbound.sol";
+import { SequenceProxyFactory } from "@0xsequence/contracts-library/proxies/SequenceProxyFactory.sol";
+import { ERC1155Soulbound } from "@0xsequence/contracts-library/tokens/ERC1155/presets/soulbound/ERC1155Soulbound.sol";
 import {
     IERC1155SoulboundFactory,
     IERC1155SoulboundFactoryFunctions
 } from "@0xsequence/contracts-library/tokens/ERC1155/presets/soulbound/IERC1155SoulboundFactory.sol";
-import {SequenceProxyFactory} from "@0xsequence/contracts-library/proxies/SequenceProxyFactory.sol";
 
 /**
  * Deployer of ERC-1155 Soulbound proxies.
  */
 contract ERC1155SoulboundFactory is IERC1155SoulboundFactory, SequenceProxyFactory {
+
     /**
      * Creates an ERC-1155 Soulbound Factory.
      * @param factoryOwner The owner of the ERC-1155 Soulbound Factory
      */
-    constructor(address factoryOwner) {
+    constructor(
+        address factoryOwner
+    ) {
         ERC1155Soulbound impl = new ERC1155Soulbound();
         SequenceProxyFactory._initialize(address(impl), factoryOwner);
     }
@@ -55,4 +58,5 @@ contract ERC1155SoulboundFactory is IERC1155SoulboundFactory, SequenceProxyFacto
             keccak256(abi.encode(tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
         return _computeProxyAddress(salt, proxyOwner, "");
     }
+
 }

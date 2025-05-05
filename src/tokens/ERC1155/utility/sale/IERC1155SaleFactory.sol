@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 interface IERC1155SaleFactoryFunctions {
+
     /**
      * Creates an ERC-1155 Sale proxy contract
      * @param proxyOwner The owner of the ERC-1155 Sale proxy
@@ -19,15 +20,22 @@ interface IERC1155SaleFactoryFunctions {
      * @param items The ERC-1155 Items contract address
      * @return proxyAddr The address of the ERC-1155 Sale Proxy
      */
-    function determineAddress(address proxyOwner, address tokenOwner, address items) external returns (address proxyAddr);
+    function determineAddress(
+        address proxyOwner,
+        address tokenOwner,
+        address items
+    ) external returns (address proxyAddr);
+
 }
 
 interface IERC1155SaleFactorySignals {
+
     /**
      * Event emitted when a new ERC-1155 Sale proxy contract is deployed.
      * @param proxyAddr The address of the deployed proxy.
      */
     event ERC1155SaleDeployed(address proxyAddr);
+
 }
 
-interface IERC1155SaleFactory is IERC1155SaleFactoryFunctions, IERC1155SaleFactorySignals {}
+interface IERC1155SaleFactory is IERC1155SaleFactoryFunctions, IERC1155SaleFactorySignals { }
