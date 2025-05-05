@@ -1,0 +1,5 @@
+pre-commit:
+  commands:
+    lint-and-format:
+      glob: '**/*.sol'
+      run: yarn format:sol {staged_files} && yarn lint:sol {staged_files} && git add {staged_files}
