@@ -263,6 +263,8 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
             uint256[] memory amounts = TestHelper.singleToArray(amount);
             vm.expectEmit(true, true, true, true, address(token));
             emit TransferBatch(address(sale), address(0), mintTo, tokenIds, amounts);
+            vm.expectEmit(true, true, true, true, address(sale));
+            emit ItemsMinted(mintTo, tokenIds, amounts);
             sale.mint{value: cost}(mintTo, tokenIds, amounts, "", address(0), cost, TestHelper.blankProof());
         }
         assertEq(count + amount, token.balanceOf(mintTo, tokenId));
@@ -283,6 +285,8 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
             uint256[] memory amounts = TestHelper.singleToArray(amount);
             vm.expectEmit(true, true, true, true, address(token));
             emit TransferBatch(address(sale), address(0), mintTo, tokenIds, amounts);
+            vm.expectEmit(true, true, true, true, address(sale));
+            emit ItemsMinted(mintTo, tokenIds, amounts);
             sale.mint{value: cost}(mintTo, tokenIds, amounts, "", address(0), cost, TestHelper.blankProof());
         }
         assertEq(count + amount, token.balanceOf(mintTo, tokenId));
@@ -308,6 +312,8 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         uint256 count2 = token.balanceOf(mintTo, tokenId + 1);
         vm.expectEmit(true, true, true, true, address(token));
         emit TransferBatch(address(sale), address(0), mintTo, tokenIds, amounts);
+        vm.expectEmit(true, true, true, true, address(sale));
+        emit ItemsMinted(mintTo, tokenIds, amounts);
         sale.mint{value: cost}(mintTo, tokenIds, amounts, "", address(0), cost, TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo, tokenId));
         assertEq(count2 + amount, token.balanceOf(mintTo, tokenId + 1));
@@ -326,6 +332,8 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         uint256 count = token.balanceOf(mintTo, tokenId);
         vm.expectEmit(true, true, true, true, address(token));
         emit TransferBatch(address(sale), address(0), mintTo, tokenIds, amounts);
+        vm.expectEmit(true, true, true, true, address(sale));
+        emit ItemsMinted(mintTo, tokenIds, amounts);
         sale.mint(mintTo, tokenIds, amounts, "", address(0), 0, TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo, tokenId));
     }
@@ -344,6 +352,8 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         uint256 count = token.balanceOf(mintTo, tokenId);
         vm.expectEmit(true, true, true, true, address(token));
         emit TransferBatch(address(sale), address(0), mintTo, tokenIds, amounts);
+        vm.expectEmit(true, true, true, true, address(sale));
+        emit ItemsMinted(mintTo, tokenIds, amounts);
         sale.mint(mintTo, tokenIds, amounts, "", address(0), 0, TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo, tokenId));
     }
@@ -365,6 +375,8 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         uint256 count = token.balanceOf(mintTo, tokenId);
         vm.expectEmit(true, true, true, true, address(token));
         emit TransferBatch(address(sale), address(0), mintTo, tokenIds, amounts);
+        vm.expectEmit(true, true, true, true, address(sale));
+        emit ItemsMinted(mintTo, tokenIds, amounts);
         sale.mint(mintTo, tokenIds, amounts, "", address(erc20), cost, TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo, tokenId));
         assertEq(balance - cost, erc20.balanceOf(address(this)));
@@ -391,10 +403,12 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
             sale.setTokenSaleDetails(tokenId, 0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
         }
 
+        vm.expectEmit(true, true, true, true, address(sale));
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(uint256(1));
+        emit ItemsMinted(sender, tokenIds, amounts);
         vm.prank(sender);
-        sale.mint(
-            sender, TestHelper.singleToArray(tokenId), TestHelper.singleToArray(uint256(1)), "", address(0), 0, proof
-        );
+        sale.mint(sender, tokenIds, amounts, "", address(0), 0, proof);
 
         assertEq(1, token.balanceOf(sender, tokenId));
     }
@@ -428,6 +442,8 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
 
         sale.setGlobalSaleDetails(0, 0, uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
 
+        vm.expectEmit(true, true, true, true, address(sale));
+        emit ItemsMinted(sender, tokenIds, amounts);
         vm.prank(sender);
         sale.mint(sender, tokenIds, amounts, "", address(0), 0, proof);
 

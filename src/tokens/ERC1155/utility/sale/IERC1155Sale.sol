@@ -28,6 +28,14 @@ interface IERC1155SaleFunctions {
     function tokenSaleDetails(uint256 tokenId) external view returns (SaleDetails memory);
 
     /**
+     * Get sale details for multiple tokens.
+     * @param tokenIds Array of token IDs to retrieve sale details for.
+     * @return Array of sale details corresponding to each token ID.
+     * @notice Each token's sale details override the global sale details if set.
+     */ 
+    function tokenSaleDetailsBatch(uint256[] calldata tokenIds) external view returns (SaleDetails[] memory);
+
+    /**
      * Get payment token.
      * @return Payment token address.
      * @notice address(0) indicates payment in ETH.
@@ -64,6 +72,7 @@ interface IERC1155SaleSignals {
 
     event GlobalSaleDetailsUpdated(uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
     event TokenSaleDetailsUpdated(uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
+    event ItemsMinted(address to, uint256[] tokenIds, uint256[] amounts);
 
     /**
      * Contract already initialized.

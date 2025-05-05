@@ -56,7 +56,10 @@ interface IERC721SaleFunctions {
 }
 
 interface IERC721SaleSignals {
-    event SaleDetailsUpdated(uint256 supplyCap, uint256 cost, address paymentToken, uint64 startTime, uint64 endTime, bytes32 merkleRoot);
+    event SaleDetailsUpdated(
+        uint256 supplyCap, uint256 cost, address paymentToken, uint64 startTime, uint64 endTime, bytes32 merkleRoot
+    );
+    event ItemsMinted(address to, uint256 amount);
 
     /**
      * Contract already initialized.
