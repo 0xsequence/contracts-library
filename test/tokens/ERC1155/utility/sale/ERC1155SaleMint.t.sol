@@ -450,8 +450,9 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
             // Must be ordered
             (tokenIds[1], tokenIds[0]) = (tokenIds[0], tokenIds[1]);
         }
+
+        // solhint-disable-next-line no-inline-assembly
         assembly {
-            // solhint-disable-line no-inline-assembly
             mstore(tokenIds, 2) // Exactly 2 unique tokenIds
         }
         uint256[] memory amounts = new uint256[](2);
