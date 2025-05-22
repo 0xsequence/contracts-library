@@ -22,7 +22,7 @@ import { IERC721AQueryable } from "erc721a/contracts/interfaces/IERC721AQueryabl
 
 // solhint-disable not-rely-on-time
 
-contract ERC721SaleTest is TestHelper, IERC721SaleSignals {
+contract ERC721SaleBaseTest is TestHelper, IERC721SaleSignals {
 
     // Redeclare events
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);

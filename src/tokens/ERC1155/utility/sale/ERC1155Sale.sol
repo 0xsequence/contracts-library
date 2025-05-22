@@ -259,6 +259,52 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         emit TokenSaleDetailsUpdated(tokenId, cost, supplyCap, startTime, endTime, merkleRoot);
     }
 
+    /**
+     * Set the sale details for a batch of tokens.
+     * @param tokenIds The token IDs to set the sale details for.
+     * @param costs The amount of payment tokens to accept for each token minted.
+     * @param supplyCaps The maximum number of tokens that can be minted.
+     * @param startTimes The start time of the sale. Tokens cannot be minted before this time.
+     * @param endTimes The end time of the sale. Tokens cannot be minted after this time.
+     * @param merkleRoots The merkle root for allowlist minting.
+     * @dev A zero end time indicates an inactive sale.
+     * @notice The payment token is set globally.
+     * @dev tokenIds must be sorted ascending without duplicates.
+     */
+    function setTokenSaleDetailsBatch(
+        uint256[] calldata tokenIds,
+        uint256[] calldata costs,
+        uint256[] calldata supplyCaps,
+        uint64[] calldata startTimes,
+        uint64[] calldata endTimes,
+        bytes32[] calldata merkleRoots
+    ) public onlyRole(MINT_ADMIN_ROLE) {
+        if (
+            tokenIds.length != costs.length || tokenIds.length != supplyCaps.length
+                || tokenIds.length != startTimes.length || tokenIds.length != endTimes.length
+                || tokenIds.length != merkleRoots.length
+        ) {
+            revert InvalidSaleDetails();
+        }
+
+        uint256 lastTokenId;
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            uint256 tokenId = tokenIds[i];
+            if (i != 0 && lastTokenId >= tokenId) {
+                revert InvalidTokenIds();
+            }
+            lastTokenId = tokenId;
+
+            // solhint-disable-next-line not-rely-on-time
+            if (endTimes[i] < startTimes[i] || endTimes[i] <= block.timestamp) {
+                revert InvalidSaleDetails();
+            }
+            _tokenSaleDetails[tokenId] =
+                SaleDetails(costs[i], supplyCaps[i], startTimes[i], endTimes[i], merkleRoots[i]);
+            emit TokenSaleDetailsUpdated(tokenId, costs[i], supplyCaps[i], startTimes[i], endTimes[i], merkleRoots[i]);
+        }
+    }
+
     //
     // Views
     //
