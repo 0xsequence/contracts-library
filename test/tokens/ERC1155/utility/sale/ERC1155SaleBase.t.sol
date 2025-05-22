@@ -22,7 +22,7 @@ import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.so
 
 // solhint-disable not-rely-on-time
 
-contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySignals {
+contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySignals {
 
     // Redeclare events
     event TransferSingle(

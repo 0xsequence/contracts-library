@@ -16,7 +16,7 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 // solhint-disable not-rely-on-time
 
-contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySignals, IMerkleProofSingleUseSignals {
+contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySignals, IMerkleProofSingleUseSignals {
 
     // Redeclare events
     event TransferSingle(
@@ -105,6 +105,9 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         uint64 startTime,
         uint64 endTime
     ) public withFactory(useFactory) {
+        startTime = uint64(bound(startTime, 0, type(uint64).max - 1));
+        endTime = uint64(bound(endTime, 0, type(uint64).max - 1));
+
         (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         if (startTime > endTime) {
             uint64 temp = startTime;
@@ -142,6 +145,9 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         uint64 startTime,
         uint64 endTime
     ) public withFactory(useFactory) {
+        startTime = uint64(bound(startTime, 0, type(uint64).max - 1));
+        endTime = uint64(bound(endTime, 0, type(uint64).max - 1));
+
         (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         if (startTime > endTime) {
             uint64 temp = startTime;
