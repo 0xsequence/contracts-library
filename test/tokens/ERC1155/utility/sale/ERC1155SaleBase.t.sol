@@ -22,7 +22,7 @@ import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.so
 
 // solhint-disable not-rely-on-time
 
-contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySignals {
+contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySignals {
 
     // Redeclare events
     event TransferSingle(
@@ -85,8 +85,10 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         checkSelectorCollision(0x97559600); // setGlobalSaleDetails(uint256,uint256,uint64,uint64,bytes32)
         checkSelectorCollision(0x6a326ab1); // setPaymentToken(address)
         checkSelectorCollision(0x4f651ccd); // setTokenSaleDetails(uint256,uint256,uint256,uint64,uint64,bytes32)
+        checkSelectorCollision(0xf07f04ff); // setTokenSaleDetailsBatch(uint256[],uint256[],uint256[],uint64[],uint64[],bytes32[])
         checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
         checkSelectorCollision(0x0869678c); // tokenSaleDetails(uint256)
+        checkSelectorCollision(0xff81434e); // tokenSaleDetailsBatch(uint256[])
         checkSelectorCollision(0x44004cc1); // withdrawERC20(address,address,uint256)
         checkSelectorCollision(0x4782f779); // withdrawETH(address,uint256)
     }
@@ -98,6 +100,121 @@ contract ERC1155SaleTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySigna
         address deployedAddr = factory.deploy(_proxyOwner, tokenOwner, items);
         address predictedAddr = factory.determineAddress(_proxyOwner, tokenOwner, items);
         assertEq(deployedAddr, predictedAddr);
+    }
+
+    //
+    // Setter and getter
+    //
+    function testGlobalSaleDetails(
+        uint256 cost,
+        uint256 supplyCap,
+        uint64 startTime,
+        uint64 endTime,
+        bytes32 merkleRoot
+    ) public {
+        endTime = uint64(bound(endTime, block.timestamp + 1, type(uint64).max));
+        endTime = uint64(bound(endTime, startTime, type(uint64).max));
+
+        // Setter
+        vm.expectEmit(true, true, true, true, address(sale));
+        emit GlobalSaleDetailsUpdated(cost, supplyCap, startTime, endTime, merkleRoot);
+        sale.setGlobalSaleDetails(cost, supplyCap, startTime, endTime, merkleRoot);
+
+        // Getter
+        IERC1155SaleFunctions.SaleDetails memory _saleDetails = sale.globalSaleDetails();
+        assertEq(cost, _saleDetails.cost);
+        assertEq(supplyCap, _saleDetails.supplyCap);
+        assertEq(startTime, _saleDetails.startTime);
+        assertEq(endTime, _saleDetails.endTime);
+        assertEq(merkleRoot, _saleDetails.merkleRoot);
+    }
+
+    function testTokenSaleDetails(
+        uint256 tokenId,
+        uint256 cost,
+        uint256 supplyCap,
+        uint64 startTime,
+        uint64 endTime,
+        bytes32 merkleRoot
+    ) public {
+        endTime = uint64(bound(endTime, block.timestamp + 1, type(uint64).max));
+        endTime = uint64(bound(endTime, startTime, type(uint64).max));
+
+        // Setter
+        vm.expectEmit(true, true, true, true, address(sale));
+        emit TokenSaleDetailsUpdated(tokenId, cost, supplyCap, startTime, endTime, merkleRoot);
+        sale.setTokenSaleDetails(tokenId, cost, supplyCap, startTime, endTime, merkleRoot);
+
+        // Getter
+        IERC1155SaleFunctions.SaleDetails memory _saleDetails = sale.tokenSaleDetails(tokenId);
+        assertEq(cost, _saleDetails.cost);
+        assertEq(supplyCap, _saleDetails.supplyCap);
+        assertEq(startTime, _saleDetails.startTime);
+        assertEq(endTime, _saleDetails.endTime);
+        assertEq(merkleRoot, _saleDetails.merkleRoot);
+    }
+
+    function testTokenSaleDetailsBatch(
+        uint256[] memory tokenIds,
+        uint256[] memory costs,
+        uint256[] memory supplyCaps,
+        uint64[] memory startTimes,
+        uint64[] memory endTimes,
+        bytes32[] memory merkleRoots
+    ) public {
+        uint256 minLength = tokenIds.length;
+        minLength = minLength > costs.length ? costs.length : minLength;
+        minLength = minLength > supplyCaps.length ? supplyCaps.length : minLength;
+        minLength = minLength > startTimes.length ? startTimes.length : minLength;
+        minLength = minLength > endTimes.length ? endTimes.length : minLength;
+        minLength = minLength > merkleRoots.length ? merkleRoots.length : minLength;
+        minLength = minLength > 5 ? 5 : minLength; // Max 5
+        vm.assume(minLength > 0);
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            mstore(tokenIds, minLength)
+            mstore(costs, minLength)
+            mstore(supplyCaps, minLength)
+            mstore(startTimes, minLength)
+            mstore(endTimes, minLength)
+            mstore(merkleRoots, minLength)
+        }
+
+        // Sort tokenIds ascending and ensure no duplicates
+        for (uint256 i = 0; i < minLength; i++) {
+            for (uint256 j = i + 1; j < minLength; j++) {
+                if (tokenIds[i] > tokenIds[j]) {
+                    (tokenIds[i], tokenIds[j]) = (tokenIds[j], tokenIds[i]);
+                }
+            }
+        }
+        for (uint256 i = 0; i < minLength - 1; i++) {
+            vm.assume(tokenIds[i] != tokenIds[i + 1]);
+        }
+
+        for (uint256 i = 0; i < minLength; i++) {
+            endTimes[i] = uint64(bound(endTimes[i], block.timestamp + 1, type(uint64).max));
+            endTimes[i] = uint64(bound(endTimes[i], startTimes[i], type(uint64).max));
+        }
+
+        // Setter
+        for (uint256 i = 0; i < minLength; i++) {
+            vm.expectEmit(true, true, true, true, address(sale));
+            emit TokenSaleDetailsUpdated(
+                tokenIds[i], costs[i], supplyCaps[i], startTimes[i], endTimes[i], merkleRoots[i]
+            );
+        }
+        sale.setTokenSaleDetailsBatch(tokenIds, costs, supplyCaps, startTimes, endTimes, merkleRoots);
+
+        // Getter
+        IERC1155SaleFunctions.SaleDetails[] memory _saleDetails = sale.tokenSaleDetailsBatch(tokenIds);
+        for (uint256 i = 0; i < minLength; i++) {
+            assertEq(costs[i], _saleDetails[i].cost);
+            assertEq(supplyCaps[i], _saleDetails[i].supplyCap);
+            assertEq(startTimes[i], _saleDetails[i].startTime);
+            assertEq(endTimes[i], _saleDetails[i].endTime);
+            assertEq(merkleRoots[i], _saleDetails[i].merkleRoot);
+        }
     }
 
     //
