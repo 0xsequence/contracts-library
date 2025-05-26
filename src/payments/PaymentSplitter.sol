@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import {
     IERC20Upgradeable,
     PaymentSplitterUpgradeable
-} from "@openzeppelin-upgradeable/contracts/finance/PaymentSplitterUpgradeable.sol";
+} from "lib/openzeppelin-contracts-upgradeable/contracts/finance/PaymentSplitterUpgradeable.sol";
 
 contract PaymentSplitter is PaymentSplitterUpgradeable {
 

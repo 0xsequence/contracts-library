@@ -2,17 +2,17 @@
 pragma solidity ^0.8.19;
 
 import { TestHelper } from "../TestHelper.sol";
+import { ERC1155Mock } from "../_mocks/ERC1155Mock.sol";
+import { ERC1271Mock } from "../_mocks/ERC1271Mock.sol";
+import { ERC20Mock } from "../_mocks/ERC20Mock.sol";
+import { ERC721Mock } from "../_mocks/ERC721Mock.sol";
+import { IGenericToken } from "../_mocks/IGenericToken.sol";
 
 import { IPayments, IPaymentsFunctions, IPaymentsSignals } from "src/payments/IPayments.sol";
-import { IERC165, Payments } from "src/payments/Payments.sol";
+import { Payments } from "src/payments/Payments.sol";
 import { PaymentsFactory } from "src/payments/PaymentsFactory.sol";
 
-import { ERC1155Mock } from "test/_mocks/ERC1155Mock.sol";
-
-import { ERC1271Mock } from "test/_mocks/ERC1271Mock.sol";
-import { ERC20Mock } from "test/_mocks/ERC20Mock.sol";
-import { ERC721Mock } from "test/_mocks/ERC721Mock.sol";
-import { IGenericToken } from "test/_mocks/IGenericToken.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 contract PaymentsTest is TestHelper, IPaymentsSignals {
 

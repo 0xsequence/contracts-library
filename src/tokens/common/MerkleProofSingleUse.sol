@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IMerkleProofSingleUse } from "@0xsequence/contracts-library/tokens/common/IMerkleProofSingleUse.sol";
-import { MerkleProof } from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import { IMerkleProofSingleUse } from "./IMerkleProofSingleUse.sol";
+
+import { MerkleProof } from "openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
 
 /**
  * Require single use merkle proofs per address.

@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {
-    ERC1155, ERC1155Supply
-} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
+import { ERC2981Controlled } from "../common/ERC2981Controlled.sol";
+import { ERC1155, ERC1155Supply } from "./extensions/supply/ERC1155Supply.sol";
 
-import { ERC2981Controlled } from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
-import { ERC1155Metadata } from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
+import { ERC1155Metadata } from "erc-1155/src/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 
 error InvalidInitialization();
 

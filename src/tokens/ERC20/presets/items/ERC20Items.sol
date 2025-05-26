@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { ERC20BaseToken } from "@0xsequence/contracts-library/tokens/ERC20/ERC20BaseToken.sol";
-import {
-    IERC20Items, IERC20ItemsFunctions
-} from "@0xsequence/contracts-library/tokens/ERC20/presets/items/IERC20Items.sol";
+import { ERC20BaseToken } from "../../ERC20BaseToken.sol";
+import { IERC20Items, IERC20ItemsFunctions } from "./IERC20Items.sol";
 
 /**
  * A ready made implementation of ERC-20 capable of minting when role provided.

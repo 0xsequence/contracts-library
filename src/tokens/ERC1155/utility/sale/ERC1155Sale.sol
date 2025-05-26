@@ -1,24 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { ERC1155Supply } from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
-import {
-    IERC1155Sale,
-    IERC1155SaleFunctions
-} from "@0xsequence/contracts-library/tokens/ERC1155/utility/sale/IERC1155Sale.sol";
+import { MerkleProofSingleUse } from "../../../common/MerkleProofSingleUse.sol";
+import { AccessControlEnumerable, IERC20, SafeERC20, WithdrawControlled } from "../../../common/WithdrawControlled.sol";
+import { ERC1155Supply } from "../../extensions/supply/ERC1155Supply.sol";
+import { IERC1155SupplyFunctions } from "../../extensions/supply/IERC1155Supply.sol";
+import { IERC1155ItemsFunctions } from "../../presets/items/IERC1155Items.sol";
+import { IERC1155Sale, IERC1155SaleFunctions } from "./IERC1155Sale.sol";
 
-import { MerkleProofSingleUse } from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
-import {
-    AccessControlEnumerable,
-    IERC20,
-    SafeERC20,
-    WithdrawControlled
-} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
-
-import { IERC1155SupplyFunctions } from
-    "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
-import { IERC1155ItemsFunctions } from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
-import { IERC1155 } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
+import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
 
 contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
 

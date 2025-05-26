@@ -1,20 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {
-    IERC721Sale, IERC721SaleFunctions
-} from "@0xsequence/contracts-library/tokens/ERC721/utility/sale/IERC721Sale.sol";
+import { MerkleProofSingleUse } from "../../../common/MerkleProofSingleUse.sol";
+import { AccessControlEnumerable, IERC20, SafeERC20, WithdrawControlled } from "../../../common/WithdrawControlled.sol";
+import { IERC721ItemsFunctions } from "../../presets/items/IERC721Items.sol";
+import { IERC721Sale, IERC721SaleFunctions } from "./IERC721Sale.sol";
 
-import { MerkleProofSingleUse } from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
-import {
-    AccessControlEnumerable,
-    IERC20,
-    SafeERC20,
-    WithdrawControlled
-} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
-
-import { IERC721ItemsFunctions } from "@0xsequence/contracts-library/tokens/ERC721/presets/items/IERC721Items.sol";
-import { IERC721A } from "erc721a/contracts/extensions/ERC721AQueryable.sol";
+import { IERC721A } from "erc721a/extensions/ERC721AQueryable.sol";
 
 /**
  * An ERC-721 token contract with primary sale mechanisms.

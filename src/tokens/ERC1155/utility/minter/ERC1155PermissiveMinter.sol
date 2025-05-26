@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IERC1155ItemsFunctions } from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
+import { IERC1155ItemsFunctions } from "../../presets/items/IERC1155Items.sol";
 
 /**
  * An ERC-1155 contract that allows permissive minting.

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IERC2981Controlled } from "@0xsequence/contracts-library/tokens/common/IERC2981Controlled.sol";
+import { IERC2981Controlled } from "./IERC2981Controlled.sol";
 
-import { AccessControlEnumerable } from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
-import { ERC2981 } from "@openzeppelin/contracts/token/common/ERC2981.sol";
+import { AccessControlEnumerable } from "openzeppelin-contracts/contracts/access/AccessControlEnumerable.sol";
+import { ERC2981 } from "openzeppelin-contracts/contracts/token/common/ERC2981.sol";
 
 /**
  * An implementation of ERC-2981 that allows updates by roles.

@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { SequenceProxyFactory } from "@0xsequence/contracts-library/proxies/SequenceProxyFactory.sol";
-import { ERC1155Sale } from "@0xsequence/contracts-library/tokens/ERC1155/utility/sale/ERC1155Sale.sol";
-import {
-    IERC1155SaleFactory,
-    IERC1155SaleFactoryFunctions
-} from "@0xsequence/contracts-library/tokens/ERC1155/utility/sale/IERC1155SaleFactory.sol";
+import { SequenceProxyFactory } from "../../../../proxies/SequenceProxyFactory.sol";
+import { ERC1155Sale } from "./ERC1155Sale.sol";
+import { IERC1155SaleFactory, IERC1155SaleFactoryFunctions } from "./IERC1155SaleFactory.sol";
 
 /**
  * Deployer of ERC-1155 Sale proxies.

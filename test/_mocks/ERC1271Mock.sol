@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IERC1271Wallet } from "@0xsequence/erc-1155/contracts/interfaces/IERC1271Wallet.sol";
+import { IERC1271Wallet } from "erc-1155/src/contracts/interfaces/IERC1271Wallet.sol";
 
 contract ERC1271Mock is IERC1271Wallet {
 

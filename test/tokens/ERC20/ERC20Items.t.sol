@@ -4,16 +4,13 @@ pragma solidity ^0.8.19;
 import { TestHelper } from "../../TestHelper.sol";
 
 import { ERC20Items } from "src/tokens/ERC20/presets/items/ERC20Items.sol";
-
 import { ERC20ItemsFactory } from "src/tokens/ERC20/presets/items/ERC20ItemsFactory.sol";
 import { IERC20Items, IERC20ItemsFunctions, IERC20ItemsSignals } from "src/tokens/ERC20/presets/items/IERC20Items.sol";
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-
-// Interfaces
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { IERC20 } from "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
+import { IERC20Metadata } from "openzeppelin-contracts/contracts/interfaces/IERC20Metadata.sol";
+import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
 

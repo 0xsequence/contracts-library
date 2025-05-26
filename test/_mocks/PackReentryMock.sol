@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { ERC1155Receiver } from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 import { IERC1155Pack } from "src/tokens/ERC1155/presets/pack/IERC1155Pack.sol";
+
+import { ERC1155Receiver } from "openzeppelin-contracts/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 
 contract PackReentryMock is ERC1155Receiver {
 

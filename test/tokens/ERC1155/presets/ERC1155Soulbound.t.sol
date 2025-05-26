@@ -5,7 +5,6 @@ import { TestHelper } from "../../../TestHelper.sol";
 
 import { IERC1155ItemsFunctions, IERC1155ItemsSignals } from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
 import { ERC1155Soulbound } from "src/tokens/ERC1155/presets/soulbound/ERC1155Soulbound.sol";
-
 import { ERC1155SoulboundFactory } from "src/tokens/ERC1155/presets/soulbound/ERC1155SoulboundFactory.sol";
 import {
     IERC1155Soulbound,
@@ -13,11 +12,9 @@ import {
     IERC1155SoulboundSignals
 } from "src/tokens/ERC1155/presets/soulbound/IERC1155Soulbound.sol";
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-
-// Interfaces
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import { IERC1155 } from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import { IERC1155 } from "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
+import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 contract ERC1155SoulboundTest is TestHelper, IERC1155ItemsSignals, IERC1155SoulboundSignals {
 
@@ -106,7 +103,6 @@ contract ERC1155SoulboundTest is TestHelper, IERC1155ItemsSignals, IERC1155Soulb
         address _proxyOwner,
         address tokenOwner,
         string memory name,
-        string memory symbol,
         string memory baseURI,
         string memory contractURI,
         address royaltyReceiver,

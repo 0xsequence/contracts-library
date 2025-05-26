@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { ERC721BaseToken } from "@0xsequence/contracts-library/tokens/ERC721/ERC721BaseToken.sol";
-import {
-    IERC721Items,
-    IERC721ItemsFunctions
-} from "@0xsequence/contracts-library/tokens/ERC721/presets/items/IERC721Items.sol";
+import { ERC721BaseToken } from "../../ERC721BaseToken.sol";
+import { IERC721Items, IERC721ItemsFunctions } from "./IERC721Items.sol";
 
 /**
  * An implementation of ERC-721 capable of minting when role provided.

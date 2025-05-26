@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { ERC721Items } from "@0xsequence/contracts-library/tokens/ERC721/presets/items/ERC721Items.sol";
-import {
-    IERC721Soulbound,
-    IERC721SoulboundFunctions
-} from "@0xsequence/contracts-library/tokens/ERC721/presets/soulbound/IERC721Soulbound.sol";
+import { ERC721Items } from "../items/ERC721Items.sol";
+import { IERC721Soulbound, IERC721SoulboundFunctions } from "./IERC721Soulbound.sol";
 
 /**
  * An implementation of ERC-721 that prevents transfers.
