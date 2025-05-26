@@ -4,9 +4,10 @@ pragma solidity ^0.8.19;
 import { TestHelper } from "../TestHelper.sol";
 import { ERC20Mock } from "../_mocks/ERC20Mock.sol";
 
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import { IPaymentCombiner, IPaymentCombinerFunctions, IPaymentCombinerSignals } from "src/payments/IPaymentCombiner.sol";
 import { IERC20Upgradeable, PaymentCombiner, PaymentSplitter } from "src/payments/PaymentCombiner.sol";
+
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 // Note we are not testing the OZ PaymentSplitter contract implementation, only the PaymentCombiner contract
 

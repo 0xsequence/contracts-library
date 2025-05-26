@@ -2,15 +2,15 @@
 pragma solidity ^0.8.19;
 
 import { TestHelper } from "../../../../TestHelper.sol";
+import { ERC20Mock } from "../../../../_mocks/ERC20Mock.sol";
 
 import { ERC721Items } from "src/tokens/ERC721/presets/items/ERC721Items.sol";
 import { ERC721Sale } from "src/tokens/ERC721/utility/sale/ERC721Sale.sol";
 import { ERC721SaleFactory } from "src/tokens/ERC721/utility/sale/ERC721SaleFactory.sol";
 import { IERC721Sale, IERC721SaleFunctions, IERC721SaleSignals } from "src/tokens/ERC721/utility/sale/IERC721Sale.sol";
+import { IMerkleProofSingleUseSignals } from "src/tokens/common/IMerkleProofSingleUse.sol";
 
-import { IMerkleProofSingleUseSignals } from "@0xsequence/contracts-library/tokens/common/IMerkleProofSingleUse.sol";
-import { ERC20Mock } from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
 
 // solhint-disable not-rely-on-time
 
@@ -316,8 +316,8 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
 
     // Create ERC20. Give this contract 1000 ERC20 tokens. Approve token to spend 100 ERC20 tokens.
     modifier withERC20() {
-        erc20 = new ERC20Mock();
-        erc20.mockMint(address(this), 1000 ether);
+        erc20 = new ERC20Mock(address(this));
+        erc20.mint(address(this), 1000 ether);
         erc20.approve(address(sale), 1000 ether);
         _;
     }

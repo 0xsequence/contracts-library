@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import { TestHelper } from "../../../../TestHelper.sol";
-import { stdError } from "forge-std/Test.sol";
+import { ERC20Mock } from "../../../../_mocks/ERC20Mock.sol";
 
 import { IERC1155Supply, IERC1155SupplySignals } from "src/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
 import { ERC1155Items } from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
@@ -10,15 +10,9 @@ import { ERC1155Sale } from "src/tokens/ERC1155/utility/sale/ERC1155Sale.sol";
 import { ERC1155SaleFactory } from "src/tokens/ERC1155/utility/sale/ERC1155SaleFactory.sol";
 import { IERC1155SaleFunctions, IERC1155SaleSignals } from "src/tokens/ERC1155/utility/sale/IERC1155Sale.sol";
 
-import { ERC20Mock } from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-
-// Interfaces
-
-import { IERC1155 } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import { IERC1155Metadata } from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
-import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
+import { IAccessControl } from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
+import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 // solhint-disable not-rely-on-time
 
@@ -235,7 +229,7 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         vm.expectRevert(revertString);
         sale.withdrawETH(withdrawTo, amount);
 
-        ERC20Mock erc20 = new ERC20Mock();
+        ERC20Mock erc20 = new ERC20Mock(address(this));
 
         vm.expectRevert(revertString);
         sale.withdrawERC20(address(erc20), withdrawTo, amount);
@@ -261,8 +255,8 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         assumeSafeAddress(withdrawTo);
 
         address _sale = address(sale);
-        ERC20Mock erc20 = new ERC20Mock();
-        erc20.mockMint(_sale, amount);
+        ERC20Mock erc20 = new ERC20Mock(address(this));
+        erc20.mint(_sale, amount);
 
         uint256 saleBalance = erc20.balanceOf(_sale);
         uint256 balance = erc20.balanceOf(withdrawTo);

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import { IGenericToken } from "./IGenericToken.sol";
+
 import { ERC1155, ERC1155BaseToken } from "src/tokens/ERC1155/ERC1155BaseToken.sol";
 
 contract ERC1155Mock is ERC1155BaseToken, IGenericToken {

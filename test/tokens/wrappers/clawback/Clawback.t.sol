@@ -2,14 +2,16 @@
 pragma solidity ^0.8.19;
 
 import { ClawbackTestBase, IGenericToken } from "./ClawbackTestBase.sol";
-import { console, stdError } from "forge-std/Test.sol";
 
 import { Clawback } from "src/tokens/wrappers/clawback/Clawback.sol";
 import { IClawback, IClawbackFunctions, IClawbackSignals } from "src/tokens/wrappers/clawback/IClawback.sol";
 
-import { IERC1155 } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
-import { IERC1155Metadata } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155Metadata.sol";
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
+import { IERC1155Metadata } from "erc-1155/src/contracts/interfaces/IERC1155Metadata.sol";
+
+import { console, stdError } from "forge-std/Test.sol";
+
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 contract ClawbackTest is ClawbackTestBase, IClawbackSignals {
 

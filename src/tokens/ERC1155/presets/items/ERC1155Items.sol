@@ -1,12 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { ERC1155BaseToken } from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155BaseToken.sol";
-import {
-    IERC1155Items,
-    IERC1155ItemsFunctions
-} from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
-import { ERC2981Controlled } from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
+import { ERC1155BaseToken, ERC2981Controlled } from "../../ERC1155BaseToken.sol";
+import { IERC1155Items, IERC1155ItemsFunctions } from "./IERC1155Items.sol";
 
 /**
  * An implementation of ERC-1155 capable of minting when role provided.

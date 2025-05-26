@@ -5,14 +5,11 @@ import { IERC721Transfer } from "../../common/IERC721Transfer.sol";
 import { IMetadataProvider } from "../../common/IMetadataProvider.sol";
 import { IClawback, IClawbackFunctions } from "./IClawback.sol";
 
-import { IERC1155 } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
+import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
+import { IERC1155Metadata } from "erc-1155/src/contracts/interfaces/IERC1155Metadata.sol";
+import { ERC1155, ERC1155MintBurn } from "erc-1155/src/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
 
-import { IERC1155Metadata } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155Metadata.sol";
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import { ERC1155, ERC1155MintBurn } from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
-
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-
+import { Ownable } from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
@@ -384,7 +381,7 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
         revert InvalidReceiver();
     }
 
-    /// @inheritdoc IERC165
+    /// @inheritdoc ERC1155
     function supportsInterface(
         bytes4 _interfaceID
     ) public view virtual override returns (bool) {

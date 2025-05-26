@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { SequenceProxyFactory } from "@0xsequence/contracts-library/proxies/SequenceProxyFactory.sol";
-import { ERC1155Pack } from "@0xsequence/contracts-library/tokens/ERC1155/presets/pack/ERC1155Pack.sol";
-import {
-    IERC1155PackFactory,
-    IERC1155PackFactoryFunctions
-} from "@0xsequence/contracts-library/tokens/ERC1155/presets/pack/IERC1155PackFactory.sol";
+import { SequenceProxyFactory } from "../../../../proxies/SequenceProxyFactory.sol";
+import { ERC1155Pack } from "./ERC1155Pack.sol";
+import { IERC1155PackFactory, IERC1155PackFactoryFunctions } from "./IERC1155PackFactory.sol";
 
 /**
  * Deployer of ERC-1155 Pack proxies.

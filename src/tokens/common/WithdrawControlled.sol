@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IWithdrawControlled } from "@0xsequence/contracts-library/tokens/common/IWithdrawControlled.sol";
+import { IWithdrawControlled } from "./IWithdrawControlled.sol";
 
-import { AccessControlEnumerable } from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
-import { IERC20, SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { AccessControlEnumerable } from "openzeppelin-contracts/contracts/access/AccessControlEnumerable.sol";
+import { IERC20, SafeERC20 } from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * An abstract contract that allows ETH and ERC20 tokens stored in the contract to be withdrawn.

@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { SequenceProxyFactory } from "@0xsequence/contracts-library/proxies/SequenceProxyFactory.sol";
-import { ERC1155Soulbound } from "@0xsequence/contracts-library/tokens/ERC1155/presets/soulbound/ERC1155Soulbound.sol";
-import {
-    IERC1155SoulboundFactory,
-    IERC1155SoulboundFactoryFunctions
-} from "@0xsequence/contracts-library/tokens/ERC1155/presets/soulbound/IERC1155SoulboundFactory.sol";
+import { ERC1155Soulbound } from "./ERC1155Soulbound.sol";
+import { IERC1155SoulboundFactory, IERC1155SoulboundFactoryFunctions } from "./IERC1155SoulboundFactory.sol";
+import { SequenceProxyFactory } from "src/proxies/SequenceProxyFactory.sol";
 
 /**
  * Deployer of ERC-1155 Soulbound proxies.

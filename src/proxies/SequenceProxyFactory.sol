@@ -6,9 +6,9 @@ import {
     TransparentUpgradeableBeaconProxy
 } from "./TransparentUpgradeableBeaconProxy.sol";
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { UpgradeableBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
-import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
+import { Ownable } from "openzeppelin-contracts/contracts/access/Ownable.sol";
+import { UpgradeableBeacon } from "openzeppelin-contracts/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import { Create2 } from "openzeppelin-contracts/contracts/utils/Create2.sol";
 
 /**
  * An proxy factory that deploys upgradeable beacon proxies.

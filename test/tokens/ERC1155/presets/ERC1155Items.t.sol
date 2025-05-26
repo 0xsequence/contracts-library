@@ -2,7 +2,6 @@
 pragma solidity ^0.8.19;
 
 import { TestHelper } from "../../../TestHelper.sol";
-import { stdError } from "forge-std/Test.sol";
 
 import { IERC1155SupplyFunctions } from "src/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
 import { ERC1155Items } from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
@@ -13,13 +12,13 @@ import {
     IERC1155ItemsSignals
 } from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
+import { IERC1155Metadata } from "erc-1155/src/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 
-// Interfaces
+import { stdError } from "forge-std/Test.sol";
 
-import { IERC1155 } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import { IERC1155Metadata } from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
+import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
 

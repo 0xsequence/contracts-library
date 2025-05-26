@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import { IGenericToken } from "./IGenericToken.sol";
+
 import { ERC20BaseToken } from "src/tokens/ERC20/ERC20BaseToken.sol";
 
 contract ERC20Mock is ERC20BaseToken, IGenericToken {
@@ -10,6 +11,10 @@ contract ERC20Mock is ERC20BaseToken, IGenericToken {
         address owner
     ) {
         initialize(owner, "", "", 18);
+    }
+
+    function mint(address to, uint256 amount) external {
+        _mint(to, amount);
     }
 
     function mint(address to, uint256, uint256 amount) external override {

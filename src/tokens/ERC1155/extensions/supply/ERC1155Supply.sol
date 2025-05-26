@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {
-    IERC1155Supply,
-    IERC1155SupplyFunctions
-} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
-import { ERC1155 } from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155.sol";
+import { IERC1155Supply, IERC1155SupplyFunctions } from "./IERC1155Supply.sol";
+
+import { ERC1155 } from "erc-1155/src/contracts/tokens/ERC1155/ERC1155.sol";
 
 /**
  * An ERC-1155 extension that tracks token supply.

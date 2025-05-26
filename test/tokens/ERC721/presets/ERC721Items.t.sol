@@ -4,21 +4,18 @@ pragma solidity ^0.8.19;
 import { TestHelper } from "../../../TestHelper.sol";
 
 import { ERC721Items } from "src/tokens/ERC721/presets/items/ERC721Items.sol";
-
 import { ERC721ItemsFactory } from "src/tokens/ERC721/presets/items/ERC721ItemsFactory.sol";
 import {
     IERC721Items, IERC721ItemsFunctions, IERC721ItemsSignals
 } from "src/tokens/ERC721/presets/items/IERC721Items.sol";
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { IERC721A } from "erc721a/interfaces/IERC721A.sol";
+import { IERC721AQueryable } from "erc721a/interfaces/IERC721AQueryable.sol";
 
-// Interfaces
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-
-import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-import { IERC721AQueryable } from "erc721a/contracts/extensions/IERC721AQueryable.sol";
-import { IERC721A } from "erc721a/contracts/interfaces/IERC721A.sol";
+import { IERC721 } from "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
+import { IERC721Metadata } from "openzeppelin-contracts/contracts/interfaces/IERC721Metadata.sol";
+import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
 
