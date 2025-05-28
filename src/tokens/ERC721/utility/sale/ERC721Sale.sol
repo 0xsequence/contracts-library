@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import { MerkleProofSingleUse } from "../../../common/MerkleProofSingleUse.sol";
+import { SignalsImplicitModeControlled } from "../../../common/SignalsImplicitModeControlled.sol";
 import { AccessControlEnumerable, IERC20, SafeERC20, WithdrawControlled } from "../../../common/WithdrawControlled.sol";
 import { IERC721ItemsFunctions } from "../../presets/items/IERC721Items.sol";
 import { IERC721Sale, IERC721SaleFunctions } from "./IERC721Sale.sol";
@@ -11,7 +12,7 @@ import { IERC721A } from "erc721a/extensions/ERC721AQueryable.sol";
 /**
  * An ERC-721 token contract with primary sale mechanisms.
  */
-contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
+contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse, SignalsImplicitModeControlled {
 
     bytes32 internal constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
@@ -175,8 +176,10 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(AccessControlEnumerable) returns (bool) {
-        return interfaceId == type(IERC721SaleFunctions).interfaceId || super.supportsInterface(interfaceId);
+    ) public view virtual override(WithdrawControlled, SignalsImplicitModeControlled) returns (bool) {
+        return interfaceId == type(IERC721SaleFunctions).interfaceId
+            || WithdrawControlled.supportsInterface(interfaceId)
+            || SignalsImplicitModeControlled.supportsInterface(interfaceId);
     }
 
 }

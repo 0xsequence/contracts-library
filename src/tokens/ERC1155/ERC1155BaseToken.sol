@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import { ERC2981Controlled } from "../common/ERC2981Controlled.sol";
+import { SignalsImplicitModeControlled } from "../common/SignalsImplicitModeControlled.sol";
 import { ERC1155, ERC1155Supply } from "./extensions/supply/ERC1155Supply.sol";
 
 import { ERC1155Metadata } from "erc-1155/src/contracts/tokens/ERC1155/ERC1155Metadata.sol";
@@ -11,7 +12,12 @@ error InvalidInitialization();
 /**
  * A standard base implementation of ERC-1155 for use in Sequence library contracts.
  */
-abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Controlled {
+abstract contract ERC1155BaseToken is
+    ERC1155Supply,
+    ERC1155Metadata,
+    ERC2981Controlled,
+    SignalsImplicitModeControlled
+{
 
     bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
@@ -122,9 +128,16 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Con
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(ERC1155Supply, ERC1155Metadata, ERC2981Controlled) returns (bool) {
+    )
+        public
+        view
+        virtual
+        override(ERC1155Supply, ERC1155Metadata, ERC2981Controlled, SignalsImplicitModeControlled)
+        returns (bool)
+    {
         return ERC1155Supply.supportsInterface(interfaceId) || ERC1155Metadata.supportsInterface(interfaceId)
-            || ERC2981Controlled.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
+            || ERC2981Controlled.supportsInterface(interfaceId)
+            || SignalsImplicitModeControlled.supportsInterface(interfaceId);
     }
 
 }

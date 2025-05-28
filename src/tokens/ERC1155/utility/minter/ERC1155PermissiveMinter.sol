@@ -1,12 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
+import { SignalsImplicitModeControlled } from "../../../common/SignalsImplicitModeControlled.sol";
 import { IERC1155ItemsFunctions } from "../../presets/items/IERC1155Items.sol";
 
 /**
  * An ERC-1155 contract that allows permissive minting.
  */
-contract ERC1155PermissiveMinter {
+contract ERC1155PermissiveMinter is SignalsImplicitModeControlled {
+
+    constructor(address ownerAddr, address metadataProviderAddr) {
+        _transferOwnership(ownerAddr);
+        metadataProvider = IMetadataProvider(metadataProviderAddr);
+    }
 
     /**
      * Mint tokens.

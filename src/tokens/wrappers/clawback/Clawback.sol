@@ -3,16 +3,16 @@ pragma solidity ^0.8.19;
 
 import { IERC721Transfer } from "../../common/IERC721Transfer.sol";
 import { IMetadataProvider } from "../../common/IMetadataProvider.sol";
+import { SignalsImplicitModeControlled } from "../../common/SignalsImplicitModeControlled.sol";
 import { IClawback, IClawbackFunctions } from "./IClawback.sol";
 
 import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
 import { IERC1155Metadata } from "erc-1155/src/contracts/interfaces/IERC1155Metadata.sol";
 import { ERC1155, ERC1155MintBurn } from "erc-1155/src/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
 
-import { Ownable } from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
-contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
+contract Clawback is ERC1155MintBurn, IERC1155Metadata, IClawback, SignalsImplicitModeControlled {
 
     // Do not use address(0) as burn address due to common transfer restrictions.
     address public constant BURN_ADDRESS = address(0x000000000000000000000000000000000000dEaD);
@@ -384,14 +384,11 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
     /// @inheritdoc ERC1155
     function supportsInterface(
         bytes4 _interfaceID
-    ) public view virtual override returns (bool) {
-        if (
-            _interfaceID == type(IClawback).interfaceId || _interfaceID == type(IClawbackFunctions).interfaceId
-                || _interfaceID == type(IERC1155Metadata).interfaceId
-        ) {
-            return true;
-        }
-        return super.supportsInterface(_interfaceID);
+    ) public view virtual override(SignalsImplicitModeControlled, ERC1155MintBurn) returns (bool) {
+        return _interfaceID == type(IClawback).interfaceId || _interfaceID == type(IClawbackFunctions).interfaceId
+            || _interfaceID == type(IERC1155Metadata).interfaceId
+            || SignalsImplicitModeControlled.supportsInterface(_interfaceID)
+            || ERC1155MintBurn.supportsInterface(_interfaceID);
     }
 
 }

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { AccessControlEnumerable } from "openzeppelin-contracts/contracts/access/AccessControlEnumerable.sol";
+import { SignalsImplicitModeControlled } from "../common/SignalsImplicitModeControlled.sol";
+
 import { ERC20 } from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { IERC20Metadata } from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -11,7 +12,7 @@ error InvalidInitialization();
 /**
  * A standard base implementation of ERC-20 for use in Sequence library contracts.
  */
-abstract contract ERC20BaseToken is ERC20, AccessControlEnumerable {
+abstract contract ERC20BaseToken is ERC20, SignalsImplicitModeControlled {
 
     string internal _tokenName;
     string internal _tokenSymbol;
@@ -78,7 +79,7 @@ abstract contract ERC20BaseToken is ERC20, AccessControlEnumerable {
         bytes4 interfaceId
     ) public view virtual override returns (bool) {
         return interfaceId == type(IERC20).interfaceId || interfaceId == type(IERC20Metadata).interfaceId
-            || AccessControlEnumerable.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
+            || super.supportsInterface(interfaceId);
     }
 
     //

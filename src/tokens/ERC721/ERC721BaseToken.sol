@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import { ERC2981Controlled } from "../common/ERC2981Controlled.sol";
+import { SignalsImplicitModeControlled } from "../common/SignalsImplicitModeControlled.sol";
 
 import { ERC721A, ERC721AQueryable, IERC721A, IERC721AQueryable } from "erc721a/extensions/ERC721AQueryable.sol";
 
@@ -10,7 +11,7 @@ error InvalidInitialization();
 /**
  * A standard base implementation of ERC-721 for use in Sequence library contracts.
  */
-abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled {
+abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled, SignalsImplicitModeControlled {
 
     bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
@@ -135,10 +136,16 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled {
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(ERC721A, IERC721A, ERC2981Controlled) returns (bool) {
+    )
+        public
+        view
+        virtual
+        override(ERC721A, IERC721A, ERC2981Controlled, SignalsImplicitModeControlled)
+        returns (bool)
+    {
         return interfaceId == type(IERC721A).interfaceId || interfaceId == type(IERC721AQueryable).interfaceId
             || ERC721A.supportsInterface(interfaceId) || ERC2981Controlled.supportsInterface(interfaceId)
-            || super.supportsInterface(interfaceId);
+            || SignalsImplicitModeControlled.supportsInterface(interfaceId);
     }
 
     //
