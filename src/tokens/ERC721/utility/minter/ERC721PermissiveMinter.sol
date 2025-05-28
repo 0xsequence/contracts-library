@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
+import { SignalsImplicitModeControlled } from "../../../common/SignalsImplicitModeControlled.sol";
 import { IERC721ItemsFunctions } from "../../presets/items/IERC721Items.sol";
 
 /**
  * An ERC-721 contract that allows permissive minting.
  */
-contract ERC721PermissiveMinter {
+contract ERC721PermissiveMinter is SignalsImplicitModeControlled {
 
     /**
      * Mint tokens.

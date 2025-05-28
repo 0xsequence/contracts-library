@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import { MerkleProofSingleUse } from "../../../common/MerkleProofSingleUse.sol";
+import { SignalsImplicitModeControlled } from "../../../common/SignalsImplicitModeControlled.sol";
 import { AccessControlEnumerable, IERC20, SafeERC20, WithdrawControlled } from "../../../common/WithdrawControlled.sol";
 import { ERC1155Supply } from "../../extensions/supply/ERC1155Supply.sol";
 import { IERC1155SupplyFunctions } from "../../extensions/supply/IERC1155Supply.sol";
@@ -10,7 +11,7 @@ import { IERC1155Sale, IERC1155SaleFunctions } from "./IERC1155Sale.sol";
 
 import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
 
-contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
+contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, SignalsImplicitModeControlled {
 
     bytes32 internal constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
@@ -353,8 +354,10 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(AccessControlEnumerable) returns (bool) {
-        return type(IERC1155SaleFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
+    ) public view virtual override(WithdrawControlled, SignalsImplicitModeControlled) returns (bool) {
+        return type(IERC1155SaleFunctions).interfaceId == interfaceId
+            || WithdrawControlled.supportsInterface(interfaceId)
+            || SignalsImplicitModeControlled.supportsInterface(interfaceId);
     }
 
 }
