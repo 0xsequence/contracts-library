@@ -27,11 +27,16 @@ contract ERC20ItemsFactory is IERC20ItemsFactory, SequenceProxyFactory {
         address tokenOwner,
         string memory name,
         string memory symbol,
-        uint8 decimals
+        uint8 decimals,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) external returns (address proxyAddr) {
-        bytes32 salt = keccak256(abi.encode(tokenOwner, name, symbol, decimals));
+        bytes32 salt =
+            keccak256(abi.encode(tokenOwner, name, symbol, decimals, implicitModeValidator, implicitModeProjectId));
         proxyAddr = _createProxy(salt, proxyOwner, "");
-        ERC20Items(proxyAddr).initialize(tokenOwner, name, symbol, decimals);
+        ERC20Items(proxyAddr).initialize(
+            tokenOwner, name, symbol, decimals, implicitModeValidator, implicitModeProjectId
+        );
         emit ERC20ItemsDeployed(proxyAddr);
         return proxyAddr;
     }
@@ -42,9 +47,12 @@ contract ERC20ItemsFactory is IERC20ItemsFactory, SequenceProxyFactory {
         address tokenOwner,
         string memory name,
         string memory symbol,
-        uint8 decimals
+        uint8 decimals,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) external view returns (address proxyAddr) {
-        bytes32 salt = keccak256(abi.encode(tokenOwner, name, symbol, decimals));
+        bytes32 salt =
+            keccak256(abi.encode(tokenOwner, name, symbol, decimals, implicitModeValidator, implicitModeProjectId));
         return _computeProxyAddress(salt, proxyOwner, "");
     }
 

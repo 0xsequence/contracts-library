@@ -28,9 +28,16 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
      * Initialize the contract.
      * @param owner Owner address
      * @param items The ERC-1155 Items contract address
+     * @param implicitModeValidator Implicit session validator address
+     * @param implicitModeProjectId Implicit session project id
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, address items) public virtual {
+    function initialize(
+        address owner,
+        address items,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
+    ) public virtual {
         if (_initialized) {
             revert InvalidInitialization();
         }
@@ -40,6 +47,8 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(MINT_ADMIN_ROLE, owner);
         _grantRole(WITHDRAW_ROLE, owner);
+
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
 
         _initialized = true;
     }

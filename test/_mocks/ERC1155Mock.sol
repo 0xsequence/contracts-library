@@ -8,7 +8,7 @@ import { ERC1155, ERC1155BaseToken } from "src/tokens/ERC1155/ERC1155BaseToken.s
 contract ERC1155Mock is ERC1155BaseToken, IGenericToken {
 
     constructor(address owner, string memory tokenBaseURI) {
-        _initialize(owner, "", tokenBaseURI, "");
+        _initialize(owner, "", tokenBaseURI, "", address(0), bytes32(0));
     }
 
     function mint(address to, uint256 tokenId, uint256 amount) external override {

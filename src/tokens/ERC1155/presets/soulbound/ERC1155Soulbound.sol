@@ -22,11 +22,22 @@ contract ERC1155Soulbound is ERC1155Items, IERC1155Soulbound {
         string memory tokenBaseURI,
         string memory tokenContractURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator
+        uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) public virtual override {
         _transferLocked = true;
         _grantRole(TRANSFER_ADMIN_ROLE, owner);
-        super.initialize(owner, tokenName, tokenBaseURI, tokenContractURI, royaltyReceiver, royaltyFeeNumerator);
+        super.initialize(
+            owner,
+            tokenName,
+            tokenBaseURI,
+            tokenContractURI,
+            royaltyReceiver,
+            royaltyFeeNumerator,
+            implicitModeValidator,
+            implicitModeProjectId
+        );
     }
 
     /// @inheritdoc IERC1155SoulboundFunctions

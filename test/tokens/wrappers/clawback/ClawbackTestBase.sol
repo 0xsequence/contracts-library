@@ -25,7 +25,7 @@ contract ClawbackTestBase is Test, IERC1155TokenReceiver, IERC721Receiver {
 
     function setUp() public {
         clawbackMetadata = new ClawbackMetadata();
-        clawback = new Clawback(address(this), address(clawbackMetadata));
+        clawback = new Clawback(address(this), address(clawbackMetadata), address(0), bytes32(0));
         erc20 = new ERC20Mock(address(this));
         erc721 = new ERC721Mock(address(this), "baseURI");
         erc1155 = new ERC1155Mock(address(this), "baseURI");

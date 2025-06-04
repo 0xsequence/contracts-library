@@ -9,6 +9,10 @@ import { IERC721ItemsFunctions } from "../../presets/items/IERC721Items.sol";
  */
 contract ERC721PermissiveMinter is SignalsImplicitModeControlled {
 
+    constructor(address owner, address implicitModeValidator, bytes32 implicitModeProjectId) {
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
+    }
+
     /**
      * Mint tokens.
      * @param items The items contract.

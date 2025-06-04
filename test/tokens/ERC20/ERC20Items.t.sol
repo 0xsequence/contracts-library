@@ -12,6 +12,8 @@ import { IERC20Metadata } from "openzeppelin-contracts/contracts/interfaces/IERC
 import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
 import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
+import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsImplicitMode.sol";
+
 contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
 
     // Redeclare events
@@ -32,12 +34,12 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
         vm.deal(owner, 100 ether);
 
         ERC20ItemsFactory factory = new ERC20ItemsFactory(address(this));
-        token = ERC20Items(factory.deploy(proxyOwner, owner, "name", "symbol", DECIMALS));
+        token = ERC20Items(factory.deploy(proxyOwner, owner, "name", "symbol", DECIMALS, address(0), bytes32(0)));
     }
 
     function testReinitializeFails() public {
         vm.expectRevert(InvalidInitialization.selector);
-        token.initialize(owner, "name", "symbol", DECIMALS);
+        token.initialize(owner, "name", "symbol", DECIMALS, address(0), bytes32(0));
     }
 
     function testSupportsInterface() public view {
@@ -45,6 +47,7 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
         assertTrue(token.supportsInterface(type(IERC20).interfaceId));
         assertTrue(token.supportsInterface(type(IERC20Metadata).interfaceId));
         assertTrue(token.supportsInterface(type(IERC20ItemsFunctions).interfaceId));
+        assertTrue(token.supportsInterface(type(ISignalsImplicitMode).interfaceId));
     }
 
     /**
@@ -53,6 +56,7 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
      */
     function testSelectorCollision() public pure {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
+        checkSelectorCollision(0xc58ab92d); // acceptImplicitRequest(address,(address,bytes4,bytes32,bytes32,bytes,(string)),(address,uint256,bytes,uint256,bool,bool,uint256))
         checkSelectorCollision(0xdd62ed3e); // allowance(address,address)
         checkSelectorCollision(0x095ea7b3); // approve(address,uint256)
         checkSelectorCollision(0x70a08231); // balanceOf(address)
@@ -71,6 +75,7 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
         checkSelectorCollision(0x36568abe); // renounceRole(bytes32,address)
         checkSelectorCollision(0xd547741f); // revokeRole(bytes32,address)
         checkSelectorCollision(0x5a446215); // setNameAndSymbol(string,string)
+        checkSelectorCollision(0x2d141c83); // setSignalsImplicitMode(address,bytes32)
         checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
         checkSelectorCollision(0x95d89b41); // symbol()
         checkSelectorCollision(0x18160ddd); // totalSupply()
@@ -81,6 +86,7 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
     function testOwnerHasRoles() public view {
         assertTrue(token.hasRole(token.DEFAULT_ADMIN_ROLE(), owner));
         assertTrue(token.hasRole(keccak256("MINTER_ROLE"), owner));
+        assertTrue(token.hasRole(keccak256("IMPLICIT_MODE_ADMIN_ROLE"), owner));
     }
 
     function testInitValues() public view {
@@ -94,13 +100,19 @@ contract ERC20ItemsTest is TestHelper, IERC20ItemsSignals {
         address tokenOwner,
         string memory name,
         string memory symbol,
-        uint8 decimals
+        uint8 decimals,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) public {
         vm.assume(_proxyOwner != address(0));
         vm.assume(tokenOwner != address(0));
         ERC20ItemsFactory factory = new ERC20ItemsFactory(address(this));
-        address deployedAddr = factory.deploy(_proxyOwner, tokenOwner, name, symbol, decimals);
-        address predictedAddr = factory.determineAddress(_proxyOwner, tokenOwner, name, symbol, decimals);
+        address deployedAddr = factory.deploy(
+            _proxyOwner, tokenOwner, name, symbol, decimals, implicitModeValidator, implicitModeProjectId
+        );
+        address predictedAddr = factory.determineAddress(
+            _proxyOwner, tokenOwner, name, symbol, decimals, implicitModeValidator, implicitModeProjectId
+        );
         assertEq(deployedAddr, predictedAddr);
     }
 

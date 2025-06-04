@@ -23,12 +23,22 @@ contract ERC721Soulbound is ERC721Items, IERC721Soulbound {
         string memory tokenBaseURI,
         string memory tokenContractURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator
+        uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) public virtual override {
         _transferLocked = true;
         _grantRole(TRANSFER_ADMIN_ROLE, owner);
         super.initialize(
-            owner, tokenName, tokenSymbol, tokenBaseURI, tokenContractURI, royaltyReceiver, royaltyFeeNumerator
+            owner,
+            tokenName,
+            tokenSymbol,
+            tokenBaseURI,
+            tokenContractURI,
+            royaltyReceiver,
+            royaltyFeeNumerator,
+            implicitModeValidator,
+            implicitModeProjectId
         );
     }
 

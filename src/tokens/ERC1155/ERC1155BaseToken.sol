@@ -34,13 +34,17 @@ abstract contract ERC1155BaseToken is
      * @param tokenName Token name.
      * @param tokenBaseURI Base URI for token metadata.
      * @param tokenContractURI Contract URI for token metadata.
+     * @param implicitModeValidator Implicit session validator address.
+     * @param implicitModeProjectId Implicit session project id.
      * @dev This should be called immediately after deployment.
      */
     function _initialize(
         address owner,
         string memory tokenName,
         string memory tokenBaseURI,
-        string memory tokenContractURI
+        string memory tokenContractURI,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) internal {
         name = tokenName;
         baseURI = tokenBaseURI;
@@ -49,6 +53,8 @@ abstract contract ERC1155BaseToken is
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(ROYALTY_ADMIN_ROLE, owner);
         _grantRole(METADATA_ADMIN_ROLE, owner);
+
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
     }
 
     //

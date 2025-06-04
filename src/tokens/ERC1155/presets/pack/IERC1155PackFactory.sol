@@ -12,6 +12,8 @@ interface IERC1155PackFactoryFunctions {
      * @param contractURI The contract URI of the ERC-1155 Pack proxy
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
+     * @param implicitModeValidator The implicit mode validator address
+     * @param implicitModeProjectId The implicit mode project id
      * @param merkleRoot merkle root built from all possible pack contents.
      * @param supply total amount of packs.
      * @return proxyAddr The address of the ERC-1155 Pack Proxy
@@ -24,6 +26,8 @@ interface IERC1155PackFactoryFunctions {
         string memory contractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId,
         bytes32 merkleRoot,
         uint256 supply
     ) external returns (address proxyAddr);
@@ -37,6 +41,8 @@ interface IERC1155PackFactoryFunctions {
      * @param contractURI The contract URI of the ERC-1155 Pack proxy
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
+     * @param implicitModeValidator The implicit mode validator address
+     * @param implicitModeProjectId The implicit mode project id
      * @return proxyAddr The address of the ERC-1155 Pack Proxy
      */
     function determineAddress(
@@ -46,7 +52,9 @@ interface IERC1155PackFactoryFunctions {
         string memory baseURI,
         string memory contractURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator
+        uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) external returns (address proxyAddr);
 
 }

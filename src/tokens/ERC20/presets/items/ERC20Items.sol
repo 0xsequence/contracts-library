@@ -24,19 +24,25 @@ contract ERC20Items is ERC20BaseToken, IERC20Items {
      * @param tokenName Name of the token
      * @param tokenSymbol Symbol of the token
      * @param tokenDecimals Number of decimals
+     * @param implicitModeValidator The implicit mode validator address
+     * @param implicitModeProjectId The implicit mode project id
      * @dev This should be called immediately after deployment.
      */
     function initialize(
         address owner,
         string memory tokenName,
         string memory tokenSymbol,
-        uint8 tokenDecimals
+        uint8 tokenDecimals,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) public virtual override {
         if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }
 
-        ERC20BaseToken.initialize(owner, tokenName, tokenSymbol, tokenDecimals);
+        ERC20BaseToken.initialize(
+            owner, tokenName, tokenSymbol, tokenDecimals, implicitModeValidator, implicitModeProjectId
+        );
 
         _grantRole(MINTER_ROLE, owner);
 

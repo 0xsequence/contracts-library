@@ -24,9 +24,16 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse, Si
      * Initialize the contract.
      * @param owner The owner of the contract
      * @param items The ERC-721 Items contract address
+     * @param implicitModeValidator Implicit session validator address
+     * @param implicitModeProjectId Implicit session project id
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, address items) public virtual {
+    function initialize(
+        address owner,
+        address items,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
+    ) public virtual {
         if (_initialized) {
             revert InvalidInitialization();
         }
@@ -36,6 +43,8 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse, Si
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(MINT_ADMIN_ROLE, owner);
         _grantRole(WITHDRAW_ROLE, owner);
+
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
 
         _initialized = true;
     }

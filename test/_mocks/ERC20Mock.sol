@@ -10,7 +10,7 @@ contract ERC20Mock is ERC20BaseToken, IGenericToken {
     constructor(
         address owner
     ) {
-        initialize(owner, "", "", 18);
+        initialize(owner, "", "", 18, address(0), bytes32(0));
     }
 
     function mint(address to, uint256 amount) external {
