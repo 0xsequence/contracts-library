@@ -10,6 +10,8 @@ interface IERC20ItemsFactoryFunctions {
      * @param name The name of the ERC-20 Items proxy
      * @param symbol The symbol of the ERC-20 Items proxy
      * @param decimals The decimals of the ERC-20 Items proxy
+     * @param implicitModeValidator The implicit mode validator address
+     * @param implicitModeProjectId The implicit mode project id
      * @return proxyAddr The address of the ERC-20 Items Proxy
      */
     function deploy(
@@ -17,7 +19,9 @@ interface IERC20ItemsFactoryFunctions {
         address tokenOwner,
         string memory name,
         string memory symbol,
-        uint8 decimals
+        uint8 decimals,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) external returns (address proxyAddr);
 
     /**
@@ -27,6 +31,8 @@ interface IERC20ItemsFactoryFunctions {
      * @param name The name of the ERC-20 Items proxy
      * @param symbol The symbol of the ERC-20 Items proxy
      * @param decimals The decimals of the ERC-20 Items proxy
+     * @param implicitModeValidator The implicit mode validator address
+     * @param implicitModeProjectId The implicit mode project id
      * @return proxyAddr The address of the ERC-20 Items Proxy
      */
     function determineAddress(
@@ -34,7 +40,9 @@ interface IERC20ItemsFactoryFunctions {
         address tokenOwner,
         string memory name,
         string memory symbol,
-        uint8 decimals
+        uint8 decimals,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) external view returns (address proxyAddr);
 
 }

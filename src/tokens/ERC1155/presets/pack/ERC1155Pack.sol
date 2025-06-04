@@ -28,6 +28,8 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
         string memory tokenContractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId,
         bytes32 _merkleRoot,
         uint256 _supply
     ) public virtual {
@@ -35,7 +37,16 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
         merkleRoot = _merkleRoot;
         supply = _supply;
         remainingSupply = _supply;
-        super.initialize(owner, tokenName, tokenBaseURI, tokenContractURI, royaltyReceiver, royaltyFeeNumerator);
+        super.initialize(
+            owner,
+            tokenName,
+            tokenBaseURI,
+            tokenContractURI,
+            royaltyReceiver,
+            royaltyFeeNumerator,
+            implicitModeValidator,
+            implicitModeProjectId
+        );
     }
 
     /// @inheritdoc IERC1155Pack

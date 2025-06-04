@@ -30,10 +30,10 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
         proxyOwner = makeAddr("proxyOwner");
 
         token = new ERC721Items();
-        token.initialize(address(this), "test", "test", "ipfs://", "ipfs://", address(this), 0);
+        token.initialize(address(this), "test", "test", "ipfs://", "ipfs://", address(this), 0, address(0), bytes32(0));
 
         sale = new ERC721Sale();
-        sale.initialize(address(this), address(token));
+        sale.initialize(address(this), address(token), address(0), bytes32(0));
 
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
 
@@ -42,7 +42,7 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
 
     function setUpFromFactory() public {
         ERC721SaleFactory factory = new ERC721SaleFactory(address(this));
-        sale = ERC721Sale(factory.deploy(proxyOwner, address(this), address(token)));
+        sale = ERC721Sale(factory.deploy(proxyOwner, address(this), address(token), address(0), bytes32(0)));
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
     }
 

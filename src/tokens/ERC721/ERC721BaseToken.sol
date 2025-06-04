@@ -32,6 +32,8 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled, Signal
      * @param tokenSymbol Symbol of the token
      * @param tokenBaseURI Base URI of the token
      * @param tokenContractURI Contract URI of the token
+     * @param implicitModeValidator Implicit session validator address
+     * @param implicitModeProjectId Implicit session project id
      * @dev This should be called immediately after deployment.
      */
     function _initialize(
@@ -39,7 +41,9 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled, Signal
         string memory tokenName,
         string memory tokenSymbol,
         string memory tokenBaseURI,
-        string memory tokenContractURI
+        string memory tokenContractURI,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) internal {
         _tokenName = tokenName;
         _tokenSymbol = tokenSymbol;
@@ -49,6 +53,8 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled, Signal
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(METADATA_ADMIN_ROLE, owner);
         _grantRole(ROYALTY_ADMIN_ROLE, owner);
+
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
     }
 
     //

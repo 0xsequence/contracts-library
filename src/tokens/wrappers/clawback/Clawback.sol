@@ -14,6 +14,8 @@ import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 contract Clawback is ERC1155MintBurn, IERC1155Metadata, IClawback, SignalsImplicitModeControlled {
 
+    bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
+
     // Do not use address(0) as burn address due to common transfer restrictions.
     address public constant BURN_ADDRESS = address(0x000000000000000000000000000000000000dEaD);
 
@@ -39,8 +41,14 @@ contract Clawback is ERC1155MintBurn, IERC1155Metadata, IClawback, SignalsImplic
         _;
     }
 
-    constructor(address ownerAddr, address metadataProviderAddr) {
-        _transferOwnership(ownerAddr);
+    constructor(
+        address owner,
+        address metadataProviderAddr,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
+    ) {
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
         metadataProvider = IMetadataProvider(metadataProviderAddr);
     }
 
@@ -336,7 +344,7 @@ contract Clawback is ERC1155MintBurn, IERC1155Metadata, IClawback, SignalsImplic
 
     function updateMetadataProvider(
         address metadataProviderAddr
-    ) external onlyOwner {
+    ) external onlyRole(METADATA_ADMIN_ROLE) {
         metadataProvider = IMetadataProvider(metadataProviderAddr);
     }
 
@@ -384,11 +392,10 @@ contract Clawback is ERC1155MintBurn, IERC1155Metadata, IClawback, SignalsImplic
     /// @inheritdoc ERC1155
     function supportsInterface(
         bytes4 _interfaceID
-    ) public view virtual override(SignalsImplicitModeControlled, ERC1155MintBurn) returns (bool) {
+    ) public view virtual override(SignalsImplicitModeControlled, ERC1155) returns (bool) {
         return _interfaceID == type(IClawback).interfaceId || _interfaceID == type(IClawbackFunctions).interfaceId
             || _interfaceID == type(IERC1155Metadata).interfaceId
-            || SignalsImplicitModeControlled.supportsInterface(_interfaceID)
-            || ERC1155MintBurn.supportsInterface(_interfaceID);
+            || SignalsImplicitModeControlled.supportsInterface(_interfaceID) || ERC1155.supportsInterface(_interfaceID);
     }
 
 }

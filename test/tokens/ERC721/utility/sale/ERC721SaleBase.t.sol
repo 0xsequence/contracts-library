@@ -15,6 +15,8 @@ import { IERC721Metadata } from "openzeppelin-contracts/contracts/interfaces/IER
 import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
 import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
+import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsImplicitMode.sol";
+
 // solhint-disable not-rely-on-time
 
 contract ERC721SaleBaseTest is TestHelper, IERC721SaleSignals {
@@ -32,10 +34,10 @@ contract ERC721SaleBaseTest is TestHelper, IERC721SaleSignals {
         proxyOwner = makeAddr("proxyOwner");
 
         token = new ERC721Items();
-        token.initialize(address(this), "test", "test", "ipfs://", "ipfs://", address(this), 0);
+        token.initialize(address(this), "test", "test", "ipfs://", "ipfs://", address(this), 0, address(0), bytes32(0));
 
         sale = new ERC721Sale();
-        sale.initialize(address(this), address(token));
+        sale.initialize(address(this), address(token), address(0), bytes32(0));
 
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
 
@@ -44,7 +46,7 @@ contract ERC721SaleBaseTest is TestHelper, IERC721SaleSignals {
 
     function setUpFromFactory() public {
         ERC721SaleFactory factory = new ERC721SaleFactory(address(this));
-        sale = ERC721Sale(factory.deploy(proxyOwner, address(this), address(token)));
+        sale = ERC721Sale(factory.deploy(proxyOwner, address(this), address(token), address(0), bytes32(0)));
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
     }
 
@@ -52,6 +54,7 @@ contract ERC721SaleBaseTest is TestHelper, IERC721SaleSignals {
         assertTrue(sale.supportsInterface(type(IERC165).interfaceId));
         assertTrue(sale.supportsInterface(type(IAccessControl).interfaceId));
         assertTrue(sale.supportsInterface(type(IERC721SaleFunctions).interfaceId));
+        assertTrue(sale.supportsInterface(type(ISignalsImplicitMode).interfaceId));
     }
 
     /**
@@ -60,6 +63,7 @@ contract ERC721SaleBaseTest is TestHelper, IERC721SaleSignals {
      */
     function testSelectorCollision() public pure {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
+        checkSelectorCollision(0xc58ab92d); // acceptImplicitRequest(address,(address,bytes4,bytes32,bytes32,bytes,(string)),(address,uint256,bytes,uint256,bool,bool,uint256))
         checkSelectorCollision(0xbad43661); // checkMerkleProof(bytes32,bytes32[],address,bytes32)
         checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
         checkSelectorCollision(0x9010d07c); // getRoleMember(bytes32,uint256)
@@ -73,17 +77,26 @@ contract ERC721SaleBaseTest is TestHelper, IERC721SaleSignals {
         checkSelectorCollision(0xd547741f); // revokeRole(bytes32,address)
         checkSelectorCollision(0x3474a4a6); // saleDetails()
         checkSelectorCollision(0x8c17030f); // setSaleDetails(uint256,uint256,address,uint64,uint64,bytes32)
+        checkSelectorCollision(0x2d141c83); // setSignalsImplicitMode(address,bytes32)
         checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
         checkSelectorCollision(0x44004cc1); // withdrawERC20(address,address,uint256)
         checkSelectorCollision(0x4782f779); // withdrawETH(address,uint256)
     }
 
-    function testFactoryDetermineAddress(address _proxyOwner, address tokenOwner, address items) public {
+    function testFactoryDetermineAddress(
+        address _proxyOwner,
+        address tokenOwner,
+        address items,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
+    ) public {
         vm.assume(_proxyOwner != address(0));
         vm.assume(tokenOwner != address(0));
         ERC721SaleFactory factory = new ERC721SaleFactory(address(this));
-        address deployedAddr = factory.deploy(_proxyOwner, tokenOwner, items);
-        address predictedAddr = factory.determineAddress(_proxyOwner, tokenOwner, items);
+        address deployedAddr =
+            factory.deploy(_proxyOwner, tokenOwner, items, implicitModeValidator, implicitModeProjectId);
+        address predictedAddr =
+            factory.determineAddress(_proxyOwner, tokenOwner, items, implicitModeValidator, implicitModeProjectId);
         assertEq(deployedAddr, predictedAddr);
     }
 

@@ -29,12 +29,33 @@ contract ERC1155ItemsFactory is IERC1155ItemsFactory, SequenceProxyFactory {
         string memory baseURI,
         string memory contractURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator
+        uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) external returns (address proxyAddr) {
-        bytes32 salt =
-            keccak256(abi.encode(tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
+        bytes32 salt = keccak256(
+            abi.encode(
+                tokenOwner,
+                name,
+                baseURI,
+                contractURI,
+                royaltyReceiver,
+                royaltyFeeNumerator,
+                implicitModeValidator,
+                implicitModeProjectId
+            )
+        );
         proxyAddr = _createProxy(salt, proxyOwner, "");
-        ERC1155Items(proxyAddr).initialize(tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator);
+        ERC1155Items(proxyAddr).initialize(
+            tokenOwner,
+            name,
+            baseURI,
+            contractURI,
+            royaltyReceiver,
+            royaltyFeeNumerator,
+            implicitModeValidator,
+            implicitModeProjectId
+        );
         emit ERC1155ItemsDeployed(proxyAddr);
         return proxyAddr;
     }
@@ -47,10 +68,22 @@ contract ERC1155ItemsFactory is IERC1155ItemsFactory, SequenceProxyFactory {
         string memory baseURI,
         string memory contractURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator
+        uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) external view returns (address proxyAddr) {
-        bytes32 salt =
-            keccak256(abi.encode(tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
+        bytes32 salt = keccak256(
+            abi.encode(
+                tokenOwner,
+                name,
+                baseURI,
+                contractURI,
+                royaltyReceiver,
+                royaltyFeeNumerator,
+                implicitModeValidator,
+                implicitModeProjectId
+            )
+        );
         return _computeProxyAddress(salt, proxyOwner, "");
     }
 

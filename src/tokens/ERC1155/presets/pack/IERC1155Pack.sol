@@ -53,6 +53,8 @@ interface IERC1155Pack {
      * @param tokenContractURI Contract URI for token metadata
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
+     * @param implicitModeValidator The implicit mode validator address
+     * @param implicitModeProjectId The implicit mode project id
      * @param _merkleRoot merkle root built from all possible pack contents.
      * @param _supply total amount of packs.
      * @dev This should be called immediately after deployment.
@@ -64,6 +66,8 @@ interface IERC1155Pack {
         string memory tokenContractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId,
         bytes32 _merkleRoot,
         uint256 _supply
     ) external;

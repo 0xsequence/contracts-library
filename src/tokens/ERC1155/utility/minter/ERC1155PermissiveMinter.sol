@@ -9,9 +9,8 @@ import { IERC1155ItemsFunctions } from "../../presets/items/IERC1155Items.sol";
  */
 contract ERC1155PermissiveMinter is SignalsImplicitModeControlled {
 
-    constructor(address ownerAddr, address metadataProviderAddr) {
-        _transferOwnership(ownerAddr);
-        metadataProvider = IMetadataProvider(metadataProviderAddr);
+    constructor(address owner, address implicitModeValidator, bytes32 implicitModeProjectId) {
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
     }
 
     /**

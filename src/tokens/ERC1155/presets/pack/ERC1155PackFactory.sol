@@ -30,14 +30,35 @@ contract ERC1155PackFactory is IERC1155PackFactory, SequenceProxyFactory {
         string memory contractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId,
         bytes32 merkleRoot,
         uint256 supply
-    ) external returns (address proxyAddr) {
-        bytes32 salt =
-            keccak256(abi.encode(tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
+    ) external override returns (address proxyAddr) {
+        bytes32 salt = keccak256(
+            abi.encode(
+                tokenOwner,
+                name,
+                baseURI,
+                contractURI,
+                royaltyReceiver,
+                royaltyFeeNumerator,
+                implicitModeValidator,
+                implicitModeProjectId
+            )
+        );
         proxyAddr = _createProxy(salt, proxyOwner, "");
         ERC1155Pack(proxyAddr).initialize(
-            tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator, merkleRoot, supply
+            tokenOwner,
+            name,
+            baseURI,
+            contractURI,
+            royaltyReceiver,
+            royaltyFeeNumerator,
+            implicitModeValidator,
+            implicitModeProjectId,
+            merkleRoot,
+            supply
         );
         emit ERC1155PackDeployed(proxyAddr);
         return proxyAddr;
@@ -51,10 +72,22 @@ contract ERC1155PackFactory is IERC1155PackFactory, SequenceProxyFactory {
         string memory baseURI,
         string memory contractURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator
-    ) external view returns (address proxyAddr) {
-        bytes32 salt =
-            keccak256(abi.encode(tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
+        uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
+    ) external view override returns (address proxyAddr) {
+        bytes32 salt = keccak256(
+            abi.encode(
+                tokenOwner,
+                name,
+                baseURI,
+                contractURI,
+                royaltyReceiver,
+                royaltyFeeNumerator,
+                implicitModeValidator,
+                implicitModeProjectId
+            )
+        );
         return _computeProxyAddress(salt, proxyOwner, "");
     }
 

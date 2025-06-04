@@ -31,13 +31,17 @@ abstract contract ERC20BaseToken is ERC20, SignalsImplicitModeControlled {
      * @param tokenName Name of the token
      * @param tokenSymbol Symbol of the token
      * @param tokenDecimals Number of decimals
+     * @param implicitModeValidator Implicit session validator address
+     * @param implicitModeProjectId Implicit session project id
      * @dev This should be called immediately after deployment.
      */
     function initialize(
         address owner,
         string memory tokenName,
         string memory tokenSymbol,
-        uint8 tokenDecimals
+        uint8 tokenDecimals,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) public virtual {
         if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
@@ -48,6 +52,8 @@ abstract contract ERC20BaseToken is ERC20, SignalsImplicitModeControlled {
         _tokenDecimals = tokenDecimals;
 
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
+
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
 
         _initialized = true;
     }

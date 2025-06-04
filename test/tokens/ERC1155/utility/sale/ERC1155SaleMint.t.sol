@@ -38,10 +38,10 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         proxyOwner = makeAddr("proxyOwner");
 
         token = new ERC1155Items();
-        token.initialize(address(this), "test", "ipfs://", "ipfs://", address(this), 0);
+        token.initialize(address(this), "test", "ipfs://", "ipfs://", address(this), 0, address(0), bytes32(0));
 
         sale = new ERC1155Sale();
-        sale.initialize(address(this), address(token));
+        sale.initialize(address(this), address(token), address(0), bytes32(0));
 
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
 
@@ -50,7 +50,7 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
 
     function setUpFromFactory() public {
         ERC1155SaleFactory factory = new ERC1155SaleFactory(address(this));
-        sale = ERC1155Sale(factory.deploy(proxyOwner, address(this), address(token)));
+        sale = ERC1155Sale(factory.deploy(proxyOwner, address(this), address(token), address(0), bytes32(0)));
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
     }
 
