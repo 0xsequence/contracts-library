@@ -32,7 +32,7 @@ interface IERC721SaleFunctions {
 
     /**
      * Set the sale details.
-     * @param supplyCap The maximum number of tokens that can be minted. 0 indicates unlimited supply.
+     * @param supplyCap The maximum number of tokens that can be minted by the items contract. 0 indicates unlimited supply.
      * @param cost The amount of payment tokens to accept for each token minted.
      * @param paymentToken The ERC20 token address to accept payment in. address(0) indicates ETH.
      * @param startTime The start time of the sale. Tokens cannot be minted before this time.

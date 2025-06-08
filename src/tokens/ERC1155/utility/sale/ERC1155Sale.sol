@@ -210,7 +210,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
     /**
      * Set the global sale details.
      * @param cost The amount of payment tokens to accept for each token minted.
-     * @param supplyCap The maximum number of tokens that can be minted.
+     * @param supplyCap The maximum number of tokens that can be minted by the items contract.
      * @param startTime The start time of the sale. Tokens cannot be minted before this time.
      * @param endTime The end time of the sale. Tokens cannot be minted after this time.
      * @param merkleRoot The merkle root for allowlist minting.
@@ -236,7 +236,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
      * Set the sale details for an individual token.
      * @param tokenId The token ID to set the sale details for.
      * @param cost The amount of payment tokens to accept for each token minted.
-     * @param supplyCap The maximum number of tokens that can be minted.
+     * @param supplyCap The maximum number of tokens that can be minted by the items contract.
      * @param startTime The start time of the sale. Tokens cannot be minted before this time.
      * @param endTime The end time of the sale. Tokens cannot be minted after this time.
      * @param merkleRoot The merkle root for allowlist minting.
@@ -263,7 +263,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
      * Set the sale details for a batch of tokens.
      * @param tokenIds The token IDs to set the sale details for.
      * @param costs The amount of payment tokens to accept for each token minted.
-     * @param supplyCaps The maximum number of tokens that can be minted.
+     * @param supplyCaps The maximum number of tokens that can be minted by the items contract.
      * @param startTimes The start time of the sale. Tokens cannot be minted before this time.
      * @param endTimes The end time of the sale. Tokens cannot be minted after this time.
      * @param merkleRoots The merkle root for allowlist minting.
