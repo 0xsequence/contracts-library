@@ -47,10 +47,11 @@ The contracts use the `AccessControlEnumberable` contract from OpenZeppelin to p
 Role keys are defined as the `keccak256` value of the role name.
 The following roles are defined:
 
-| Role                  | Description                        | Key                                                                  |
-| --------------------- | ---------------------------------- | -------------------------------------------------------------------- |
-| `DEFAULT_ADMIN_ROLE`  | Can updates roles.                 | `0x0`                                                                |
-| `METADATA_ADMIN_ROLE` | Can update metadata.               | `0xe02a0315b383857ac496e9d2b2546a699afaeb4e5e83a1fdef64376d0b74e5a5` |
-| `MINTER_ROLE`         | Can mint tokens.                   | `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` |
-| `MINT_ADMIN_ROLE`     | Can set minting logic.             | `0x4c02318d8c3aadc98ccf18aebbf3126f651e0c3f6a1de5ff8edcf6724a2ad5c2` |
-| `WITHDRAW_ROLE`       | Withdraw tokens from the contract. | `0x5d8e12c39142ff96d79d04d15d1ba1269e4fe57bb9d26f43523628b34ba108ec` |
+| Role                       | Description                                   | Key                                                                  |
+| -------------------------- | --------------------------------------------- | -------------------------------------------------------------------- |
+| `DEFAULT_ADMIN_ROLE`       | Can updates roles.                            | `0x0`                                                                |
+| `METADATA_ADMIN_ROLE`      | Can update metadata.                          | `0xe02a0315b383857ac496e9d2b2546a699afaeb4e5e83a1fdef64376d0b74e5a5` |
+| `MINTER_ROLE`              | Can mint tokens.                              | `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` |
+| `MINT_ADMIN_ROLE`          | Can set minting logic.                        | `0x4c02318d8c3aadc98ccf18aebbf3126f651e0c3f6a1de5ff8edcf6724a2ad5c2` |
+| `WITHDRAW_ROLE`            | Withdraw tokens from the contract.            | `0x5d8e12c39142ff96d79d04d15d1ba1269e4fe57bb9d26f43523628b34ba108ec` |
+| `IMPLICIT_MODE_ADMIN_ROLE` | Update settings for implicit mode validation. | `0x70649ec320b507febad3e8ef750e5f580b9ae32f9f50d4c7b121332c81971530` |

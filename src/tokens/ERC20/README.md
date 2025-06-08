@@ -32,7 +32,8 @@ The contracts use the `AccessControlEnumberable` contract from OpenZeppelin to p
 Role keys are defined as the `keccak256` value of the role name.
 The following roles are defined:
 
-| Role                 | Description        | Key                                                                  |
-| -------------------- | ------------------ | -------------------------------------------------------------------- |
-| `DEFAULT_ADMIN_ROLE` | Can updates roles. | `0x0`                                                                |
-| `MINTER_ROLE`        | Can mint tokens.   | `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` |
+| Role                       | Description                                   | Key                                                                  |
+| -------------------------- | --------------------------------------------- | -------------------------------------------------------------------- |
+| `DEFAULT_ADMIN_ROLE`       | Can updates roles.                            | `0x0`                                                                |
+| `MINTER_ROLE`              | Can mint tokens.                              | `0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6` |
+| `IMPLICIT_MODE_ADMIN_ROLE` | Update settings for implicit mode validation. | `0x70649ec320b507febad3e8ef750e5f580b9ae32f9f50d4c7b121332c81971530` |
