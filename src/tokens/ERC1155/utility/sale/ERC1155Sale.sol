@@ -1,26 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { ERC1155Supply } from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
-import {
-    IERC1155Sale,
-    IERC1155SaleFunctions
-} from "@0xsequence/contracts-library/tokens/ERC1155/utility/sale/IERC1155Sale.sol";
+import { MerkleProofSingleUse } from "../../../common/MerkleProofSingleUse.sol";
+import { SignalsImplicitModeControlled } from "../../../common/SignalsImplicitModeControlled.sol";
+import { AccessControlEnumerable, IERC20, SafeERC20, WithdrawControlled } from "../../../common/WithdrawControlled.sol";
+import { ERC1155Supply } from "../../extensions/supply/ERC1155Supply.sol";
+import { IERC1155SupplyFunctions } from "../../extensions/supply/IERC1155Supply.sol";
+import { IERC1155ItemsFunctions } from "../../presets/items/IERC1155Items.sol";
+import { IERC1155Sale, IERC1155SaleFunctions } from "./IERC1155Sale.sol";
 
-import { MerkleProofSingleUse } from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
-import {
-    AccessControlEnumerable,
-    IERC20,
-    SafeERC20,
-    WithdrawControlled
-} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
+import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
 
-import { IERC1155SupplyFunctions } from
-    "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
-import { IERC1155ItemsFunctions } from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
-import { IERC1155 } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
-
-contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
+contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, SignalsImplicitModeControlled {
 
     bytes32 internal constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
@@ -37,9 +28,16 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
      * Initialize the contract.
      * @param owner Owner address
      * @param items The ERC-1155 Items contract address
+     * @param implicitModeValidator Implicit session validator address
+     * @param implicitModeProjectId Implicit session project id
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, address items) public virtual {
+    function initialize(
+        address owner,
+        address items,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
+    ) public virtual {
         if (_initialized) {
             revert InvalidInitialization();
         }
@@ -49,6 +47,8 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(MINT_ADMIN_ROLE, owner);
         _grantRole(WITHDRAW_ROLE, owner);
+
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
 
         _initialized = true;
     }
@@ -363,8 +363,10 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse {
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(AccessControlEnumerable) returns (bool) {
-        return type(IERC1155SaleFunctions).interfaceId == interfaceId || super.supportsInterface(interfaceId);
+    ) public view virtual override(WithdrawControlled, SignalsImplicitModeControlled) returns (bool) {
+        return type(IERC1155SaleFunctions).interfaceId == interfaceId
+            || WithdrawControlled.supportsInterface(interfaceId)
+            || SignalsImplicitModeControlled.supportsInterface(interfaceId);
     }
 
 }

@@ -61,6 +61,36 @@ contract MyNFT is ERC721, MerkleProofSingleUse {
 
 The `MerkleProofSingleUse` contract depends on OpenZeppelin's `MerkleProof` contract. `MerkleProof` provides the basic Merkle proof verification functionality.
 
+## SignalsImplicitModeControlled
+
+The `SignalsImplicitModeControlled` contract provides functionality for managing implicit session access for a given project. It integrates with the Sequence's implicit mode validation system.
+
+### Functions
+
+- `_initializeImplicitMode(address owner, address validator, bytes32 projectId)`: Internal function to initialize the implicit mode settings. Sets up the initial admin role and initializes the Signals implicit mode with the given validator and project ID.
+- `setImplicitModeValidator(address validator)`: Allows an address with the `IMPLICIT_MODE_ADMIN_ROLE` to update the validator address for implicit mode validation.
+- `setImplicitModeProjectId(bytes32 projectId)`: Allows an address with the `IMPLICIT_MODE_ADMIN_ROLE` to update the project ID for implicit mode validation.
+
+### Usage
+
+To use this contract, it should be inherited by the main token contract. For example:
+
+```solidity
+contract MyNFT is ERC721, SignalsImplicitModeControlled {
+    constructor(address validator, bytes32 projectId) {
+        _initializeImplicitMode(msg.sender, validator, projectId);
+    }
+    // ...
+}
+```
+
+### Dependencies
+
+The `SignalsImplicitModeControlled` contract depends on:
+
+- OpenZeppelin's `AccessControlEnumerable` contract for role-based access control
+- The Sequence's `SignalsImplicitMode` contract for implicit mode validation functionality
+
 ## WithdrawControlled
 
 The `WithdrawControlled` contract provides a way to withdraw ETH and ERC20 tokens from a contract. This is useful for contracts that receive ETH or ERC20 tokens, and need to be able to withdraw them.

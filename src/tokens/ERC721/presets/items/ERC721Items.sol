@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { ERC721BaseToken } from "@0xsequence/contracts-library/tokens/ERC721/ERC721BaseToken.sol";
-import {
-    IERC721Items,
-    IERC721ItemsFunctions
-} from "@0xsequence/contracts-library/tokens/ERC721/presets/items/IERC721Items.sol";
+import { ERC721BaseToken } from "../../ERC721BaseToken.sol";
+import { IERC721Items, IERC721ItemsFunctions } from "./IERC721Items.sol";
 
 /**
  * An implementation of ERC-721 capable of minting when role provided.
@@ -33,6 +30,8 @@ contract ERC721Items is ERC721BaseToken, IERC721Items {
      * @param tokenContractURI Contract URI of the token
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
+     * @param implicitModeValidator The implicit mode validator address
+     * @param implicitModeProjectId The implicit mode project id
      * @dev This should be called immediately after deployment.
      */
     function initialize(
@@ -42,13 +41,17 @@ contract ERC721Items is ERC721BaseToken, IERC721Items {
         string memory tokenBaseURI,
         string memory tokenContractURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator
+        uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) public virtual {
         if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
         }
 
-        ERC721BaseToken._initialize(owner, tokenName, tokenSymbol, tokenBaseURI, tokenContractURI);
+        ERC721BaseToken._initialize(
+            owner, tokenName, tokenSymbol, tokenBaseURI, tokenContractURI, implicitModeValidator, implicitModeProjectId
+        );
         _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
 
         _grantRole(MINTER_ROLE, owner);

@@ -3,16 +3,17 @@ pragma solidity ^0.8.19;
 
 import { TestHelper } from "../../../TestHelper.sol";
 import { PackReentryMock } from "../../../_mocks/PackReentryMock.sol";
-import { ERC1155Items } from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
 
+import { ERC1155Items } from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
 import { IERC1155ItemsFunctions, IERC1155ItemsSignals } from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
 import { ERC1155Pack } from "src/tokens/ERC1155/presets/pack/ERC1155Pack.sol";
 import { ERC1155PackFactory } from "src/tokens/ERC1155/presets/pack/ERC1155PackFactory.sol";
 import { IERC1155Pack } from "src/tokens/ERC1155/presets/pack/IERC1155Pack.sol";
 
-// Interfaces
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import { IERC1155 } from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import { IERC1155 } from "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+
+import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsImplicitMode.sol";
 
 contract ERC1155PackHack is ERC1155Pack {
 
@@ -49,18 +50,21 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         vm.deal(owner, 100 ether);
 
         token = new ERC1155Items();
-        token.initialize(address(this), "test", "ipfs://", "ipfs://", address(this), 0);
+        token.initialize(address(this), "test", "ipfs://", "ipfs://", address(this), 0, address(0), bytes32(0));
 
         token2 = new ERC1155Items();
-        token2.initialize(address(this), "test2", "ipfs://", "ipfs://", address(this), 0);
+        token2.initialize(address(this), "test2", "ipfs://", "ipfs://", address(this), 0, address(0), bytes32(0));
 
         ERC1155PackFactory factory = new ERC1155PackFactory(address(this));
 
         _preparePacksContent();
         (bytes32 root,) = TestHelper.getMerklePartsPacks(packsContent, 0);
 
-        pack =
-            ERC1155Pack(factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0, root, 3));
+        pack = ERC1155Pack(
+            factory.deploy(
+                proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0), root, 3
+            )
+        );
 
         reentryAttacker = new PackReentryMock(address(pack));
 
@@ -73,7 +77,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         (bytes32 root,) = TestHelper.getMerklePartsPacks(packsContent, 0);
 
         vm.expectRevert(InvalidInitialization.selector);
-        pack.initialize(owner, "name", "baseURI", "contractURI", address(this), 0, root, 3);
+        pack.initialize(owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0), root, 3);
     }
 
     function testSupportsInterface() public view {
@@ -81,6 +85,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         assertTrue(pack.supportsInterface(type(IERC1155).interfaceId));
         assertTrue(pack.supportsInterface(type(IERC1155ItemsFunctions).interfaceId));
         assertTrue(pack.supportsInterface(type(IERC1155Pack).interfaceId));
+        assertTrue(pack.supportsInterface(type(ISignalsImplicitMode).interfaceId));
     }
 
     /**
@@ -89,6 +94,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
      */
     function testSelectorCollision() public pure {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
+        checkSelectorCollision(0xc58ab92d); // acceptImplicitRequest(address,(address,bytes4,bytes32,bytes32,bytes,(string)),(address,uint256,bytes,uint256,bool,bool,uint256))
         checkSelectorCollision(0x00fdd58e); // balanceOf(address,uint256)
         checkSelectorCollision(0x4e1273f4); // balanceOfBatch(address[],uint256[])
         checkSelectorCollision(0x6c0360eb); // baseURI()
@@ -123,6 +129,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         checkSelectorCollision(0x938e3d7b); // setContractURI(string)
         checkSelectorCollision(0x04634d8d); // setDefaultRoyalty(address,uint96)
         checkSelectorCollision(0x275bf183); // setPacksContent(bytes32,uint256)
+        checkSelectorCollision(0x2d141c83); // setSignalsImplicitMode(address,bytes32)
         checkSelectorCollision(0x5944c753); // setTokenRoyalty(uint256,address,uint96)
         checkSelectorCollision(0x047fc9aa); // supply()
         checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
@@ -137,37 +144,54 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         assertTrue(pack.hasRole(keccak256("MINTER_ROLE"), owner));
         assertTrue(pack.hasRole(keccak256("ROYALTY_ADMIN_ROLE"), owner));
         assertTrue(pack.hasRole(keccak256("PACK_ADMIN_ROLE"), owner));
+        assertTrue(pack.hasRole(keccak256("IMPLICIT_MODE_ADMIN_ROLE"), owner));
+    }
+
+    struct TestFactoryDetermineAddressParams {
+        address proxyOwner;
+        address tokenOwner;
+        string name;
+        string baseURI;
+        string contractURI;
+        address royaltyReceiver;
+        uint96 royaltyFeeNumerator;
+        address implicitModeValidator;
+        bytes32 implicitModeProjectId;
+        bytes32 merkleRoot;
+        uint256 supply;
     }
 
     function testFactoryDetermineAddress(
-        address _proxyOwner,
-        address tokenOwner,
-        string memory name,
-        string memory baseURI,
-        string memory contractURI,
-        address royaltyReceiver,
-        uint96 royaltyFeeNumerator,
-        bytes32 merkleRoot,
-        uint256 supply
+        TestFactoryDetermineAddressParams memory params
     ) public {
-        vm.assume(_proxyOwner != address(0));
-        vm.assume(tokenOwner != address(0));
-        vm.assume(royaltyReceiver != address(0));
-        royaltyFeeNumerator = uint96(bound(royaltyFeeNumerator, 0, 10_000));
+        vm.assume(params.proxyOwner != address(0));
+        vm.assume(params.tokenOwner != address(0));
+        vm.assume(params.royaltyReceiver != address(0));
+        params.royaltyFeeNumerator = uint96(bound(params.royaltyFeeNumerator, 0, 10_000));
         ERC1155PackFactory factory = new ERC1155PackFactory(address(this));
         address deployedAddr = factory.deploy(
-            _proxyOwner,
-            tokenOwner,
-            name,
-            baseURI,
-            contractURI,
-            royaltyReceiver,
-            royaltyFeeNumerator,
-            merkleRoot,
-            supply
+            params.proxyOwner,
+            params.tokenOwner,
+            params.name,
+            params.baseURI,
+            params.contractURI,
+            params.royaltyReceiver,
+            params.royaltyFeeNumerator,
+            params.implicitModeValidator,
+            params.implicitModeProjectId,
+            params.merkleRoot,
+            params.supply
         );
         address predictedAddr = factory.determineAddress(
-            _proxyOwner, tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator
+            params.proxyOwner,
+            params.tokenOwner,
+            params.name,
+            params.baseURI,
+            params.contractURI,
+            params.royaltyReceiver,
+            params.royaltyFeeNumerator,
+            params.implicitModeValidator,
+            params.implicitModeProjectId
         );
         assertEq(deployedAddr, predictedAddr);
     }
@@ -285,7 +309,9 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         (bytes32 root,) = TestHelper.getMerklePartsPacks(packsContent, 0);
 
         ERC1155PackHack packHack = new ERC1155PackHack();
-        packHack.initialize(owner, "name", "baseURI", "contractURI", address(this), 0, root, size);
+        packHack.initialize(
+            owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0), root, size
+        );
 
         pack = packHack;
 

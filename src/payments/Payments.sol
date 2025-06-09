@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IPayments, IPaymentsFunctions } from "./IPayments.sol";
-
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-
 import { IERC721Transfer } from "../tokens/common/IERC721Transfer.sol";
 import { SignatureValidator } from "../utils/SignatureValidator.sol";
-import { IERC1155 } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
+import { IPayments, IPaymentsFunctions } from "./IPayments.sol";
+
+import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
+
+import { Ownable } from "openzeppelin-contracts/contracts/access/Ownable.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 contract Payments is Ownable, IPayments, IERC165 {

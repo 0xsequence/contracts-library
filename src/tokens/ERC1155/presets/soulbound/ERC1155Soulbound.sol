@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { ERC1155Items } from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/ERC1155Items.sol";
-import {
-    IERC1155Soulbound,
-    IERC1155SoulboundFunctions
-} from "@0xsequence/contracts-library/tokens/ERC1155/presets/soulbound/IERC1155Soulbound.sol";
+import { ERC1155Items } from "../items/ERC1155Items.sol";
+import { IERC1155Soulbound, IERC1155SoulboundFunctions } from "./IERC1155Soulbound.sol";
 
 /**
  * An implementation of ERC-1155 that prevents transfers.
@@ -25,11 +22,22 @@ contract ERC1155Soulbound is ERC1155Items, IERC1155Soulbound {
         string memory tokenBaseURI,
         string memory tokenContractURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator
+        uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) public virtual override {
         _transferLocked = true;
         _grantRole(TRANSFER_ADMIN_ROLE, owner);
-        super.initialize(owner, tokenName, tokenBaseURI, tokenContractURI, royaltyReceiver, royaltyFeeNumerator);
+        super.initialize(
+            owner,
+            tokenName,
+            tokenBaseURI,
+            tokenContractURI,
+            royaltyReceiver,
+            royaltyFeeNumerator,
+            implicitModeValidator,
+            implicitModeProjectId
+        );
     }
 
     /// @inheritdoc IERC1155SoulboundFunctions

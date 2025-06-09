@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { SequenceProxyFactory } from "@0xsequence/contracts-library/proxies/SequenceProxyFactory.sol";
-import { ERC1155Pack } from "@0xsequence/contracts-library/tokens/ERC1155/presets/pack/ERC1155Pack.sol";
-import {
-    IERC1155PackFactory,
-    IERC1155PackFactoryFunctions
-} from "@0xsequence/contracts-library/tokens/ERC1155/presets/pack/IERC1155PackFactory.sol";
+import { SequenceProxyFactory } from "../../../../proxies/SequenceProxyFactory.sol";
+import { ERC1155Pack } from "./ERC1155Pack.sol";
+import { IERC1155PackFactory, IERC1155PackFactoryFunctions } from "./IERC1155PackFactory.sol";
 
 /**
  * Deployer of ERC-1155 Pack proxies.
@@ -33,14 +30,35 @@ contract ERC1155PackFactory is IERC1155PackFactory, SequenceProxyFactory {
         string memory contractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId,
         bytes32 merkleRoot,
         uint256 supply
-    ) external returns (address proxyAddr) {
-        bytes32 salt =
-            keccak256(abi.encode(tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
+    ) external override returns (address proxyAddr) {
+        bytes32 salt = keccak256(
+            abi.encode(
+                tokenOwner,
+                name,
+                baseURI,
+                contractURI,
+                royaltyReceiver,
+                royaltyFeeNumerator,
+                implicitModeValidator,
+                implicitModeProjectId
+            )
+        );
         proxyAddr = _createProxy(salt, proxyOwner, "");
         ERC1155Pack(proxyAddr).initialize(
-            tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator, merkleRoot, supply
+            tokenOwner,
+            name,
+            baseURI,
+            contractURI,
+            royaltyReceiver,
+            royaltyFeeNumerator,
+            implicitModeValidator,
+            implicitModeProjectId,
+            merkleRoot,
+            supply
         );
         emit ERC1155PackDeployed(proxyAddr);
         return proxyAddr;
@@ -54,10 +72,22 @@ contract ERC1155PackFactory is IERC1155PackFactory, SequenceProxyFactory {
         string memory baseURI,
         string memory contractURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator
-    ) external view returns (address proxyAddr) {
-        bytes32 salt =
-            keccak256(abi.encode(tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator));
+        uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
+    ) external view override returns (address proxyAddr) {
+        bytes32 salt = keccak256(
+            abi.encode(
+                tokenOwner,
+                name,
+                baseURI,
+                contractURI,
+                royaltyReceiver,
+                royaltyFeeNumerator,
+                implicitModeValidator,
+                implicitModeProjectId
+            )
+        );
         return _computeProxyAddress(salt, proxyOwner, "");
     }
 

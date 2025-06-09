@@ -2,14 +2,18 @@
 pragma solidity ^0.8.19;
 
 import { ClawbackTestBase, IGenericToken } from "./ClawbackTestBase.sol";
-import { console, stdError } from "forge-std/Test.sol";
 
 import { Clawback } from "src/tokens/wrappers/clawback/Clawback.sol";
 import { IClawback, IClawbackFunctions, IClawbackSignals } from "src/tokens/wrappers/clawback/IClawback.sol";
 
-import { IERC1155 } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
-import { IERC1155Metadata } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155Metadata.sol";
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
+import { IERC1155Metadata } from "erc-1155/src/contracts/interfaces/IERC1155Metadata.sol";
+
+import { console, stdError } from "forge-std/Test.sol";
+
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+
+import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsImplicitMode.sol";
 
 contract ClawbackTest is ClawbackTestBase, IClawbackSignals {
 
@@ -1200,11 +1204,11 @@ contract ClawbackTest is ClawbackTestBase, IClawbackSignals {
     // Supports Interface
     //
     function testSupportsInterface() public view {
-        assertTrue(clawback.supportsInterface(type(IClawback).interfaceId));
-        assertTrue(clawback.supportsInterface(type(IClawbackFunctions).interfaceId));
+        assertTrue(clawback.supportsInterface(type(IERC165).interfaceId));
         assertTrue(clawback.supportsInterface(type(IERC1155).interfaceId));
         assertTrue(clawback.supportsInterface(type(IERC1155Metadata).interfaceId));
-        assertTrue(clawback.supportsInterface(type(IERC165).interfaceId));
+        assertTrue(clawback.supportsInterface(type(IClawbackFunctions).interfaceId));
+        assertTrue(clawback.supportsInterface(type(ISignalsImplicitMode).interfaceId));
     }
 
 }

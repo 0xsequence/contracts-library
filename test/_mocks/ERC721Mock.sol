@@ -2,12 +2,13 @@
 pragma solidity ^0.8.19;
 
 import { IGenericToken } from "./IGenericToken.sol";
+
 import { ERC721BaseToken } from "src/tokens/ERC721/ERC721BaseToken.sol";
 
 contract ERC721Mock is ERC721BaseToken, IGenericToken {
 
     constructor(address owner, string memory tokenBaseURI) {
-        _initialize(owner, "", "", tokenBaseURI, "");
+        _initialize(owner, "", "", tokenBaseURI, "", address(0), bytes32(0));
     }
 
     function _sequentialUpTo() internal pure override returns (uint256) {

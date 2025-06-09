@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { AccessControlEnumerable } from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { SignalsImplicitModeControlled } from "../common/SignalsImplicitModeControlled.sol";
+
+import { ERC20 } from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import { IERC20 } from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { IERC20Metadata } from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 error InvalidInitialization();
 
 /**
  * A standard base implementation of ERC-20 for use in Sequence library contracts.
  */
-abstract contract ERC20BaseToken is ERC20, AccessControlEnumerable {
+abstract contract ERC20BaseToken is ERC20, SignalsImplicitModeControlled {
 
     string internal _tokenName;
     string internal _tokenSymbol;
@@ -30,13 +31,17 @@ abstract contract ERC20BaseToken is ERC20, AccessControlEnumerable {
      * @param tokenName Name of the token
      * @param tokenSymbol Symbol of the token
      * @param tokenDecimals Number of decimals
+     * @param implicitModeValidator Implicit session validator address
+     * @param implicitModeProjectId Implicit session project id
      * @dev This should be called immediately after deployment.
      */
     function initialize(
         address owner,
         string memory tokenName,
         string memory tokenSymbol,
-        uint8 tokenDecimals
+        uint8 tokenDecimals,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) public virtual {
         if (msg.sender != _initializer || _initialized) {
             revert InvalidInitialization();
@@ -47,6 +52,8 @@ abstract contract ERC20BaseToken is ERC20, AccessControlEnumerable {
         _tokenDecimals = tokenDecimals;
 
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
+
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
 
         _initialized = true;
     }
@@ -78,7 +85,7 @@ abstract contract ERC20BaseToken is ERC20, AccessControlEnumerable {
         bytes4 interfaceId
     ) public view virtual override returns (bool) {
         return interfaceId == type(IERC20).interfaceId || interfaceId == type(IERC20Metadata).interfaceId
-            || AccessControlEnumerable.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
+            || super.supportsInterface(interfaceId);
     }
 
     //

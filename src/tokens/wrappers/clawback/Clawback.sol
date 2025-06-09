@@ -3,19 +3,18 @@ pragma solidity ^0.8.19;
 
 import { IERC721Transfer } from "../../common/IERC721Transfer.sol";
 import { IMetadataProvider } from "../../common/IMetadataProvider.sol";
+import { SignalsImplicitModeControlled } from "../../common/SignalsImplicitModeControlled.sol";
 import { IClawback, IClawbackFunctions } from "./IClawback.sol";
 
-import { IERC1155 } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
-
-import { IERC1155Metadata } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155Metadata.sol";
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import { ERC1155, ERC1155MintBurn } from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
-
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
+import { IERC1155Metadata } from "erc-1155/src/contracts/interfaces/IERC1155Metadata.sol";
+import { ERC1155, ERC1155MintBurn } from "erc-1155/src/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
 
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
-contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
+contract Clawback is ERC1155MintBurn, IERC1155Metadata, IClawback, SignalsImplicitModeControlled {
+
+    bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
     // Do not use address(0) as burn address due to common transfer restrictions.
     address public constant BURN_ADDRESS = address(0x000000000000000000000000000000000000dEaD);
@@ -42,8 +41,14 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
         _;
     }
 
-    constructor(address ownerAddr, address metadataProviderAddr) {
-        _transferOwnership(ownerAddr);
+    constructor(
+        address owner,
+        address metadataProviderAddr,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
+    ) {
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
         metadataProvider = IMetadataProvider(metadataProviderAddr);
     }
 
@@ -339,7 +344,7 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
 
     function updateMetadataProvider(
         address metadataProviderAddr
-    ) external onlyOwner {
+    ) external onlyRole(METADATA_ADMIN_ROLE) {
         metadataProvider = IMetadataProvider(metadataProviderAddr);
     }
 
@@ -384,17 +389,13 @@ contract Clawback is Ownable, ERC1155MintBurn, IERC1155Metadata, IClawback {
         revert InvalidReceiver();
     }
 
-    /// @inheritdoc IERC165
+    /// @inheritdoc ERC1155
     function supportsInterface(
         bytes4 _interfaceID
-    ) public view virtual override returns (bool) {
-        if (
-            _interfaceID == type(IClawback).interfaceId || _interfaceID == type(IClawbackFunctions).interfaceId
-                || _interfaceID == type(IERC1155Metadata).interfaceId
-        ) {
-            return true;
-        }
-        return super.supportsInterface(_interfaceID);
+    ) public view virtual override(SignalsImplicitModeControlled, ERC1155) returns (bool) {
+        return _interfaceID == type(IClawback).interfaceId || _interfaceID == type(IClawbackFunctions).interfaceId
+            || _interfaceID == type(IERC1155Metadata).interfaceId
+            || SignalsImplicitModeControlled.supportsInterface(_interfaceID) || ERC1155.supportsInterface(_interfaceID);
     }
 
 }

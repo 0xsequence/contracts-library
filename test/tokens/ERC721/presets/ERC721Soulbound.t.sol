@@ -5,7 +5,6 @@ import { TestHelper } from "../../../TestHelper.sol";
 
 import { IERC721ItemsFunctions, IERC721ItemsSignals } from "src/tokens/ERC721/presets/items/IERC721Items.sol";
 import { ERC721Soulbound } from "src/tokens/ERC721/presets/soulbound/ERC721Soulbound.sol";
-
 import { ERC721SoulboundFactory } from "src/tokens/ERC721/presets/soulbound/ERC721SoulboundFactory.sol";
 import {
     IERC721Soulbound,
@@ -13,15 +12,15 @@ import {
     IERC721SoulboundSignals
 } from "src/tokens/ERC721/presets/soulbound/IERC721Soulbound.sol";
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { IERC721A } from "erc721a/IERC721A.sol";
+import { IERC721AQueryable } from "erc721a/extensions/IERC721AQueryable.sol";
 
-// Interfaces
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+import { IERC721 } from "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
+import { IERC721Metadata } from "openzeppelin-contracts/contracts/interfaces/IERC721Metadata.sol";
+import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
-import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-import { IERC721AQueryable } from "erc721a/contracts/extensions/IERC721AQueryable.sol";
-import { IERC721A } from "erc721a/contracts/interfaces/IERC721A.sol";
+import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsImplicitMode.sol";
 
 contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721SoulboundSignals {
 
@@ -42,13 +41,15 @@ contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721Soulboun
 
         ERC721SoulboundFactory factory = new ERC721SoulboundFactory(address(this));
         token = ERC721Soulbound(
-            factory.deploy(proxyOwner, owner, "name", "symbol", "baseURI", "contractURI", address(this), 0)
+            factory.deploy(
+                proxyOwner, owner, "name", "symbol", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0)
+            )
         );
     }
 
     function testReinitializeFails() public {
         vm.expectRevert(InvalidInitialization.selector);
-        token.initialize(owner, "name", "symbol", "baseURI", "contractURI", address(this), 0);
+        token.initialize(owner, "name", "symbol", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0));
     }
 
     function testSupportsInterface() public view {
@@ -59,6 +60,7 @@ contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721Soulboun
         assertTrue(token.supportsInterface(type(IERC721Metadata).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721ItemsFunctions).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721SoulboundFunctions).interfaceId));
+        assertTrue(token.supportsInterface(type(ISignalsImplicitMode).interfaceId));
     }
 
     /**
@@ -68,6 +70,7 @@ contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721Soulboun
     function testSelectorCollision() public pure {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
         checkSelectorCollision(0x68a37ae8); // TRANSFER_ADMIN_ROLE()
+        checkSelectorCollision(0xc58ab92d); // acceptImplicitRequest(address,(address,bytes4,bytes32,bytes32,bytes,(string)),(address,uint256,bytes,uint256,bool,bool,uint256))
         checkSelectorCollision(0x095ea7b3); // approve(address,uint256)
         checkSelectorCollision(0x70a08231); // balanceOf(address)
         checkSelectorCollision(0xdc8e92ea); // batchBurn(uint256[])
@@ -97,6 +100,7 @@ contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721Soulboun
         checkSelectorCollision(0x938e3d7b); // setContractURI(string)
         checkSelectorCollision(0x04634d8d); // setDefaultRoyalty(address,uint96)
         checkSelectorCollision(0x5a446215); // setNameAndSymbol(string,string)
+        checkSelectorCollision(0x2d141c83); // setSignalsImplicitMode(address,bytes32)
         checkSelectorCollision(0x5944c753); // setTokenRoyalty(uint256,address,uint96)
         checkSelectorCollision(0x35e60bd4); // setTransferLocked(bool)
         checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
@@ -114,6 +118,7 @@ contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721Soulboun
         assertTrue(token.hasRole(keccak256("METADATA_ADMIN_ROLE"), owner));
         assertTrue(token.hasRole(keccak256("MINTER_ROLE"), owner));
         assertTrue(token.hasRole(keccak256("ROYALTY_ADMIN_ROLE"), owner));
+        assertTrue(token.hasRole(keccak256("IMPLICIT_MODE_ADMIN_ROLE"), owner));
     }
 
     function testFactoryDetermineAddress(
@@ -124,7 +129,9 @@ contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721Soulboun
         string memory baseURI,
         string memory contractURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator
+        uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) public {
         vm.assume(_proxyOwner != address(0));
         vm.assume(tokenOwner != address(0));
@@ -132,10 +139,28 @@ contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721Soulboun
         royaltyFeeNumerator = uint96(bound(royaltyFeeNumerator, 0, 10_000));
         ERC721SoulboundFactory factory = new ERC721SoulboundFactory(address(this));
         address deployedAddr = factory.deploy(
-            _proxyOwner, tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator
+            _proxyOwner,
+            tokenOwner,
+            name,
+            symbol,
+            baseURI,
+            contractURI,
+            royaltyReceiver,
+            royaltyFeeNumerator,
+            implicitModeValidator,
+            implicitModeProjectId
         );
         address predictedAddr = factory.determineAddress(
-            _proxyOwner, tokenOwner, name, symbol, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator
+            _proxyOwner,
+            tokenOwner,
+            name,
+            symbol,
+            baseURI,
+            contractURI,
+            royaltyReceiver,
+            royaltyFeeNumerator,
+            implicitModeValidator,
+            implicitModeProjectId
         );
         assertEq(deployedAddr, predictedAddr);
     }

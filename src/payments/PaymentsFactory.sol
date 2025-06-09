@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {
-    IPaymentsFactory, IPaymentsFactoryFunctions
-} from "@0xsequence/contracts-library/payments/IPaymentsFactory.sol";
-import { Payments } from "@0xsequence/contracts-library/payments/Payments.sol";
-import { SequenceProxyFactory } from "@0xsequence/contracts-library/proxies/SequenceProxyFactory.sol";
+import { SequenceProxyFactory } from "../proxies/SequenceProxyFactory.sol";
+import { IPaymentsFactory, IPaymentsFactoryFunctions } from "./IPaymentsFactory.sol";
+import { Payments } from "./Payments.sol";
 
 /**
  * Deployer of Payments proxies.

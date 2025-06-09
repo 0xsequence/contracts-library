@@ -2,12 +2,13 @@
 pragma solidity ^0.8.19;
 
 import { ClawbackMetadata, ClawbackTestBase, IClawbackFunctions } from "./ClawbackTestBase.sol";
-import { console, stdError } from "forge-std/Test.sol";
 
 import { IMetadataProvider } from "src/tokens/common/IMetadataProvider.sol";
 import { Duration } from "src/utils/Duration.sol";
 
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
+import { IERC165 } from "erc-1155/src/contracts/interfaces/IERC165.sol";
+
+import { console, stdError } from "forge-std/Test.sol";
 
 import { LibString } from "solady/utils/LibString.sol";
 

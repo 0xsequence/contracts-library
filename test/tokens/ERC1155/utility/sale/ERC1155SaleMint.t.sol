@@ -2,17 +2,18 @@
 pragma solidity ^0.8.19;
 
 import { TestHelper } from "../../../../TestHelper.sol";
-import { stdError } from "forge-std/Test.sol";
+import { ERC20Mock } from "../../../../_mocks/ERC20Mock.sol";
 
 import { IERC1155Supply, IERC1155SupplySignals } from "src/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
 import { ERC1155Items } from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
 import { ERC1155Sale } from "src/tokens/ERC1155/utility/sale/ERC1155Sale.sol";
 import { ERC1155SaleFactory } from "src/tokens/ERC1155/utility/sale/ERC1155SaleFactory.sol";
 import { IERC1155SaleFunctions, IERC1155SaleSignals } from "src/tokens/ERC1155/utility/sale/IERC1155Sale.sol";
+import { IMerkleProofSingleUseSignals } from "src/tokens/common/IMerkleProofSingleUse.sol";
 
-import { IMerkleProofSingleUseSignals } from "@0xsequence/contracts-library/tokens/common/IMerkleProofSingleUse.sol";
-import { ERC20Mock } from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { stdError } from "forge-std/Test.sol";
+
+import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
 
 // solhint-disable not-rely-on-time
 
@@ -37,10 +38,10 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         proxyOwner = makeAddr("proxyOwner");
 
         token = new ERC1155Items();
-        token.initialize(address(this), "test", "ipfs://", "ipfs://", address(this), 0);
+        token.initialize(address(this), "test", "ipfs://", "ipfs://", address(this), 0, address(0), bytes32(0));
 
         sale = new ERC1155Sale();
-        sale.initialize(address(this), address(token));
+        sale.initialize(address(this), address(token), address(0), bytes32(0));
 
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
 
@@ -49,7 +50,7 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
 
     function setUpFromFactory() public {
         ERC1155SaleFactory factory = new ERC1155SaleFactory(address(this));
-        sale = ERC1155Sale(factory.deploy(proxyOwner, address(this), address(token)));
+        sale = ERC1155Sale(factory.deploy(proxyOwner, address(this), address(token), address(0), bytes32(0)));
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
     }
 
@@ -691,8 +692,8 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
 
     // Create ERC20. Give this contract 1000 ERC20 tokens. Approve token to spend 100 ERC20 tokens.
     modifier withERC20() {
-        erc20 = new ERC20Mock();
-        erc20.mockMint(address(this), 1000 ether);
+        erc20 = new ERC20Mock(address(this));
+        erc20.mint(address(this), 1000 ether);
         erc20.approve(address(sale), 1000 ether);
         _;
     }

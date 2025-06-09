@@ -1,12 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { ERC1155BaseToken } from "@0xsequence/contracts-library/tokens/ERC1155/ERC1155BaseToken.sol";
-import {
-    IERC1155Items,
-    IERC1155ItemsFunctions
-} from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
-import { ERC2981Controlled } from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
+import { ERC1155BaseToken, ERC2981Controlled } from "../../ERC1155BaseToken.sol";
+import { IERC1155Items, IERC1155ItemsFunctions } from "./IERC1155Items.sol";
 
 /**
  * An implementation of ERC-1155 capable of minting when role provided.
@@ -30,6 +26,8 @@ contract ERC1155Items is ERC1155BaseToken, IERC1155Items {
      * @param tokenContractURI Contract URI for token metadata
      * @param royaltyReceiver Address of who should be sent the royalty payment
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
+     * @param implicitModeValidator The implicit mode validator address
+     * @param implicitModeProjectId The implicit mode project id
      * @dev This should be called immediately after deployment.
      */
     function initialize(
@@ -38,13 +36,17 @@ contract ERC1155Items is ERC1155BaseToken, IERC1155Items {
         string memory tokenBaseURI,
         string memory tokenContractURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator
+        uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) public virtual {
         if (msg.sender != initializer || initialized) {
             revert InvalidInitialization();
         }
 
-        ERC1155BaseToken._initialize(owner, tokenName, tokenBaseURI, tokenContractURI);
+        ERC1155BaseToken._initialize(
+            owner, tokenName, tokenBaseURI, tokenContractURI, implicitModeValidator, implicitModeProjectId
+        );
         _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
 
         _grantRole(MINTER_ROLE, owner);

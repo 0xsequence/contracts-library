@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {
-    IPaymentCombiner, IPaymentCombinerFunctions
-} from "@0xsequence/contracts-library/payments/IPaymentCombiner.sol";
-import { IERC20Upgradeable, PaymentSplitter } from "@0xsequence/contracts-library/payments/PaymentSplitter.sol";
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
+import { IPaymentCombiner, IPaymentCombinerFunctions } from "./IPaymentCombiner.sol";
+import { IERC20Upgradeable, PaymentSplitter } from "./PaymentSplitter.sol";
+
+import { Clones } from "openzeppelin-contracts/contracts/proxy/Clones.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 /**
  * Deployer of Payment Splitter proxies.

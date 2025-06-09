@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { ERC2981Controlled } from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
-import {
-    ERC721A, ERC721AQueryable, IERC721A, IERC721AQueryable
-} from "erc721a/contracts/extensions/ERC721AQueryable.sol";
+import { ERC2981Controlled } from "../common/ERC2981Controlled.sol";
+import { SignalsImplicitModeControlled } from "../common/SignalsImplicitModeControlled.sol";
+
+import { ERC721A, ERC721AQueryable, IERC721A, IERC721AQueryable } from "erc721a/extensions/ERC721AQueryable.sol";
 
 error InvalidInitialization();
 
 /**
  * A standard base implementation of ERC-721 for use in Sequence library contracts.
  */
-abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled {
+abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled, SignalsImplicitModeControlled {
 
     bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
@@ -32,6 +32,8 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled {
      * @param tokenSymbol Symbol of the token
      * @param tokenBaseURI Base URI of the token
      * @param tokenContractURI Contract URI of the token
+     * @param implicitModeValidator Implicit session validator address
+     * @param implicitModeProjectId Implicit session project id
      * @dev This should be called immediately after deployment.
      */
     function _initialize(
@@ -39,7 +41,9 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled {
         string memory tokenName,
         string memory tokenSymbol,
         string memory tokenBaseURI,
-        string memory tokenContractURI
+        string memory tokenContractURI,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) internal {
         _tokenName = tokenName;
         _tokenSymbol = tokenSymbol;
@@ -49,6 +53,8 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled {
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(METADATA_ADMIN_ROLE, owner);
         _grantRole(ROYALTY_ADMIN_ROLE, owner);
+
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
     }
 
     //
@@ -136,10 +142,16 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled {
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(ERC721A, IERC721A, ERC2981Controlled) returns (bool) {
+    )
+        public
+        view
+        virtual
+        override(ERC721A, IERC721A, ERC2981Controlled, SignalsImplicitModeControlled)
+        returns (bool)
+    {
         return interfaceId == type(IERC721A).interfaceId || interfaceId == type(IERC721AQueryable).interfaceId
             || ERC721A.supportsInterface(interfaceId) || ERC2981Controlled.supportsInterface(interfaceId)
-            || super.supportsInterface(interfaceId);
+            || SignalsImplicitModeControlled.supportsInterface(interfaceId);
     }
 
     //

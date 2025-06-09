@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
+import { ERC1155Items } from "../items/ERC1155Items.sol";
+import { IERC1155ItemsFunctions } from "../items/IERC1155Items.sol";
 import { IERC1155Pack } from "./IERC1155Pack.sol";
-import { ERC1155Items } from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/ERC1155Items.sol";
 
-import { IERC1155ItemsFunctions } from "@0xsequence/contracts-library/tokens/ERC1155/presets/items/IERC1155Items.sol";
-import { MerkleProof } from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import { MerkleProof } from "openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
 
 contract ERC1155Pack is ERC1155Items, IERC1155Pack {
 
@@ -28,6 +28,8 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
         string memory tokenContractURI,
         address royaltyReceiver,
         uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId,
         bytes32 _merkleRoot,
         uint256 _supply
     ) public virtual {
@@ -35,7 +37,16 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
         merkleRoot = _merkleRoot;
         supply = _supply;
         remainingSupply = _supply;
-        super.initialize(owner, tokenName, tokenBaseURI, tokenContractURI, royaltyReceiver, royaltyFeeNumerator);
+        super.initialize(
+            owner,
+            tokenName,
+            tokenBaseURI,
+            tokenContractURI,
+            royaltyReceiver,
+            royaltyFeeNumerator,
+            implicitModeValidator,
+            implicitModeProjectId
+        );
     }
 
     /// @inheritdoc IERC1155Pack

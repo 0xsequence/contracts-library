@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IERC721ItemsFunctions } from "@0xsequence/contracts-library/tokens/ERC721/presets/items/IERC721Items.sol";
+import { SignalsImplicitModeControlled } from "../../../common/SignalsImplicitModeControlled.sol";
+import { IERC721ItemsFunctions } from "../../presets/items/IERC721Items.sol";
 
 /**
  * An ERC-721 contract that allows permissive minting.
  */
-contract ERC721PermissiveMinter {
+contract ERC721PermissiveMinter is SignalsImplicitModeControlled {
+
+    constructor(address owner, address implicitModeValidator, bytes32 implicitModeProjectId) {
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
+    }
 
     /**
      * Mint tokens.

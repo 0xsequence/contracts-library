@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
+import { ERC1155Mock } from "../../../_mocks/ERC1155Mock.sol";
+import { ERC20Mock } from "../../../_mocks/ERC20Mock.sol";
+import { ERC721Mock } from "../../../_mocks/ERC721Mock.sol";
+import { IGenericToken } from "../../../_mocks/IGenericToken.sol";
+
+import { IERC1155TokenReceiver } from "erc-1155/src/contracts/interfaces/IERC1155TokenReceiver.sol";
+
 import { Test, console, stdError } from "forge-std/Test.sol";
-import { IERC721TokenReceiver } from "forge-std/interfaces/IERC721.sol";
+import { IERC721Receiver } from "openzeppelin-contracts/contracts/interfaces/IERC721Receiver.sol";
 
 import { Clawback } from "src/tokens/wrappers/clawback/Clawback.sol";
 import { ClawbackMetadata } from "src/tokens/wrappers/clawback/ClawbackMetadata.sol";
 import { IClawbackFunctions } from "src/tokens/wrappers/clawback/IClawback.sol";
 
-import { ERC1155Mock } from "test/_mocks/ERC1155Mock.sol";
-import { ERC20Mock } from "test/_mocks/ERC20Mock.sol";
-import { ERC721Mock } from "test/_mocks/ERC721Mock.sol";
-import { IGenericToken } from "test/_mocks/IGenericToken.sol";
-
-import { IERC1155TokenReceiver } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155TokenReceiver.sol";
-
-contract ClawbackTestBase is Test, IERC1155TokenReceiver, IERC721TokenReceiver {
+contract ClawbackTestBase is Test, IERC1155TokenReceiver, IERC721Receiver {
 
     Clawback public clawback;
     ClawbackMetadata public clawbackMetadata;
@@ -25,7 +25,7 @@ contract ClawbackTestBase is Test, IERC1155TokenReceiver, IERC721TokenReceiver {
 
     function setUp() public {
         clawbackMetadata = new ClawbackMetadata();
-        clawback = new Clawback(address(this), address(clawbackMetadata));
+        clawback = new Clawback(address(this), address(clawbackMetadata), address(0), bytes32(0));
         erc20 = new ERC20Mock(address(this));
         erc721 = new ERC721Mock(address(this), "baseURI");
         erc1155 = new ERC1155Mock(address(this), "baseURI");

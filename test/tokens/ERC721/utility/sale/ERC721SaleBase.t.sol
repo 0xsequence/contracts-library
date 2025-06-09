@@ -2,23 +2,20 @@
 pragma solidity ^0.8.19;
 
 import { TestHelper } from "../../../../TestHelper.sol";
+import { ERC20Mock } from "../../../../_mocks/ERC20Mock.sol";
 
 import { ERC721Items } from "src/tokens/ERC721/presets/items/ERC721Items.sol";
 import { ERC721Sale } from "src/tokens/ERC721/utility/sale/ERC721Sale.sol";
 import { ERC721SaleFactory } from "src/tokens/ERC721/utility/sale/ERC721SaleFactory.sol";
 import { IERC721Sale, IERC721SaleFunctions, IERC721SaleSignals } from "src/tokens/ERC721/utility/sale/IERC721Sale.sol";
 
-import { ERC20Mock } from "@0xsequence/erc20-meta-token/contracts/mocks/ERC20Mock.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { IAccessControl } from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
+import { IERC721 } from "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
+import { IERC721Metadata } from "openzeppelin-contracts/contracts/interfaces/IERC721Metadata.sol";
+import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
-// Interfaces
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-
-import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
-import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-import { IERC721A } from "erc721a/contracts/interfaces/IERC721A.sol";
-import { IERC721AQueryable } from "erc721a/contracts/interfaces/IERC721AQueryable.sol";
+import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsImplicitMode.sol";
 
 // solhint-disable not-rely-on-time
 
@@ -37,10 +34,10 @@ contract ERC721SaleBaseTest is TestHelper, IERC721SaleSignals {
         proxyOwner = makeAddr("proxyOwner");
 
         token = new ERC721Items();
-        token.initialize(address(this), "test", "test", "ipfs://", "ipfs://", address(this), 0);
+        token.initialize(address(this), "test", "test", "ipfs://", "ipfs://", address(this), 0, address(0), bytes32(0));
 
         sale = new ERC721Sale();
-        sale.initialize(address(this), address(token));
+        sale.initialize(address(this), address(token), address(0), bytes32(0));
 
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
 
@@ -49,7 +46,7 @@ contract ERC721SaleBaseTest is TestHelper, IERC721SaleSignals {
 
     function setUpFromFactory() public {
         ERC721SaleFactory factory = new ERC721SaleFactory(address(this));
-        sale = ERC721Sale(factory.deploy(proxyOwner, address(this), address(token)));
+        sale = ERC721Sale(factory.deploy(proxyOwner, address(this), address(token), address(0), bytes32(0)));
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
     }
 
@@ -57,6 +54,7 @@ contract ERC721SaleBaseTest is TestHelper, IERC721SaleSignals {
         assertTrue(sale.supportsInterface(type(IERC165).interfaceId));
         assertTrue(sale.supportsInterface(type(IAccessControl).interfaceId));
         assertTrue(sale.supportsInterface(type(IERC721SaleFunctions).interfaceId));
+        assertTrue(sale.supportsInterface(type(ISignalsImplicitMode).interfaceId));
     }
 
     /**
@@ -65,6 +63,7 @@ contract ERC721SaleBaseTest is TestHelper, IERC721SaleSignals {
      */
     function testSelectorCollision() public pure {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
+        checkSelectorCollision(0xc58ab92d); // acceptImplicitRequest(address,(address,bytes4,bytes32,bytes32,bytes,(string)),(address,uint256,bytes,uint256,bool,bool,uint256))
         checkSelectorCollision(0xbad43661); // checkMerkleProof(bytes32,bytes32[],address,bytes32)
         checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
         checkSelectorCollision(0x9010d07c); // getRoleMember(bytes32,uint256)
@@ -78,17 +77,26 @@ contract ERC721SaleBaseTest is TestHelper, IERC721SaleSignals {
         checkSelectorCollision(0xd547741f); // revokeRole(bytes32,address)
         checkSelectorCollision(0x3474a4a6); // saleDetails()
         checkSelectorCollision(0x8c17030f); // setSaleDetails(uint256,uint256,address,uint64,uint64,bytes32)
+        checkSelectorCollision(0x2d141c83); // setSignalsImplicitMode(address,bytes32)
         checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
         checkSelectorCollision(0x44004cc1); // withdrawERC20(address,address,uint256)
         checkSelectorCollision(0x4782f779); // withdrawETH(address,uint256)
     }
 
-    function testFactoryDetermineAddress(address _proxyOwner, address tokenOwner, address items) public {
+    function testFactoryDetermineAddress(
+        address _proxyOwner,
+        address tokenOwner,
+        address items,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
+    ) public {
         vm.assume(_proxyOwner != address(0));
         vm.assume(tokenOwner != address(0));
         ERC721SaleFactory factory = new ERC721SaleFactory(address(this));
-        address deployedAddr = factory.deploy(_proxyOwner, tokenOwner, items);
-        address predictedAddr = factory.determineAddress(_proxyOwner, tokenOwner, items);
+        address deployedAddr =
+            factory.deploy(_proxyOwner, tokenOwner, items, implicitModeValidator, implicitModeProjectId);
+        address predictedAddr =
+            factory.determineAddress(_proxyOwner, tokenOwner, items, implicitModeValidator, implicitModeProjectId);
         assertEq(deployedAddr, predictedAddr);
     }
 
@@ -110,7 +118,7 @@ contract ERC721SaleBaseTest is TestHelper, IERC721SaleSignals {
         vm.expectRevert(revertString);
         sale.withdrawETH(withdrawTo, amount);
 
-        ERC20Mock erc20 = new ERC20Mock();
+        ERC20Mock erc20 = new ERC20Mock(address(this));
 
         vm.expectRevert(revertString);
         sale.withdrawERC20(address(erc20), withdrawTo, amount);
@@ -131,8 +139,8 @@ contract ERC721SaleBaseTest is TestHelper, IERC721SaleSignals {
     function testWithdrawERC20(bool useFactory, address withdrawTo, uint256 amount) public withFactory(useFactory) {
         assumeSafeAddress(withdrawTo);
 
-        ERC20Mock erc20 = new ERC20Mock();
-        erc20.mockMint(address(sale), amount);
+        ERC20Mock erc20 = new ERC20Mock(address(this));
+        erc20.mint(address(sale), amount);
 
         uint256 balance = erc20.balanceOf(withdrawTo);
         sale.withdrawERC20(address(erc20), withdrawTo, amount);

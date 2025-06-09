@@ -2,7 +2,6 @@
 pragma solidity ^0.8.19;
 
 import { TestHelper } from "../../../TestHelper.sol";
-import { stdError } from "forge-std/Test.sol";
 
 import { IERC1155SupplyFunctions } from "src/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
 import { ERC1155Items } from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
@@ -13,13 +12,15 @@ import {
     IERC1155ItemsSignals
 } from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
+import { IERC1155Metadata } from "erc-1155/src/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 
-// Interfaces
+import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsImplicitMode.sol";
 
-import { IERC1155 } from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
-import { IERC165 } from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
-import { IERC1155Metadata } from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
+import { stdError } from "forge-std/Test.sol";
+
+import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
 
@@ -44,12 +45,16 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         vm.deal(owner, 100 ether);
 
         ERC1155ItemsFactory factory = new ERC1155ItemsFactory(address(this));
-        token = ERC1155Items(factory.deploy(proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0));
+        token = ERC1155Items(
+            factory.deploy(
+                proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0)
+            )
+        );
     }
 
     function testReinitializeFails() public {
         vm.expectRevert(InvalidInitialization.selector);
-        token.initialize(owner, "name", "baseURI", "contractURI", address(this), 0);
+        token.initialize(owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0));
     }
 
     function testSupportsInterface() public view {
@@ -58,6 +63,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         assertTrue(token.supportsInterface(type(IERC1155Metadata).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155SupplyFunctions).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155ItemsFunctions).interfaceId));
+        assertTrue(token.supportsInterface(type(ISignalsImplicitMode).interfaceId));
     }
 
     /**
@@ -66,6 +72,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
      */
     function testSelectorCollision() public pure {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
+        checkSelectorCollision(0xc58ab92d); // acceptImplicitRequest(address,(address,bytes4,bytes32,bytes32,bytes,(string)),(address,uint256,bytes,uint256,bool,bool,uint256))
         checkSelectorCollision(0x00fdd58e); // balanceOf(address,uint256)
         checkSelectorCollision(0x4e1273f4); // balanceOfBatch(address[],uint256[])
         checkSelectorCollision(0x6c0360eb); // baseURI()
@@ -92,6 +99,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         checkSelectorCollision(0x0b5ee006); // setContractName(string)
         checkSelectorCollision(0x938e3d7b); // setContractURI(string)
         checkSelectorCollision(0x04634d8d); // setDefaultRoyalty(address,uint96)
+        checkSelectorCollision(0x2d141c83); // setSignalsImplicitMode(address,bytes32)
         checkSelectorCollision(0x5944c753); // setTokenRoyalty(uint256,address,uint96)
         checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
         checkSelectorCollision(0x2693ebf2); // tokenSupply(uint256)
@@ -104,6 +112,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         assertTrue(token.hasRole(keccak256("METADATA_ADMIN_ROLE"), owner));
         assertTrue(token.hasRole(keccak256("MINTER_ROLE"), owner));
         assertTrue(token.hasRole(keccak256("ROYALTY_ADMIN_ROLE"), owner));
+        assertTrue(token.hasRole(keccak256("IMPLICIT_MODE_ADMIN_ROLE"), owner));
     }
 
     function testFactoryDetermineAddress(
@@ -113,17 +122,36 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         string memory baseURI,
         string memory contractURI,
         address royaltyReceiver,
-        uint96 royaltyFeeNumerator
+        uint96 royaltyFeeNumerator,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) public {
         vm.assume(_proxyOwner != address(0));
         vm.assume(tokenOwner != address(0));
         vm.assume(royaltyReceiver != address(0));
         royaltyFeeNumerator = uint96(bound(royaltyFeeNumerator, 0, 10_000));
         ERC1155ItemsFactory factory = new ERC1155ItemsFactory(address(this));
-        address deployedAddr =
-            factory.deploy(_proxyOwner, tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator);
+        address deployedAddr = factory.deploy(
+            _proxyOwner,
+            tokenOwner,
+            name,
+            baseURI,
+            contractURI,
+            royaltyReceiver,
+            royaltyFeeNumerator,
+            implicitModeValidator,
+            implicitModeProjectId
+        );
         address predictedAddr = factory.determineAddress(
-            _proxyOwner, tokenOwner, name, baseURI, contractURI, royaltyReceiver, royaltyFeeNumerator
+            _proxyOwner,
+            tokenOwner,
+            name,
+            baseURI,
+            contractURI,
+            royaltyReceiver,
+            royaltyFeeNumerator,
+            implicitModeValidator,
+            implicitModeProjectId
         );
         assertEq(deployedAddr, predictedAddr);
     }

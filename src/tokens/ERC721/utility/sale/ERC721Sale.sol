@@ -1,25 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {
-    IERC721Sale, IERC721SaleFunctions
-} from "@0xsequence/contracts-library/tokens/ERC721/utility/sale/IERC721Sale.sol";
+import { MerkleProofSingleUse } from "../../../common/MerkleProofSingleUse.sol";
+import { SignalsImplicitModeControlled } from "../../../common/SignalsImplicitModeControlled.sol";
+import { AccessControlEnumerable, IERC20, SafeERC20, WithdrawControlled } from "../../../common/WithdrawControlled.sol";
+import { IERC721ItemsFunctions } from "../../presets/items/IERC721Items.sol";
+import { IERC721Sale, IERC721SaleFunctions } from "./IERC721Sale.sol";
 
-import { MerkleProofSingleUse } from "@0xsequence/contracts-library/tokens/common/MerkleProofSingleUse.sol";
-import {
-    AccessControlEnumerable,
-    IERC20,
-    SafeERC20,
-    WithdrawControlled
-} from "@0xsequence/contracts-library/tokens/common/WithdrawControlled.sol";
-
-import { IERC721ItemsFunctions } from "@0xsequence/contracts-library/tokens/ERC721/presets/items/IERC721Items.sol";
-import { IERC721A } from "erc721a/contracts/extensions/ERC721AQueryable.sol";
+import { IERC721A } from "erc721a/extensions/ERC721AQueryable.sol";
 
 /**
  * An ERC-721 token contract with primary sale mechanisms.
  */
-contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
+contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse, SignalsImplicitModeControlled {
 
     bytes32 internal constant MINT_ADMIN_ROLE = keccak256("MINT_ADMIN_ROLE");
 
@@ -31,9 +24,16 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
      * Initialize the contract.
      * @param owner The owner of the contract
      * @param items The ERC-721 Items contract address
+     * @param implicitModeValidator Implicit session validator address
+     * @param implicitModeProjectId Implicit session project id
      * @dev This should be called immediately after deployment.
      */
-    function initialize(address owner, address items) public virtual {
+    function initialize(
+        address owner,
+        address items,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
+    ) public virtual {
         if (_initialized) {
             revert InvalidInitialization();
         }
@@ -43,6 +43,8 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(MINT_ADMIN_ROLE, owner);
         _grantRole(WITHDRAW_ROLE, owner);
+
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
 
         _initialized = true;
     }
@@ -183,8 +185,10 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse {
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(AccessControlEnumerable) returns (bool) {
-        return interfaceId == type(IERC721SaleFunctions).interfaceId || super.supportsInterface(interfaceId);
+    ) public view virtual override(WithdrawControlled, SignalsImplicitModeControlled) returns (bool) {
+        return interfaceId == type(IERC721SaleFunctions).interfaceId
+            || WithdrawControlled.supportsInterface(interfaceId)
+            || SignalsImplicitModeControlled.supportsInterface(interfaceId);
     }
 
 }

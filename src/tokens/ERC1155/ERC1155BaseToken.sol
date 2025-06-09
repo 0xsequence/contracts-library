@@ -1,19 +1,23 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import {
-    ERC1155, ERC1155Supply
-} from "@0xsequence/contracts-library/tokens/ERC1155/extensions/supply/ERC1155Supply.sol";
+import { ERC2981Controlled } from "../common/ERC2981Controlled.sol";
+import { SignalsImplicitModeControlled } from "../common/SignalsImplicitModeControlled.sol";
+import { ERC1155, ERC1155Supply } from "./extensions/supply/ERC1155Supply.sol";
 
-import { ERC2981Controlled } from "@0xsequence/contracts-library/tokens/common/ERC2981Controlled.sol";
-import { ERC1155Metadata } from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155Metadata.sol";
+import { ERC1155Metadata } from "erc-1155/src/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 
 error InvalidInitialization();
 
 /**
  * A standard base implementation of ERC-1155 for use in Sequence library contracts.
  */
-abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Controlled {
+abstract contract ERC1155BaseToken is
+    ERC1155Supply,
+    ERC1155Metadata,
+    ERC2981Controlled,
+    SignalsImplicitModeControlled
+{
 
     bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
@@ -30,13 +34,17 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Con
      * @param tokenName Token name.
      * @param tokenBaseURI Base URI for token metadata.
      * @param tokenContractURI Contract URI for token metadata.
+     * @param implicitModeValidator Implicit session validator address.
+     * @param implicitModeProjectId Implicit session project id.
      * @dev This should be called immediately after deployment.
      */
     function _initialize(
         address owner,
         string memory tokenName,
         string memory tokenBaseURI,
-        string memory tokenContractURI
+        string memory tokenContractURI,
+        address implicitModeValidator,
+        bytes32 implicitModeProjectId
     ) internal {
         name = tokenName;
         baseURI = tokenBaseURI;
@@ -45,6 +53,8 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Con
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(ROYALTY_ADMIN_ROLE, owner);
         _grantRole(METADATA_ADMIN_ROLE, owner);
+
+        _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
     }
 
     //
@@ -124,9 +134,16 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC1155Metadata, ERC2981Con
      */
     function supportsInterface(
         bytes4 interfaceId
-    ) public view virtual override(ERC1155Supply, ERC1155Metadata, ERC2981Controlled) returns (bool) {
+    )
+        public
+        view
+        virtual
+        override(ERC1155Supply, ERC1155Metadata, ERC2981Controlled, SignalsImplicitModeControlled)
+        returns (bool)
+    {
         return ERC1155Supply.supportsInterface(interfaceId) || ERC1155Metadata.supportsInterface(interfaceId)
-            || ERC2981Controlled.supportsInterface(interfaceId) || super.supportsInterface(interfaceId);
+            || ERC2981Controlled.supportsInterface(interfaceId)
+            || SignalsImplicitModeControlled.supportsInterface(interfaceId);
     }
 
 }
