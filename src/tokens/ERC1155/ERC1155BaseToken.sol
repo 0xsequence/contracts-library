@@ -5,28 +5,25 @@ import { ERC2981Controlled } from "../common/ERC2981Controlled.sol";
 import { SignalsImplicitModeControlled } from "../common/SignalsImplicitModeControlled.sol";
 import { ERC1155, ERC1155Supply } from "./extensions/supply/ERC1155Supply.sol";
 
-import { ERC1155Metadata } from "erc-1155/src/contracts/tokens/ERC1155/ERC1155Metadata.sol";
+import { LibString } from "solady/utils/LibString.sol";
 
 error InvalidInitialization();
 
 /**
  * A standard base implementation of ERC-1155 for use in Sequence library contracts.
  */
-abstract contract ERC1155BaseToken is
-    ERC1155Supply,
-    ERC1155Metadata,
-    ERC2981Controlled,
-    SignalsImplicitModeControlled
-{
+abstract contract ERC1155BaseToken is ERC1155Supply, ERC2981Controlled, SignalsImplicitModeControlled {
 
     bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
+    string private _name;
+    string private _baseURI;
     string private _contractURI;
 
     /**
      * Deploy contract.
      */
-    constructor() ERC1155Metadata("", "") { }
+    constructor() { }
 
     /**
      * Initialize the contract.
@@ -46,8 +43,8 @@ abstract contract ERC1155BaseToken is
         address implicitModeValidator,
         bytes32 implicitModeProjectId
     ) internal {
-        name = tokenName;
-        baseURI = tokenBaseURI;
+        _name = tokenName;
+        _baseURI = tokenBaseURI;
         _contractURI = tokenContractURI;
 
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
@@ -61,6 +58,13 @@ abstract contract ERC1155BaseToken is
     // Metadata
     //
 
+    /// @inheritdoc ERC1155
+    function uri(
+        uint256 _id
+    ) public view virtual override returns (string memory) {
+        return string(abi.encodePacked(_baseURI, LibString.toString(_id), ".json"));
+    }
+
     /**
      * Update the base URI of token's URI.
      * @param tokenBaseURI New base URI of token's URI
@@ -68,7 +72,7 @@ abstract contract ERC1155BaseToken is
     function setBaseMetadataURI(
         string memory tokenBaseURI
     ) external onlyRole(METADATA_ADMIN_ROLE) {
-        _setBaseMetadataURI(tokenBaseURI);
+        _baseURI = tokenBaseURI;
     }
 
     /**
@@ -78,7 +82,7 @@ abstract contract ERC1155BaseToken is
     function setContractName(
         string memory tokenName
     ) external onlyRole(METADATA_ADMIN_ROLE) {
-        _setContractName(tokenName);
+        _name = tokenName;
     }
 
     /**
