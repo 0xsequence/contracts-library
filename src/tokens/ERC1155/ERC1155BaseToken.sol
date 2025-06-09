@@ -16,9 +16,9 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC2981Controlled, SignalsI
 
     bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
-    string private _name;
-    string private _baseURI;
-    string private _contractURI;
+    string public name;
+    string public baseURI;
+    string public contractURI;
 
     /**
      * Deploy contract.
@@ -43,9 +43,9 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC2981Controlled, SignalsI
         address implicitModeValidator,
         bytes32 implicitModeProjectId
     ) internal {
-        _name = tokenName;
-        _baseURI = tokenBaseURI;
-        _contractURI = tokenContractURI;
+        name = tokenName;
+        baseURI = tokenBaseURI;
+        contractURI = tokenContractURI;
 
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(ROYALTY_ADMIN_ROLE, owner);
@@ -62,7 +62,7 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC2981Controlled, SignalsI
     function uri(
         uint256 _id
     ) public view virtual override returns (string memory) {
-        return string(abi.encodePacked(_baseURI, LibString.toString(_id), ".json"));
+        return string(abi.encodePacked(baseURI, LibString.toString(_id), ".json"));
     }
 
     /**
@@ -72,7 +72,7 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC2981Controlled, SignalsI
     function setBaseMetadataURI(
         string memory tokenBaseURI
     ) external onlyRole(METADATA_ADMIN_ROLE) {
-        _baseURI = tokenBaseURI;
+        baseURI = tokenBaseURI;
     }
 
     /**
@@ -82,7 +82,7 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC2981Controlled, SignalsI
     function setContractName(
         string memory tokenName
     ) external onlyRole(METADATA_ADMIN_ROLE) {
-        _name = tokenName;
+        name = tokenName;
     }
 
     /**
@@ -93,7 +93,7 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC2981Controlled, SignalsI
     function setContractURI(
         string memory tokenContractURI
     ) external onlyRole(METADATA_ADMIN_ROLE) {
-        _contractURI = tokenContractURI;
+        contractURI = tokenContractURI;
     }
 
     //
@@ -115,21 +115,12 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC2981Controlled, SignalsI
      * @param amounts Array of the amount to be burned
      */
     function batchBurn(uint256[] memory tokenIds, uint256[] memory amounts) public virtual {
-        _batchBurn(msg.sender, tokenIds, amounts);
+        super._batchBurn(msg.sender, tokenIds, amounts);
     }
 
     //
     // Views
     //
-
-    /**
-     * Get the contract URI of token's URI.
-     * @return Contract URI of token's URI
-     * @notice Refer to https://docs.opensea.io/docs/contract-level-metadata
-     */
-    function contractURI() public view returns (string memory) {
-        return _contractURI;
-    }
 
     /**
      * Check interface support.
@@ -138,15 +129,8 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC2981Controlled, SignalsI
      */
     function supportsInterface(
         bytes4 interfaceId
-    )
-        public
-        view
-        virtual
-        override(ERC1155Supply, ERC1155Metadata, ERC2981Controlled, SignalsImplicitModeControlled)
-        returns (bool)
-    {
-        return ERC1155Supply.supportsInterface(interfaceId) || ERC1155Metadata.supportsInterface(interfaceId)
-            || ERC2981Controlled.supportsInterface(interfaceId)
+    ) public view virtual override(ERC1155Supply, ERC2981Controlled, SignalsImplicitModeControlled) returns (bool) {
+        return ERC1155Supply.supportsInterface(interfaceId) || ERC2981Controlled.supportsInterface(interfaceId)
             || SignalsImplicitModeControlled.supportsInterface(interfaceId);
     }
 

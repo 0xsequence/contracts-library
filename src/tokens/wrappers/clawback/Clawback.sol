@@ -6,13 +6,10 @@ import { IMetadataProvider } from "../../common/IMetadataProvider.sol";
 import { SignalsImplicitModeControlled } from "../../common/SignalsImplicitModeControlled.sol";
 import { IClawback, IClawbackFunctions } from "./IClawback.sol";
 
-import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
-import { IERC1155Metadata } from "erc-1155/src/contracts/interfaces/IERC1155Metadata.sol";
-import { ERC1155, ERC1155MintBurn } from "erc-1155/src/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
-
+import { ERC1155 } from "solady/tokens/ERC1155.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
-contract Clawback is ERC1155MintBurn, IERC1155Metadata, IClawback, SignalsImplicitModeControlled {
+contract Clawback is ERC1155, IClawback, SignalsImplicitModeControlled {
 
     bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
@@ -256,7 +253,7 @@ contract Clawback is ERC1155MintBurn, IERC1155Metadata, IClawback, SignalsImplic
         address to,
         uint256 wrappedTokenId,
         uint256 amount,
-        bytes memory data
+        bytes calldata data
     ) public override {
         TokenDetails memory details = _tokenDetails[wrappedTokenId];
         Template memory template = _templates[details.templateId];
@@ -282,9 +279,9 @@ contract Clawback is ERC1155MintBurn, IERC1155Metadata, IClawback, SignalsImplic
     function safeBatchTransferFrom(
         address from,
         address to,
-        uint256[] memory wrappedTokenIds,
-        uint256[] memory amounts,
-        bytes memory data
+        uint256[] calldata wrappedTokenIds,
+        uint256[] calldata amounts,
+        bytes calldata data
     ) public override {
         uint256 len = wrappedTokenIds.length;
         for (uint256 i = 0; i < len;) {
@@ -319,7 +316,7 @@ contract Clawback is ERC1155MintBurn, IERC1155Metadata, IClawback, SignalsImplic
                 revert InvalidTokenTransfer();
             }
             // ERC-1155
-            IERC1155(tokenAddr).safeTransferFrom(from, to, tokenId, amount, "");
+            ERC1155(tokenAddr).safeTransferFrom(from, to, tokenId, amount, "");
         } else if (tokenType == TokenType.ERC721) {
             // ERC721
             if (amount != 1) {
@@ -350,7 +347,7 @@ contract Clawback is ERC1155MintBurn, IERC1155Metadata, IClawback, SignalsImplic
 
     function uri(
         uint256 wrappedTokenId
-    ) external view override returns (string memory) {
+    ) public view override returns (string memory) {
         return metadataProvider.metadata(address(this), wrappedTokenId);
     }
 
@@ -394,7 +391,6 @@ contract Clawback is ERC1155MintBurn, IERC1155Metadata, IClawback, SignalsImplic
         bytes4 _interfaceID
     ) public view virtual override(SignalsImplicitModeControlled, ERC1155) returns (bool) {
         return _interfaceID == type(IClawback).interfaceId || _interfaceID == type(IClawbackFunctions).interfaceId
-            || _interfaceID == type(IERC1155Metadata).interfaceId
             || SignalsImplicitModeControlled.supportsInterface(_interfaceID) || ERC1155.supportsInterface(_interfaceID);
     }
 

@@ -6,16 +6,16 @@ import { ERC20Mock } from "../../../_mocks/ERC20Mock.sol";
 import { ERC721Mock } from "../../../_mocks/ERC721Mock.sol";
 import { IGenericToken } from "../../../_mocks/IGenericToken.sol";
 
-import { IERC1155TokenReceiver } from "erc-1155/src/contracts/interfaces/IERC1155TokenReceiver.sol";
-
 import { Test, console, stdError } from "forge-std/Test.sol";
+
 import { IERC721Receiver } from "openzeppelin-contracts/contracts/interfaces/IERC721Receiver.sol";
+import { IERC1155Receiver } from "openzeppelin-contracts/contracts/token/ERC1155/IERC1155Receiver.sol";
 
 import { Clawback } from "src/tokens/wrappers/clawback/Clawback.sol";
 import { ClawbackMetadata } from "src/tokens/wrappers/clawback/ClawbackMetadata.sol";
 import { IClawbackFunctions } from "src/tokens/wrappers/clawback/IClawback.sol";
 
-contract ClawbackTestBase is Test, IERC1155TokenReceiver, IERC721Receiver {
+contract ClawbackTestBase is Test, IERC1155Receiver, IERC721Receiver {
 
     Clawback public clawback;
     ClawbackMetadata public clawbackMetadata;
@@ -126,6 +126,12 @@ contract ClawbackTestBase is Test, IERC1155TokenReceiver, IERC721Receiver {
         assumeNotPrecompile(addr);
         assumeNotForgeAddress(addr);
         _;
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) external pure returns (bool) {
+        return interfaceId == type(IERC1155Receiver).interfaceId || interfaceId == type(IERC721Receiver).interfaceId;
     }
 
 }

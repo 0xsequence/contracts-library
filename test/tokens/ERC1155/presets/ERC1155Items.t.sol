@@ -12,15 +12,13 @@ import {
     IERC1155ItemsSignals
 } from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
 
-import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
-import { IERC1155Metadata } from "erc-1155/src/contracts/tokens/ERC1155/ERC1155Metadata.sol";
+import { IERC1155 } from "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
+import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsImplicitMode.sol";
 
-import { stdError } from "forge-std/Test.sol";
-
-import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
-import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+import { ERC1155 } from "solady/tokens/ERC1155.sol";
 
 contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
 
@@ -60,7 +58,6 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
     function testSupportsInterface() public view {
         assertTrue(token.supportsInterface(type(IERC165).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC1155Metadata).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155SupplyFunctions).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155ItemsFunctions).interfaceId));
         assertTrue(token.supportsInterface(type(ISignalsImplicitMode).interfaceId));
@@ -315,7 +312,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         vm.prank(owner);
         token.mint(caller, tokenId, amount, "");
 
-        vm.expectRevert(stdError.arithmeticError);
+        vm.expectRevert(ERC1155.InsufficientBalance.selector);
         token.burn(tokenId, burnAmount);
     }
 
@@ -402,7 +399,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
 
         amounts[0]++; // Now we burn too many
 
-        vm.expectRevert(stdError.arithmeticError);
+        vm.expectRevert(ERC1155.InsufficientBalance.selector);
         token.batchBurn(tokenIds, amounts);
     }
 

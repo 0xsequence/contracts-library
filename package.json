@@ -14,7 +14,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "forge build --force",
-    "deploy": "ts-node scripts/deploy.ts",
+    "deploy": "forge script Deploy",
     "test": "forge test",
     "coverage": "forge coverage --report lcov",
     "snapshot:compare": "forge snapshot --diff .gas-snapshot",

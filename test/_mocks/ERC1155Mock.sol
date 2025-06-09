@@ -16,7 +16,7 @@ contract ERC1155Mock is ERC1155BaseToken, IGenericToken {
     }
 
     function approve(address owner, address operator, uint256, uint256 amount) external override {
-        operators[owner][operator] = amount > 0;
+        _setApprovalForAll(owner, operator, amount > 0);
     }
 
     function balanceOf(address owner, uint256 tokenId) public view override(ERC1155, IGenericToken) returns (uint256) {

@@ -6,9 +6,9 @@ This repository provides a set of smart contracts to facilitate the creation and
 
 Base and preset **implementations of common token standards**:
 
-* ERC-20
-* ERC-721
-* ERC-1155
+- ERC-20
+- ERC-721
+- ERC-1155
 
 **Common token functionality**, such as the `ERC2981-Controlled` contract which provides a way to handle royalties in NFTs.
 
@@ -43,7 +43,7 @@ cp .env.example .env
 Then run the deployment script.
 
 ```sh
-yarn deploy
+yarn deploy --rpc-url $RPC_URL --broadcast
 ```
 
 ## Dependencies

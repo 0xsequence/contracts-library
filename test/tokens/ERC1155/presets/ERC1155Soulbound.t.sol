@@ -190,8 +190,8 @@ contract ERC1155SoulboundTest is TestHelper, IERC1155ItemsSignals, IERC1155Soulb
         vm.prank(holder);
         token.setApprovalForAll(operator, true);
 
-        vm.expectRevert(TransfersLocked.selector);
         vm.prank(operator);
+        vm.expectRevert(TransfersLocked.selector);
         token.safeTransferFrom(holder, receiver, tokenId, 1, "");
     }
 
