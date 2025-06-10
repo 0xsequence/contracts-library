@@ -47,7 +47,7 @@ contract SignalsImplicitModeTest is TestHelper {
             issuerHash: bytes32(uint256(1)),
             audienceHash: bytes32(uint256(2)),
             applicationData: bytes("test data"),
-            authData: AuthData({ redirectUrl: "https://example.com/redirect" })
+            authData: AuthData({ redirectUrl: "https://example.com/redirect", issuedAt: uint64(block.timestamp) })
         });
 
         Payload.Call memory call = Payload.Call({
@@ -83,7 +83,7 @@ contract SignalsImplicitModeTest is TestHelper {
             issuerHash: bytes32(uint256(1)),
             audienceHash: bytes32(uint256(2)),
             applicationData: bytes("test data"),
-            authData: AuthData({ redirectUrl: "https://example.com/redirect" })
+            authData: AuthData({ redirectUrl: "https://example.com/redirect", issuedAt: uint64(block.timestamp) })
         });
 
         Payload.Call memory call = Payload.Call({
@@ -119,7 +119,7 @@ contract SignalsImplicitModeTest is TestHelper {
             issuerHash: bytes32(uint256(1)),
             audienceHash: bytes32(uint256(2)),
             applicationData: bytes("test data"),
-            authData: AuthData({ redirectUrl: "https://example.com/redirect" })
+            authData: AuthData({ redirectUrl: "https://example.com/redirect", issuedAt: uint64(block.timestamp) })
         });
 
         Payload.Call memory call = Payload.Call({
@@ -155,7 +155,7 @@ contract SignalsImplicitModeTest is TestHelper {
             issuerHash: bytes32(uint256(1)),
             audienceHash: bytes32(uint256(2)),
             applicationData: bytes("test data"),
-            authData: AuthData({ redirectUrl: "https://example.com/redirect" })
+            authData: AuthData({ redirectUrl: "https://example.com/redirect", issuedAt: uint64(block.timestamp) })
         });
 
         Payload.Call memory call = Payload.Call({
@@ -189,7 +189,7 @@ contract SignalsImplicitModeTest is TestHelper {
             issuerHash: bytes32(uint256(1)),
             audienceHash: bytes32(uint256(2)),
             applicationData: bytes("test data"),
-            authData: AuthData({ redirectUrl: "https://example.com/redirect" })
+            authData: AuthData({ redirectUrl: "https://example.com/redirect", issuedAt: uint64(block.timestamp) })
         });
 
         Payload.Call memory call = Payload.Call({
