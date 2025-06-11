@@ -12,15 +12,13 @@ import {
     IERC1155ItemsSignals
 } from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
 
-import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
-import { IERC1155Metadata } from "erc-1155/src/contracts/tokens/ERC1155/ERC1155Metadata.sol";
+import { IERC1155 } from "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
+import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsImplicitMode.sol";
 
-import { stdError } from "forge-std/Test.sol";
-
-import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
-import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+import { ERC1155 } from "solady/tokens/ERC1155.sol";
 
 contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
 
@@ -60,7 +58,6 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
     function testSupportsInterface() public view {
         assertTrue(token.supportsInterface(type(IERC165).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC1155Metadata).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155SupplyFunctions).interfaceId));
         assertTrue(token.supportsInterface(type(IERC1155ItemsFunctions).interfaceId));
         assertTrue(token.supportsInterface(type(ISignalsImplicitMode).interfaceId));
@@ -85,7 +82,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         checkSelectorCollision(0xca15c873); // getRoleMemberCount(bytes32)
         checkSelectorCollision(0x2f2ff15d); // grantRole(bytes32,address)
         checkSelectorCollision(0x91d14854); // hasRole(bytes32,address)
-        checkSelectorCollision(0xf8954818); // initialize(address,string,string,string,address,uint96)
+        checkSelectorCollision(0x8ff83ac1); // initialize(address,string,string,string,address,uint96,address,bytes32)
         checkSelectorCollision(0xe985e9c5); // isApprovedForAll(address,address)
         checkSelectorCollision(0x731133e9); // mint(address,uint256,uint256,bytes)
         checkSelectorCollision(0x06fdde03); // name()
@@ -99,7 +96,8 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         checkSelectorCollision(0x0b5ee006); // setContractName(string)
         checkSelectorCollision(0x938e3d7b); // setContractURI(string)
         checkSelectorCollision(0x04634d8d); // setDefaultRoyalty(address,uint96)
-        checkSelectorCollision(0x2d141c83); // setSignalsImplicitMode(address,bytes32)
+        checkSelectorCollision(0xed4c2ac7); // setImplicitModeProjectId(bytes32)
+        checkSelectorCollision(0x0bb310de); // setImplicitModeValidator(address)
         checkSelectorCollision(0x5944c753); // setTokenRoyalty(uint256,address,uint96)
         checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
         checkSelectorCollision(0x2693ebf2); // tokenSupply(uint256)
@@ -314,7 +312,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
         vm.prank(owner);
         token.mint(caller, tokenId, amount, "");
 
-        vm.expectRevert(stdError.arithmeticError);
+        vm.expectRevert(ERC1155.InsufficientBalance.selector);
         token.burn(tokenId, burnAmount);
     }
 
@@ -401,7 +399,7 @@ contract ERC1155ItemsTest is TestHelper, IERC1155ItemsSignals {
 
         amounts[0]++; // Now we burn too many
 
-        vm.expectRevert(stdError.arithmeticError);
+        vm.expectRevert(ERC1155.InsufficientBalance.selector);
         token.batchBurn(tokenIds, amounts);
     }
 

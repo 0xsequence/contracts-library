@@ -4,6 +4,8 @@ pragma solidity ^0.8.19;
 import { ERC1155Items } from "../items/ERC1155Items.sol";
 import { IERC1155Soulbound, IERC1155SoulboundFunctions } from "./IERC1155Soulbound.sol";
 
+import { ERC1155 } from "solady/tokens/ERC1155.sol";
+
 /**
  * An implementation of ERC-1155 that prevents transfers.
  */
@@ -54,25 +56,24 @@ contract ERC1155Soulbound is ERC1155Items, IERC1155Soulbound {
 
     // Transfer hooks
 
-    function _safeTransferFrom(address from, address to, uint256 id, uint256 amount) internal virtual override {
-        // Mint transactions allowed
-        if (_transferLocked && from != address(0)) {
-            revert TransfersLocked();
-        }
-        super._safeTransferFrom(from, to, id, amount);
+    /// @dev Use the beforeTokenTransfer hook to block transfers
+    function _useBeforeTokenTransfer() internal pure override returns (bool) {
+        return true;
     }
 
-    function _safeBatchTransferFrom(
+    /// @inheritdoc ERC1155
+    /// @dev Block transfers if the token is soulbound
+    /// @dev Mint transactions allowed
+    function _beforeTokenTransfer(
         address from,
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts
+        address,
+        uint256[] memory,
+        uint256[] memory,
+        bytes memory
     ) internal virtual override {
-        // Mint transactions allowed
         if (_transferLocked && from != address(0)) {
             revert TransfersLocked();
         }
-        super._safeBatchTransferFrom(from, to, ids, amounts);
     }
 
     function _burn(address from, uint256 id, uint256 amount) internal virtual override {

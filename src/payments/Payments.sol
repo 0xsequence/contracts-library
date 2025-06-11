@@ -5,7 +5,7 @@ import { IERC721Transfer } from "../tokens/common/IERC721Transfer.sol";
 import { SignatureValidator } from "../utils/SignatureValidator.sol";
 import { IPayments, IPaymentsFunctions } from "./IPayments.sol";
 
-import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
+import { IERC1155 } from "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
 
 import { Ownable } from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";

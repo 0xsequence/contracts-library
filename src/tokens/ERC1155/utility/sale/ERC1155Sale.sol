@@ -9,7 +9,7 @@ import { IERC1155SupplyFunctions } from "../../extensions/supply/IERC1155Supply.
 import { IERC1155ItemsFunctions } from "../../presets/items/IERC1155Items.sol";
 import { IERC1155Sale, IERC1155SaleFunctions } from "./IERC1155Sale.sol";
 
-import { IERC1155 } from "erc-1155/src/contracts/interfaces/IERC1155.sol";
+import { IERC1155 } from "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
 
 contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, SignalsImplicitModeControlled {
 

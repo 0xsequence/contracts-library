@@ -6,7 +6,7 @@ import { ClawbackMetadata, ClawbackTestBase, IClawbackFunctions } from "./Clawba
 import { IMetadataProvider } from "src/tokens/common/IMetadataProvider.sol";
 import { Duration } from "src/utils/Duration.sol";
 
-import { IERC165 } from "erc-1155/src/contracts/interfaces/IERC165.sol";
+import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 import { console, stdError } from "forge-std/Test.sol";
 

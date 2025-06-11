@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IERC1271Wallet } from "erc-1155/src/contracts/interfaces/IERC1271Wallet.sol";
+import { IERC1271 } from "openzeppelin-contracts/contracts/interfaces/IERC1271.sol";
 
-contract ERC1271Mock is IERC1271Wallet {
+contract ERC1271Mock is IERC1271 {
 
     mapping(bytes32 => bool) private _validSignatures;
 
@@ -13,10 +13,7 @@ contract ERC1271Mock is IERC1271Wallet {
         _validSignatures[signature] = true;
     }
 
-    function isValidSignature(
-        bytes calldata,
-        bytes calldata signature
-    ) external view override returns (bytes4 magicValue) {
+    function isValidSignature(bytes calldata, bytes calldata signature) external view returns (bytes4 magicValue) {
         bytes32 sigBytes32 = abi.decode(signature, (bytes32));
         if (_validSignatures[sigBytes32]) {
             return 0x20c13b0b;

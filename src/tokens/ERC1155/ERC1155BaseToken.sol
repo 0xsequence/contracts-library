@@ -5,28 +5,25 @@ import { ERC2981Controlled } from "../common/ERC2981Controlled.sol";
 import { SignalsImplicitModeControlled } from "../common/SignalsImplicitModeControlled.sol";
 import { ERC1155, ERC1155Supply } from "./extensions/supply/ERC1155Supply.sol";
 
-import { ERC1155Metadata } from "erc-1155/src/contracts/tokens/ERC1155/ERC1155Metadata.sol";
+import { LibString } from "solady/utils/LibString.sol";
 
 error InvalidInitialization();
 
 /**
  * A standard base implementation of ERC-1155 for use in Sequence library contracts.
  */
-abstract contract ERC1155BaseToken is
-    ERC1155Supply,
-    ERC1155Metadata,
-    ERC2981Controlled,
-    SignalsImplicitModeControlled
-{
+abstract contract ERC1155BaseToken is ERC1155Supply, ERC2981Controlled, SignalsImplicitModeControlled {
 
     bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
-    string private _contractURI;
+    string public name;
+    string public baseURI;
+    string public contractURI;
 
     /**
      * Deploy contract.
      */
-    constructor() ERC1155Metadata("", "") { }
+    constructor() { }
 
     /**
      * Initialize the contract.
@@ -48,7 +45,7 @@ abstract contract ERC1155BaseToken is
     ) internal {
         name = tokenName;
         baseURI = tokenBaseURI;
-        _contractURI = tokenContractURI;
+        contractURI = tokenContractURI;
 
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(ROYALTY_ADMIN_ROLE, owner);
@@ -61,6 +58,13 @@ abstract contract ERC1155BaseToken is
     // Metadata
     //
 
+    /// @inheritdoc ERC1155
+    function uri(
+        uint256 _id
+    ) public view virtual override returns (string memory) {
+        return string(abi.encodePacked(baseURI, LibString.toString(_id), ".json"));
+    }
+
     /**
      * Update the base URI of token's URI.
      * @param tokenBaseURI New base URI of token's URI
@@ -68,7 +72,7 @@ abstract contract ERC1155BaseToken is
     function setBaseMetadataURI(
         string memory tokenBaseURI
     ) external onlyRole(METADATA_ADMIN_ROLE) {
-        _setBaseMetadataURI(tokenBaseURI);
+        baseURI = tokenBaseURI;
     }
 
     /**
@@ -78,7 +82,7 @@ abstract contract ERC1155BaseToken is
     function setContractName(
         string memory tokenName
     ) external onlyRole(METADATA_ADMIN_ROLE) {
-        _setContractName(tokenName);
+        name = tokenName;
     }
 
     /**
@@ -89,7 +93,7 @@ abstract contract ERC1155BaseToken is
     function setContractURI(
         string memory tokenContractURI
     ) external onlyRole(METADATA_ADMIN_ROLE) {
-        _contractURI = tokenContractURI;
+        contractURI = tokenContractURI;
     }
 
     //
@@ -111,21 +115,12 @@ abstract contract ERC1155BaseToken is
      * @param amounts Array of the amount to be burned
      */
     function batchBurn(uint256[] memory tokenIds, uint256[] memory amounts) public virtual {
-        _batchBurn(msg.sender, tokenIds, amounts);
+        super._batchBurn(msg.sender, tokenIds, amounts);
     }
 
     //
     // Views
     //
-
-    /**
-     * Get the contract URI of token's URI.
-     * @return Contract URI of token's URI
-     * @notice Refer to https://docs.opensea.io/docs/contract-level-metadata
-     */
-    function contractURI() public view returns (string memory) {
-        return _contractURI;
-    }
 
     /**
      * Check interface support.
@@ -134,15 +129,8 @@ abstract contract ERC1155BaseToken is
      */
     function supportsInterface(
         bytes4 interfaceId
-    )
-        public
-        view
-        virtual
-        override(ERC1155Supply, ERC1155Metadata, ERC2981Controlled, SignalsImplicitModeControlled)
-        returns (bool)
-    {
-        return ERC1155Supply.supportsInterface(interfaceId) || ERC1155Metadata.supportsInterface(interfaceId)
-            || ERC2981Controlled.supportsInterface(interfaceId)
+    ) public view virtual override(ERC1155Supply, ERC2981Controlled, SignalsImplicitModeControlled) returns (bool) {
+        return ERC1155Supply.supportsInterface(interfaceId) || ERC2981Controlled.supportsInterface(interfaceId)
             || SignalsImplicitModeControlled.supportsInterface(interfaceId);
     }
 
