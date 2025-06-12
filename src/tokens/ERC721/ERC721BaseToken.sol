@@ -4,14 +4,15 @@ pragma solidity ^0.8.19;
 import { ERC2981Controlled } from "../common/ERC2981Controlled.sol";
 import { SignalsImplicitModeControlled } from "../common/SignalsImplicitModeControlled.sol";
 
-import { ERC721A, ERC721AQueryable, IERC721A, IERC721AQueryable } from "erc721a/extensions/ERC721AQueryable.sol";
+import { ERC721 } from "solady/tokens/ERC721.sol";
+import { LibString } from "solady/utils/LibString.sol";
 
 error InvalidInitialization();
 
 /**
  * A standard base implementation of ERC-721 for use in Sequence library contracts.
  */
-abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled, SignalsImplicitModeControlled {
+abstract contract ERC721BaseToken is ERC721, ERC2981Controlled, SignalsImplicitModeControlled {
 
     bytes32 internal constant METADATA_ADMIN_ROLE = keccak256("METADATA_ADMIN_ROLE");
 
@@ -19,11 +20,6 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled, Signal
     string private _tokenName;
     string private _tokenSymbol;
     string private _contractURI;
-
-    /**
-     * Deploy contract.
-     */
-    constructor() ERC721A("", "") { }
 
     /**
      * Initialize contract.
@@ -106,7 +102,7 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled, Signal
     function burn(
         uint256 tokenId
     ) public virtual {
-        _burn(tokenId, true);
+        _burn(msg.sender, tokenId);
     }
 
     /**
@@ -118,7 +114,7 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled, Signal
     ) public virtual {
         uint256 nBurn = tokenIds.length;
         for (uint256 i = 0; i < nBurn; i++) {
-            _burn(tokenIds[i], true);
+            _burn(msg.sender, tokenIds[i]);
         }
     }
 
@@ -142,40 +138,33 @@ abstract contract ERC721BaseToken is ERC721AQueryable, ERC2981Controlled, Signal
      */
     function supportsInterface(
         bytes4 interfaceId
-    )
-        public
-        view
-        virtual
-        override(ERC721A, IERC721A, ERC2981Controlled, SignalsImplicitModeControlled)
-        returns (bool)
-    {
-        return interfaceId == type(IERC721A).interfaceId || interfaceId == type(IERC721AQueryable).interfaceId
-            || ERC721A.supportsInterface(interfaceId) || ERC2981Controlled.supportsInterface(interfaceId)
+    ) public view virtual override(ERC721, ERC2981Controlled, SignalsImplicitModeControlled) returns (bool) {
+        return ERC721.supportsInterface(interfaceId) || ERC2981Controlled.supportsInterface(interfaceId)
             || SignalsImplicitModeControlled.supportsInterface(interfaceId);
     }
 
     //
-    // ERC721A Overrides
+    // ERC721 Overrides
     //
 
-    /**
-     * Override the ERC721A baseURI function.
-     */
-    function _baseURI() internal view override returns (string memory) {
-        return _tokenBaseURI;
+    /// @inheritdoc ERC721
+    function tokenURI(
+        uint256 tokenId
+    ) public view virtual override(ERC721) returns (string memory) {
+        if (!_exists(tokenId)) {
+            revert TokenDoesNotExist();
+        }
+
+        return bytes(_tokenBaseURI).length != 0 ? LibString.concat(_tokenBaseURI, LibString.toString(tokenId)) : "";
     }
 
-    /**
-     * Override the ERC721A name function.
-     */
-    function name() public view override(ERC721A, IERC721A) returns (string memory) {
+    /// @inheritdoc ERC721
+    function name() public view override(ERC721) returns (string memory) {
         return _tokenName;
     }
 
-    /**
-     * Override the ERC721A symbol function.
-     */
-    function symbol() public view override(ERC721A, IERC721A) returns (string memory) {
+    /// @inheritdoc ERC721
+    function symbol() public view override(ERC721) returns (string memory) {
         return _tokenSymbol;
     }
 
