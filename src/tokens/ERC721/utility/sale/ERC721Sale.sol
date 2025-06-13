@@ -7,8 +7,6 @@ import { AccessControlEnumerable, IERC20, SafeERC20, WithdrawControlled } from "
 import { IERC721ItemsFunctions } from "../../presets/items/IERC721Items.sol";
 import { IERC721Sale, IERC721SaleFunctions } from "./IERC721Sale.sol";
 
-import { IERC721A } from "erc721a/extensions/ERC721AQueryable.sol";
-
 /**
  * An ERC-721 token contract with primary sale mechanisms.
  */
@@ -127,13 +125,13 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse, Si
     ) public payable {
         _payForActiveMint(amount, paymentToken, maxTotal, proof);
 
-        uint256 currentSupply = IERC721A(_items).totalSupply();
+        uint256 currentSupply = IERC721ItemsFunctions(_items).totalSupply();
         uint256 supplyCap = _saleDetails.supplyCap;
         if (supplyCap > 0 && currentSupply + amount > supplyCap) {
             revert InsufficientSupply(currentSupply, amount, supplyCap);
         }
 
-        IERC721ItemsFunctions(_items).mint(to, amount);
+        IERC721ItemsFunctions(_items).mintSequential(to, amount);
         emit ItemsMinted(to, amount);
     }
 

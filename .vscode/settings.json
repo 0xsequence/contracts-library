@@ -7,7 +7,6 @@
   "solidity.compileUsingRemoteVersion": "v0.8.27",
   "solidity.remappings": [
     "erc2470-libs/=lib/erc2470-libs/",
-    "erc721a/=lib/erc721a/contracts/",
     "openzeppelin-contracts/=lib/openzeppelin-contracts/",
     "openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/",
     "forge-std/=lib/forge-std/src/",

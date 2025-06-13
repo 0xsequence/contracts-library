@@ -54,17 +54,12 @@ contract ERC721Soulbound is ERC721Items, IERC721Soulbound {
         return _transferLocked;
     }
 
-    function _beforeTokenTransfers(
-        address from,
-        address to,
-        uint256 startTokenId,
-        uint256 quantity
-    ) internal virtual override {
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {
         // Mint transactions allowed
         if (_transferLocked && from != address(0)) {
             revert TransfersLocked();
         }
-        super._beforeTokenTransfers(from, to, startTokenId, quantity);
+        super._beforeTokenTransfer(from, to, tokenId);
     }
 
     function supportsInterface(

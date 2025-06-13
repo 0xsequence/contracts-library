@@ -9,15 +9,15 @@ import {
     IERC721Items, IERC721ItemsFunctions, IERC721ItemsSignals
 } from "src/tokens/ERC721/presets/items/IERC721Items.sol";
 
-import { IERC721A } from "erc721a/interfaces/IERC721A.sol";
-import { IERC721AQueryable } from "erc721a/interfaces/IERC721AQueryable.sol";
-
 import { IERC721 } from "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
 import { IERC721Metadata } from "openzeppelin-contracts/contracts/interfaces/IERC721Metadata.sol";
 import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
 import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsImplicitMode.sol";
+
+import { ERC721 } from "solady/tokens/ERC721.sol";
+import { LibString } from "solady/utils/LibString.sol";
 
 contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
 
@@ -51,8 +51,6 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
 
     function testSupportsInterface() public view {
         assertTrue(token.supportsInterface(type(IERC165).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC721A).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC721AQueryable).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721Metadata).interfaceId));
         assertTrue(token.supportsInterface(type(IERC721ItemsFunctions).interfaceId));
@@ -71,8 +69,6 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         checkSelectorCollision(0xdc8e92ea); // batchBurn(uint256[])
         checkSelectorCollision(0x42966c68); // burn(uint256)
         checkSelectorCollision(0xe8a3d485); // contractURI()
-        checkSelectorCollision(0xc23dc68f); // explicitOwnershipOf(uint256)
-        checkSelectorCollision(0x5bbb2177); // explicitOwnershipsOf(uint256[])
         checkSelectorCollision(0x081812fc); // getApproved(uint256)
         checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
         checkSelectorCollision(0x9010d07c); // getRoleMember(bytes32,uint256)
@@ -82,6 +78,7 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         checkSelectorCollision(0x4c62cd9b); // initialize(address,string,string,string,string,address,uint96,address,bytes32)
         checkSelectorCollision(0xe985e9c5); // isApprovedForAll(address,address)
         checkSelectorCollision(0x40c10f19); // mint(address,uint256)
+        checkSelectorCollision(0x2e73e0fd); // mintSequential(address,uint256)
         checkSelectorCollision(0x06fdde03); // name()
         checkSelectorCollision(0x6352211e); // ownerOf(uint256)
         checkSelectorCollision(0x36568abe); // renounceRole(bytes32,address)
@@ -100,8 +97,6 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
         checkSelectorCollision(0x95d89b41); // symbol()
         checkSelectorCollision(0xc87b56dd); // tokenURI(uint256)
-        checkSelectorCollision(0x8462151c); // tokensOfOwner(address)
-        checkSelectorCollision(0x99a2557a); // tokensOfOwnerIn(address,uint256,uint256)
         checkSelectorCollision(0x18160ddd); // totalSupply()
         checkSelectorCollision(0x23b872dd); // transferFrom(address,address,uint256)
     }
@@ -173,7 +168,9 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         assertEq("symbol", token.symbol());
     }
 
-    function testTokenMetadata() external {
+    function testTokenMetadata(
+        uint256 tokenId
+    ) external {
         address nonOwner = makeAddr("nonOwner");
         vm.expectRevert(); // Missing role
         vm.prank(nonOwner);
@@ -181,11 +178,11 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
 
         vm.prank(owner);
         token.setBaseMetadataURI("metadata://");
-        vm.expectRevert(IERC721A.URIQueryForNonexistentToken.selector); // Not minted
-        token.tokenURI(0);
+        vm.expectRevert(ERC721.TokenDoesNotExist.selector); // Not minted
+        token.tokenURI(tokenId);
 
-        testMintOwner();
-        assertEq("metadata://0", token.tokenURI(0));
+        testMintOwner(tokenId);
+        assertEq(LibString.concat("metadata://", vm.toString(tokenId)), token.tokenURI(tokenId));
     }
 
     function testContractURI() external {
@@ -202,9 +199,7 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
     //
     // Minting
     //
-    function testMintInvalidRole(
-        address caller
-    ) public {
+    function testMintInvalidRole(address caller, uint256 tokenId) public {
         vm.assume(caller != owner);
         vm.assume(caller != proxyOwner);
 
@@ -217,22 +212,22 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
             )
         );
         vm.prank(caller);
-        token.mint(caller, 1);
+        token.mint(caller, tokenId);
     }
 
-    function testMintOwner() public {
+    function testMintOwner(
+        uint256 tokenId
+    ) public {
         vm.expectEmit(true, true, true, true, address(token));
-        emit Transfer(address(0), owner, 0);
+        emit Transfer(address(0), owner, tokenId);
 
         vm.prank(owner);
-        token.mint(owner, 1);
+        token.mint(owner, tokenId);
 
         assertEq(token.balanceOf(owner), 1);
     }
 
-    function testMintWithRole(
-        address minter
-    ) public {
+    function testMintWithRole(address minter, uint256 tokenId) public {
         vm.assume(minter != owner);
         vm.assume(minter != proxyOwner);
         vm.assume(minter != address(0));
@@ -242,10 +237,10 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         vm.stopPrank();
 
         vm.expectEmit(true, true, true, true, address(token));
-        emit Transfer(address(0), owner, 0);
+        emit Transfer(address(0), owner, tokenId);
 
         vm.prank(minter);
-        token.mint(owner, 1);
+        token.mint(owner, tokenId);
 
         assertEq(token.balanceOf(owner), 1);
     }
@@ -257,44 +252,111 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         emit Transfer(address(0), owner, 1);
 
         vm.prank(owner);
-        token.mint(owner, 2);
+        token.mintSequential(owner, 2);
 
         assertEq(token.balanceOf(owner), 2);
         assertEq(token.ownerOf(0), owner);
         assertEq(token.ownerOf(1), owner);
     }
 
+    function testMintCollision(
+        uint256 tokenId
+    ) public {
+        vm.prank(owner);
+        token.mint(owner, tokenId);
+        assertEq(token.ownerOf(tokenId), owner);
+
+        // Try to mint the same token again
+        vm.expectRevert(ERC721.TokenAlreadyExists.selector);
+        vm.prank(owner);
+        token.mint(owner, tokenId);
+    }
+
+    function testMintCollisionOverSequentialMint(uint256 amount, uint256 tokenId) public {
+        amount = bound(amount, 1, 10);
+        tokenId = bound(tokenId, 0, amount - 1);
+
+        // Spot mint
+        vm.prank(owner);
+        token.mintSequential(owner, amount);
+        assertEq(token.ownerOf(tokenId), owner);
+
+        // Try to mint the same token again
+        vm.expectRevert(ERC721.TokenAlreadyExists.selector);
+        vm.prank(owner);
+        token.mint(owner, tokenId);
+    }
+
+    function testSequentialMintOverSpotMint(uint256 amount, uint256 spotTokenId) public {
+        amount = bound(amount, 1, 10);
+        spotTokenId = bound(spotTokenId, 0, amount - 1);
+
+        // Spot mint
+        vm.prank(owner);
+        token.mint(owner, spotTokenId);
+        assertEq(token.ownerOf(spotTokenId), owner);
+
+        // Now do sequential minting
+        vm.prank(owner);
+        token.mintSequential(owner, amount);
+
+        // owner should have amount + 1 tokens
+        assertEq(token.balanceOf(owner), amount + 1);
+    }
+
+    function testTotalSupply(uint256 amount, uint256[] memory spotTokenIds) public {
+        amount = bound(amount, 1, 10);
+        if (spotTokenIds.length > 10) {
+            // Max 10 spot minted
+            assembly {
+                mstore(spotTokenIds, 10)
+            }
+        }
+        // Ensure no duplicates
+        for (uint256 i = 0; i < spotTokenIds.length; i++) {
+            for (uint256 j = i + 1; j < spotTokenIds.length; j++) {
+                vm.assume(spotTokenIds[i] != spotTokenIds[j]);
+            }
+        }
+
+        vm.startPrank(owner);
+        for (uint256 i = 0; i < spotTokenIds.length; i++) {
+            token.mint(owner, spotTokenIds[i]);
+        }
+        token.mintSequential(owner, amount);
+        vm.stopPrank();
+
+        assertEq(token.balanceOf(owner), amount + spotTokenIds.length);
+        assertEq(token.totalSupply(), amount + spotTokenIds.length);
+    }
+
     //
     // Burn
     //
-    function testBurnSuccess(
-        address caller
-    ) public {
+    function testBurnSuccess(address caller, uint256 tokenId) public {
         assumeSafeAddress(caller);
 
         vm.prank(owner);
-        token.mint(caller, 1);
+        token.mint(caller, tokenId);
 
         vm.expectEmit(true, true, true, false, address(token));
-        emit Transfer(caller, address(0), 0);
+        emit Transfer(caller, address(0), tokenId);
 
         vm.prank(caller);
-        token.burn(0);
+        token.burn(tokenId);
 
-        vm.expectRevert(IERC721A.OwnerQueryForNonexistentToken.selector);
-        token.ownerOf(0);
+        vm.expectRevert(ERC721.TokenDoesNotExist.selector);
+        token.ownerOf(tokenId);
     }
 
-    function testBurnInvalidOwnership(
-        address caller
-    ) public {
+    function testBurnInvalidOwnership(address caller, uint256 tokenId) public {
         assumeSafeAddress(caller);
 
         vm.prank(owner);
-        token.mint(caller, 1);
+        token.mint(caller, tokenId);
 
-        vm.expectRevert(IERC721A.TransferCallerNotOwnerNorApproved.selector);
-        token.burn(0);
+        vm.expectRevert(ERC721.NotOwnerNorApproved.selector);
+        token.burn(tokenId);
     }
 
     function testBurnBatchSuccess(
@@ -303,7 +365,7 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         assumeSafeAddress(caller);
 
         vm.prank(owner);
-        token.mint(caller, 2);
+        token.mintSequential(caller, 2);
 
         uint256[] memory ids = new uint256[](2);
         ids[0] = 0;
@@ -317,7 +379,7 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         vm.prank(caller);
         token.batchBurn(ids);
 
-        vm.expectRevert(IERC721A.OwnerQueryForNonexistentToken.selector);
+        vm.expectRevert(ERC721.TokenDoesNotExist.selector);
         token.ownerOf(0);
     }
 
@@ -327,13 +389,13 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         assumeSafeAddress(caller);
 
         vm.prank(owner);
-        token.mint(caller, 2);
+        token.mintSequential(caller, 2);
 
         uint256[] memory ids = new uint256[](2);
         ids[0] = 0;
         ids[1] = 1;
 
-        vm.expectRevert(IERC721A.TransferCallerNotOwnerNorApproved.selector);
+        vm.expectRevert(ERC721.NotOwnerNorApproved.selector);
         token.batchBurn(ids);
     }
 
@@ -343,7 +405,7 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
     function testMetadataOwner() public {
         // Mint token
         vm.prank(owner);
-        token.mint(owner, 2);
+        token.mintSequential(owner, 2);
 
         vm.prank(owner);
         token.setBaseMetadataURI("ipfs://newURI/");
@@ -352,7 +414,7 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         assertEq(token.tokenURI(1), "ipfs://newURI/1");
 
         // Invalid token
-        vm.expectRevert(IERC721A.URIQueryForNonexistentToken.selector);
+        vm.expectRevert(ERC721.TokenDoesNotExist.selector);
         token.tokenURI(2);
     }
 
