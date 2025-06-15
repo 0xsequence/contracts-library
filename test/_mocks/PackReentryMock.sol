@@ -23,7 +23,7 @@ contract PackReentryMock is ERC1155Receiver {
     }
 
     function commit() external {
-        IERC1155Pack(_targetContract).commit();
+        IERC1155Pack(_targetContract).commit(0);
     }
 
     function onERC1155Received(
@@ -34,7 +34,7 @@ contract PackReentryMock is ERC1155Receiver {
         bytes calldata data
     ) external override returns (bytes4) {
         if (data.length == 0) {
-            IERC1155Pack(_targetContract).reveal(address(this), _pack, _proof);
+            IERC1155Pack(_targetContract).reveal(address(this), _pack, _proof, 0);
         }
         return this.onERC1155Received.selector;
     }
@@ -47,7 +47,7 @@ contract PackReentryMock is ERC1155Receiver {
         bytes calldata data
     ) external override returns (bytes4) {
         if (data.length == 0) {
-            IERC1155Pack(_targetContract).reveal(address(this), _pack, _proof);
+            IERC1155Pack(_targetContract).reveal(address(this), _pack, _proof, 0);
         }
         return this.onERC1155BatchReceived.selector;
     }
