@@ -6,11 +6,14 @@ import { PackReentryMock } from "../../../_mocks/PackReentryMock.sol";
 
 import { ERC1155Items } from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
 import { IERC1155ItemsFunctions, IERC1155ItemsSignals } from "src/tokens/ERC1155/presets/items/IERC1155Items.sol";
+
 import { ERC1155Pack } from "src/tokens/ERC1155/presets/pack/ERC1155Pack.sol";
 import { ERC1155PackFactory } from "src/tokens/ERC1155/presets/pack/ERC1155PackFactory.sol";
 import { IERC1155Pack } from "src/tokens/ERC1155/presets/pack/IERC1155Pack.sol";
+import { ERC721Items } from "src/tokens/ERC721/presets/items/ERC721Items.sol";
 
 import { IERC1155 } from "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
+import { IERC721 } from "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
 import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsImplicitMode.sol";
@@ -20,9 +23,9 @@ contract ERC1155PackHack is ERC1155Pack {
     function setAllExceptOneClaimed(
         uint256 _idx
     ) public {
-        remainingSupply = 1;
+        remainingSupply[0] = 1;
         // Update _availableIndices to point to the last index
-        _availableIndices[0] = _idx;
+        _availableIndices[0][0] = _idx;
     }
 
 }
@@ -35,6 +38,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
     ERC1155Pack private pack;
     ERC1155Items private token;
     ERC1155Items private token2;
+    ERC721Items private token721;
     PackReentryMock private reentryAttacker;
 
     address private proxyOwner;
@@ -55,6 +59,11 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         token2 = new ERC1155Items();
         token2.initialize(address(this), "test2", "ipfs://", "ipfs://", address(this), 0, address(0), bytes32(0));
 
+        token721 = new ERC721Items();
+        token721.initialize(
+            address(this), "test721", "test721", "ipfs://", "ipfs://", address(this), 0, address(0), bytes32(0)
+        );
+
         ERC1155PackFactory factory = new ERC1155PackFactory(address(this));
 
         _preparePacksContent();
@@ -62,7 +71,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
 
         pack = ERC1155Pack(
             factory.deploy(
-                proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0), root, 3
+                proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0), root, 4
             )
         );
 
@@ -70,6 +79,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
 
         token.grantRole(keccak256("MINTER_ROLE"), address(pack));
         token2.grantRole(keccak256("MINTER_ROLE"), address(pack));
+        token721.grantRole(keccak256("MINTER_ROLE"), address(pack));
     }
 
     function testReinitializeFails() public {
@@ -101,9 +111,9 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         checkSelectorCollision(0x20ec271b); // batchBurn(uint256[],uint256[])
         checkSelectorCollision(0xb48ab8b6); // batchMint(address,uint256[],uint256[],bytes)
         checkSelectorCollision(0xb390c0ab); // burn(uint256,uint256)
-        checkSelectorCollision(0x3c7a3aff); // commit()
+        checkSelectorCollision(0xf4f98ad5); // commit(uint256)
         checkSelectorCollision(0xe8a3d485); // contractURI()
-        checkSelectorCollision(0xbd93f5a0); // getRevealIdx(address)
+        checkSelectorCollision(0x5377ab8f); // getRevealIdx(address,uint256)
         checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
         checkSelectorCollision(0x9010d07c); // getRoleMember(bytes32,uint256)
         checkSelectorCollision(0xca15c873); // getRoleMemberCount(bytes32)
@@ -112,13 +122,13 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         checkSelectorCollision(0x8ff83ac1); // initialize(address,string,string,string,address,uint96,address,bytes32)
         checkSelectorCollision(0xccf69f42); // initialize(address,string,string,string,address,uint96,address,bytes32,bytes32,uint256)
         checkSelectorCollision(0xe985e9c5); // isApprovedForAll(address,address)
-        checkSelectorCollision(0x2eb4a7ab); // merkleRoot()
+        checkSelectorCollision(0x3c70b357); // merkleRoot(uint256)
         checkSelectorCollision(0x731133e9); // mint(address,uint256,uint256,bytes)
         checkSelectorCollision(0x06fdde03); // name()
-        checkSelectorCollision(0x6f225bd4); // refundPack(address)
-        checkSelectorCollision(0xda0239a6); // remainingSupply()
+        checkSelectorCollision(0x167a59f7); // refundPack(address,uint256)
+        checkSelectorCollision(0x47fda41a); // remainingSupply(uint256)
         checkSelectorCollision(0x36568abe); // renounceRole(bytes32,address)
-        checkSelectorCollision(0xa206e5e1); // reveal(address,(address[],uint256[][],uint256[][]),bytes32[])
+        checkSelectorCollision(0xd67b333b); // reveal(address,(address[],bool[],uint256[][],uint256[][]),bytes32[],uint256)
         checkSelectorCollision(0xd547741f); // revokeRole(bytes32,address)
         checkSelectorCollision(0x2a55205a); // royaltyInfo(uint256,uint256)
         checkSelectorCollision(0x2eb2c2d6); // safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)
@@ -130,9 +140,9 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         checkSelectorCollision(0x04634d8d); // setDefaultRoyalty(address,uint96)
         checkSelectorCollision(0xed4c2ac7); // setImplicitModeProjectId(bytes32)
         checkSelectorCollision(0x0bb310de); // setImplicitModeValidator(address)
-        checkSelectorCollision(0x275bf183); // setPacksContent(bytes32,uint256)
+        checkSelectorCollision(0x50336a03); // setPacksContent(bytes32,uint256,uint256)
         checkSelectorCollision(0x5944c753); // setTokenRoyalty(uint256,address,uint96)
-        checkSelectorCollision(0x047fc9aa); // supply()
+        checkSelectorCollision(0x35403023); // supply(uint256)
         checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
         checkSelectorCollision(0x2693ebf2); // tokenSupply(uint256)
         checkSelectorCollision(0x18160ddd); // totalSupply()
@@ -211,7 +221,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         assumeSafeAddress(user);
         vm.prank(user);
         vm.expectRevert(IERC1155Pack.NoBalance.selector);
-        pack.commit();
+        pack.commit(0);
     }
 
     function testCommitPendingReveal(
@@ -221,14 +231,14 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         _commit(user);
         vm.prank(user);
         vm.expectRevert(IERC1155Pack.PendingReveal.selector);
-        pack.commit();
+        pack.commit(0);
     }
 
     function testRefundNoCommit(
         address user
     ) public {
         vm.expectRevert(IERC1155Pack.NoCommit.selector);
-        pack.refundPack(user);
+        pack.refundPack(user, 0);
     }
 
     function testRefundPendingReveal(
@@ -239,7 +249,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
 
         vm.roll(block.number + 255);
         vm.expectRevert(IERC1155Pack.PendingReveal.selector);
-        pack.refundPack(user);
+        pack.refundPack(user, 0);
     }
 
     function testRefundExpiredCommit(
@@ -249,15 +259,15 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         _commit(user);
 
         vm.roll(block.number + 300);
-        pack.refundPack(user);
-        vm.assertEq(pack.balanceOf(user, 1), 1);
+        pack.refundPack(user, 0);
+        vm.assertEq(pack.balanceOf(user, 0), 1);
     }
 
     function testGetRevealIdxNoCommit(
         address user
     ) public {
         vm.expectRevert(IERC1155Pack.NoCommit.selector);
-        pack.getRevealIdx(user);
+        pack.getRevealIdx(user, 0);
     }
 
     function testGetRevealIdxInvalidCommit(
@@ -268,14 +278,14 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
 
         vm.roll(block.number + 300);
         vm.expectRevert(IERC1155Pack.InvalidCommit.selector);
-        pack.getRevealIdx(user);
+        pack.getRevealIdx(user, 0);
     }
 
     function testGetRevealIdxSuccess(
         address user
     ) public {
         assumeSafeAddress(user);
-        vm.assertLt(_getRevealIdx(user), pack.supply());
+        vm.assertLt(_getRevealIdx(user), pack.supply(0));
     }
 
     function testRevealSuccess(
@@ -288,14 +298,18 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
 
         IERC1155Pack.PackContent memory packContent = packsContent[revealIdx];
 
-        pack.reveal(user, packContent, proof);
+        pack.reveal(user, packContent, proof, 0);
 
         for (uint256 i = 0; i < packContent.tokenAddresses.length; i++) {
             for (uint256 j = 0; j < packContent.tokenIds[i].length; j++) {
-                vm.assertEq(
-                    IERC1155(packContent.tokenAddresses[i]).balanceOf(user, packContent.tokenIds[i][j]),
-                    packContent.amounts[i][j]
-                );
+                if (packContent.isERC721[i]) {
+                    vm.assertEq(IERC721(packContent.tokenAddresses[i]).ownerOf(packContent.tokenIds[i][j]), user);
+                } else {
+                    vm.assertEq(
+                        IERC1155(packContent.tokenAddresses[i]).balanceOf(user, packContent.tokenIds[i][j]),
+                        packContent.amounts[i][j]
+                    );
+                }
             }
         }
     }
@@ -321,18 +335,18 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
 
         // Mint pack to user
         vm.prank(owner);
-        pack.mint(user, 1, 1, "pack");
+        pack.mint(user, 0, 1, "pack");
 
         // Commit
         vm.prank(user);
-        pack.commit();
+        pack.commit(0);
 
         // Reveal
         vm.roll(block.number + 3);
-        uint256 revealIdx = pack.getRevealIdx(user);
+        uint256 revealIdx = pack.getRevealIdx(user, 0);
         (, bytes32[] memory proof) = TestHelper.getMerklePartsPacks(packsContent, revealIdx);
         IERC1155Pack.PackContent memory packContent = packsContent[unclaimedIdx];
-        pack.reveal(user, packContent, proof);
+        pack.reveal(user, packContent, proof, 0);
 
         vm.assertEq(token.balanceOf(user, 1), 0);
     }
@@ -350,7 +364,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         IERC1155Pack.PackContent memory packContent = packsContent[revealIdx - 1];
 
         vm.expectRevert(IERC1155Pack.InvalidProof.selector);
-        pack.reveal(user, packContent, proof);
+        pack.reveal(user, packContent, proof, 0);
     }
 
     function testRevealInvalidRevealIdx(
@@ -366,7 +380,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         IERC1155Pack.PackContent memory packContent = packsContent[revealIdx];
 
         vm.expectRevert(IERC1155Pack.InvalidProof.selector);
-        pack.reveal(user, packContent, proof);
+        pack.reveal(user, packContent, proof, 0);
     }
 
     function testRevealAfterAllOpened(
@@ -374,7 +388,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
     ) public {
         assumeSafeAddress(user);
 
-        uint256 packSupply = pack.supply();
+        uint256 packSupply = pack.supply(0);
 
         bool[] memory revealed = new bool[](packSupply);
         for (uint256 i = 0; i < packSupply; i++) {
@@ -385,24 +399,24 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
 
             IERC1155Pack.PackContent memory packContent = packsContent[revealIdx];
 
-            pack.reveal(user, packContent, proof);
+            pack.reveal(user, packContent, proof, 0);
             revealed[revealIdx] = true;
         }
         _commit(user);
         vm.roll(block.number + 3);
 
         vm.expectRevert(IERC1155Pack.AllPacksOpened.selector);
-        pack.getRevealIdx(user);
+        pack.getRevealIdx(user, 0);
     }
 
     function testRevealReentryAttack() public {
         vm.prank(owner);
-        pack.mint(address(reentryAttacker), 1, 1, "pack");
+        pack.mint(address(reentryAttacker), 0, 1, "pack");
 
         reentryAttacker.commit();
 
         vm.roll(block.number + 3);
-        uint256 revealIdx = pack.getRevealIdx(address(reentryAttacker));
+        uint256 revealIdx = pack.getRevealIdx(address(reentryAttacker), 0);
 
         (, bytes32[] memory proof) = TestHelper.getMerklePartsPacks(packsContent, revealIdx);
 
@@ -411,7 +425,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         reentryAttacker.setPackAndProof(proof, packContent);
 
         vm.expectRevert(IERC1155Pack.NoCommit.selector);
-        pack.reveal(address(reentryAttacker), packContent, proof);
+        pack.reveal(address(reentryAttacker), packContent, proof, 0);
     }
 
     function testCantRefundAfterReveal(
@@ -424,20 +438,22 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
 
         IERC1155Pack.PackContent memory packContent = packsContent[revealIdx];
 
-        pack.reveal(user, packContent, proof);
+        pack.reveal(user, packContent, proof, 0);
 
         vm.expectRevert(IERC1155Pack.NoCommit.selector);
-        pack.refundPack(user);
+        pack.refundPack(user, 0);
     }
 
     // Common functions
 
     function _preparePacksContent() internal {
-        packsContent = new IERC1155Pack.PackContent[](3);
+        packsContent = new IERC1155Pack.PackContent[](4);
 
         // Multiple tokens on single address
         packsContent[0].tokenAddresses = new address[](1);
         packsContent[0].tokenAddresses[0] = address(token);
+        packsContent[0].isERC721 = new bool[](1);
+        packsContent[0].isERC721[0] = false;
         packsContent[0].tokenIds = new uint256[][](1);
         packsContent[0].tokenIds[0] = new uint256[](2);
         packsContent[0].tokenIds[0][0] = 1;
@@ -450,6 +466,8 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         // Single token on single address
         packsContent[1].tokenAddresses = new address[](1);
         packsContent[1].tokenAddresses[0] = address(token);
+        packsContent[1].isERC721 = new bool[](1);
+        packsContent[1].isERC721[0] = false;
         packsContent[1].tokenIds = new uint256[][](1);
         packsContent[1].tokenIds[0] = new uint256[](1);
         packsContent[1].tokenIds[0][0] = 3;
@@ -461,6 +479,9 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         packsContent[2].tokenAddresses = new address[](2);
         packsContent[2].tokenAddresses[0] = address(token);
         packsContent[2].tokenAddresses[1] = address(token2);
+        packsContent[2].isERC721 = new bool[](2);
+        packsContent[2].isERC721[0] = false;
+        packsContent[2].isERC721[1] = false;
         packsContent[2].tokenIds = new uint256[][](2);
         packsContent[2].tokenIds[0] = new uint256[](1);
         packsContent[2].tokenIds[0][0] = 4;
@@ -471,16 +492,30 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         packsContent[2].amounts[0][0] = 20;
         packsContent[2].amounts[1] = new uint256[](1);
         packsContent[2].amounts[1][0] = 10;
+
+        // single token on single address ERC721
+        packsContent[3].tokenAddresses = new address[](1);
+        packsContent[3].tokenAddresses[0] = address(token721);
+        packsContent[3].isERC721 = new bool[](1);
+        packsContent[3].isERC721[0] = true;
+        packsContent[3].tokenIds = new uint256[][](1);
+        packsContent[3].tokenIds[0] = new uint256[](2);
+        packsContent[3].tokenIds[0][0] = 1;
+        packsContent[3].tokenIds[0][1] = 2;
+        packsContent[3].amounts = new uint256[][](1);
+        packsContent[3].amounts[0] = new uint256[](2);
+        packsContent[3].amounts[0][0] = 1;
+        packsContent[3].amounts[0][1] = 1;
     }
 
     function _commit(
         address user
     ) internal {
         vm.prank(owner);
-        pack.mint(user, 1, 1, "pack");
+        pack.mint(user, 0, 1, "pack");
 
         vm.prank(user);
-        pack.commit();
+        pack.commit(0);
     }
 
     function _getRevealIdx(
@@ -488,7 +523,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
     ) internal returns (uint256 revealIdx) {
         _commit(user);
         vm.roll(block.number + 3);
-        revealIdx = pack.getRevealIdx(user);
+        revealIdx = pack.getRevealIdx(user, 0);
     }
 
 }

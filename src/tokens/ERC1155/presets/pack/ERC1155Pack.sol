@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
+import { IERC721ItemsFunctions } from "../../../ERC721/presets/items/IERC721Items.sol";
 import { ERC1155Items } from "../items/ERC1155Items.sol";
 import { IERC1155ItemsFunctions } from "../items/IERC1155Items.sol";
 import { IERC1155Pack } from "./IERC1155Pack.sol";
@@ -11,12 +12,12 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
 
     bytes32 internal constant PACK_ADMIN_ROLE = keccak256("PACK_ADMIN_ROLE");
 
-    bytes32 public merkleRoot;
-    uint256 public supply;
-    uint256 public remainingSupply;
+    mapping(uint256 => bytes32) public merkleRoot;
+    mapping(uint256 => uint256) public supply;
+    mapping(uint256 => uint256) public remainingSupply;
 
-    mapping(address => uint256) internal _commitments;
-    mapping(uint256 => uint256) internal _availableIndices;
+    mapping(uint256 => mapping(address => uint256)) internal _commitments;
+    mapping(uint256 => mapping(uint256 => uint256)) internal _availableIndices;
 
     constructor() ERC1155Items() { }
 
@@ -34,9 +35,9 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
         uint256 _supply
     ) public virtual {
         _grantRole(PACK_ADMIN_ROLE, owner);
-        merkleRoot = _merkleRoot;
-        supply = _supply;
-        remainingSupply = _supply;
+        merkleRoot[0] = _merkleRoot;
+        supply[0] = _supply;
+        remainingSupply[0] = _supply;
         super.initialize(
             owner,
             tokenName,
@@ -50,98 +51,103 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
     }
 
     /// @inheritdoc IERC1155Pack
-    function setPacksContent(bytes32 _merkleRoot, uint256 _supply) external onlyRole(PACK_ADMIN_ROLE) {
-        merkleRoot = _merkleRoot;
-        supply = _supply;
-        remainingSupply = _supply;
+    function setPacksContent(bytes32 _merkleRoot, uint256 _supply, uint256 packId) external onlyRole(PACK_ADMIN_ROLE) {
+        merkleRoot[packId] = _merkleRoot;
+        supply[packId] = _supply;
+        remainingSupply[packId] = _supply;
     }
 
     /// @inheritdoc IERC1155Pack
-    function commit() external {
-        if (_commitments[msg.sender] != 0) {
+    function commit(
+        uint256 packId
+    ) external {
+        if (_commitments[packId][msg.sender] != 0) {
             revert PendingReveal();
         }
-        if (balanceOf(msg.sender, 1) == 0) {
+        if (balanceOf(msg.sender, packId) == 0) {
             revert NoBalance();
         }
-        _burn(msg.sender, 1, 1);
+        _burn(msg.sender, packId, 1);
         uint256 revealAfterBlock = block.number + 1;
-        _commitments[msg.sender] = revealAfterBlock;
+        _commitments[packId][msg.sender] = revealAfterBlock;
 
-        emit Commit(msg.sender, revealAfterBlock);
+        emit Commit(msg.sender, revealAfterBlock, packId);
     }
 
     /// @inheritdoc IERC1155Pack
-    function reveal(address user, PackContent calldata packContent, bytes32[] calldata proof) external {
-        (uint256 randomIndex, uint256 revealIdx) = _getRevealIdx(user);
+    function reveal(
+        address user,
+        PackContent calldata packContent,
+        bytes32[] calldata proof,
+        uint256 packId
+    ) external {
+        (uint256 randomIndex, uint256 revealIdx) = _getRevealIdx(user, packId);
 
         bytes32 leaf = keccak256(abi.encode(revealIdx, packContent));
-        if (!MerkleProof.verify(proof, merkleRoot, leaf)) {
+        if (!MerkleProof.verify(proof, merkleRoot[packId], leaf)) {
             revert InvalidProof();
         }
 
-        delete _commitments[user];
-        remainingSupply--;
+        delete _commitments[packId][user];
+        remainingSupply[packId]--;
 
         // Point this index to the last index's value
-        _availableIndices[randomIndex] = _getIndexOrDefault(remainingSupply);
+        _availableIndices[packId][randomIndex] = _getIndexOrDefault(remainingSupply[packId], packId);
 
         for (uint256 i = 0; i < packContent.tokenAddresses.length; i++) {
-            IERC1155ItemsFunctions(packContent.tokenAddresses[i]).batchMint(
-                user, packContent.tokenIds[i], packContent.amounts[i], ""
-            );
+            if (packContent.isERC721[i]) {
+                for (uint256 j = 0; j < packContent.tokenIds[i].length; j++) {
+                    IERC721ItemsFunctions(packContent.tokenAddresses[i]).mint(user, packContent.tokenIds[i][j]);
+                }
+            } else {
+                IERC1155ItemsFunctions(packContent.tokenAddresses[i]).batchMint(
+                    user, packContent.tokenIds[i], packContent.amounts[i], ""
+                );
+            }
         }
 
-        emit Reveal(user);
+        emit Reveal(user, packId);
     }
 
     /// @inheritdoc IERC1155Pack
-    function refundPack(
-        address user
-    ) external {
-        if (_commitments[user] == 0) {
+    function refundPack(address user, uint256 packId) external {
+        if (_commitments[packId][user] == 0) {
             revert NoCommit();
         }
-        if (uint256(blockhash(_commitments[user])) != 0 || block.number <= _commitments[user]) {
+        if (uint256(blockhash(_commitments[packId][user])) != 0 || block.number <= _commitments[packId][user]) {
             revert PendingReveal();
         }
-        delete _commitments[user];
-        _mint(user, 1, 1, "");
+        delete _commitments[packId][user];
+        _mint(user, packId, 1, "");
     }
 
     /// @inheritdoc IERC1155Pack
-    function getRevealIdx(
-        address user
-    ) public view returns (uint256 revealIdx) {
-        (, revealIdx) = _getRevealIdx(user);
+    function getRevealIdx(address user, uint256 packId) public view returns (uint256 revealIdx) {
+        (, revealIdx) = _getRevealIdx(user, packId);
         return revealIdx;
     }
 
-    function _getRevealIdx(
-        address user
-    ) internal view returns (uint256 randomIdx, uint256 revealIdx) {
-        if (remainingSupply == 0) {
+    function _getRevealIdx(address user, uint256 packId) internal view returns (uint256 randomIdx, uint256 revealIdx) {
+        if (remainingSupply[packId] == 0) {
             revert AllPacksOpened();
         }
 
-        bytes32 blockHash = blockhash(_commitments[user]);
+        bytes32 blockHash = blockhash(_commitments[packId][user]);
         if (uint256(blockHash) == 0) {
             revert InvalidCommit();
         }
 
-        if (_commitments[user] == 0) {
+        if (_commitments[packId][user] == 0) {
             revert NoCommit();
         }
 
-        randomIdx = uint256(keccak256(abi.encode(blockHash, user))) % remainingSupply;
-        revealIdx = _getIndexOrDefault(randomIdx);
+        randomIdx = uint256(keccak256(abi.encode(blockHash, user))) % remainingSupply[packId];
+        revealIdx = _getIndexOrDefault(randomIdx, packId);
         return (randomIdx, revealIdx);
     }
 
-    function _getIndexOrDefault(
-        uint256 index
-    ) internal view returns (uint256) {
-        uint256 value = _availableIndices[index];
+    function _getIndexOrDefault(uint256 index, uint256 packId) internal view returns (uint256) {
+        uint256 value = _availableIndices[packId][index];
         return value == 0 ? index : value;
     }
 
