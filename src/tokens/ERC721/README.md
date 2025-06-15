@@ -4,7 +4,7 @@ This subsection contains contracts related to the [ERC721 token standard](https:
 
 ## ERC721BaseToken
 
-This contract is a base implementation of the ERC-721 token standard. It leverages the [Azuki ERC-721A implementation](https://www.erc721a.org/) for gas efficiency. It includes role based access control features from the [OpenZeppelin AccessControlEnumberable](https://docs.openzeppelin.com/contracts/4.x/access-control) contract, to provide control over added features. Please refer to OpenZeppelin documentation for more information on `AccessControlEnumberable`.
+This contract is a base implementation of the ERC-721 token standard. It leverages the [Solady ERC-721 implementation](https://vectorized.github.io/solady/) for gas efficiency. It includes role based access control features from the [OpenZeppelin AccessControlEnumberable](https://docs.openzeppelin.com/contracts/4.x/access-control) contract, to provide control over added features. Please refer to OpenZeppelin documentation for more information on `AccessControlEnumberable`.
 
 The contract supports the [ERC2981 token royalty standard](https://eips.ethereum.org/EIPS/eip-2981) via the ERC2981Controlled contract. Please refer to the ERC2981Controlled documentation for more information on token royalty.
 
@@ -42,7 +42,7 @@ This section of this repo utilitizes a factory pattern that deploys proxies cont
 
 ## Dependencies
 
-This repo relies on the `ERC721A`, `IERC721A`, `ERC721AQueryable`, and `IERC721AQueryable` contracts from Azuki for core ERC-721 functionality, `AccessControlEnumberable` from OpenZeppelin for role base permissions and the ERC2981Controlled contract for handling of royalties.
+This repo relies on the `ERC721` contract from Solady for core ERC-721 functionality, `AccessControlEnumberable` from OpenZeppelin for role base permissions and the ERC2981Controlled contract for handling of royalties.
 
 ## Access Controls
 

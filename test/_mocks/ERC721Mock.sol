@@ -11,17 +11,12 @@ contract ERC721Mock is ERC721BaseToken, IGenericToken {
         _initialize(owner, "", "", tokenBaseURI, "", address(0), bytes32(0));
     }
 
-    function _sequentialUpTo() internal pure override returns (uint256) {
-        // Force non sequential minting
-        return 0;
-    }
-
     function mint(address to, uint256 tokenId, uint256) external override {
-        _mintSpot(to, tokenId);
+        _mint(to, tokenId);
     }
 
-    function approve(address, address operator, uint256 tokenId, uint256) external override {
-        _approve(operator, tokenId, false);
+    function approve(address owner, address operator, uint256 tokenId, uint256) external override {
+        _approve(owner, operator, tokenId);
     }
 
     function balanceOf(address owner, uint256 tokenId) external view override returns (uint256) {

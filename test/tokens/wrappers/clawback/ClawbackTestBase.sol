@@ -77,7 +77,7 @@ contract ClawbackTestBase is Test, IERC1155Receiver, IERC721Receiver {
     ) internal returns (WrapSetupResult memory result) {
         vm.assume(templateAdmin != address(0));
 
-        // Unwrap timestamp is uint64 as per ERC721A implmentation used by ERC721Mock
+        // Unwrap timestamp is uint64 as per ERC721 implementation used by ERC721Mock
         result.duration = uint56(bound(duration, 1, type(uint64).max - block.timestamp));
 
         vm.prank(templateAdmin);

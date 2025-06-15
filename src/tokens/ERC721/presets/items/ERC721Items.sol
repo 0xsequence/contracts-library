@@ -14,6 +14,9 @@ contract ERC721Items is ERC721BaseToken, IERC721Items {
     address private immutable _initializer;
     bool private _initialized;
 
+    uint256 private _nextSequentialId;
+    uint256 private _totalSupply;
+
     /**
      * Deploy contract.
      */
@@ -63,18 +66,35 @@ contract ERC721Items is ERC721BaseToken, IERC721Items {
     // Minting
     //
 
-    /**
-     * Mint tokens.
-     * @param to Address to mint tokens to.
-     * @param amount Amount of tokens to mint.
-     */
-    function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
-        _mint(to, amount);
+    /// @inheritdoc IERC721ItemsFunctions
+    function mint(address to, uint256 tokenId) external onlyRole(MINTER_ROLE) {
+        _mint(to, tokenId);
+        _totalSupply++;
+        while (_exists(_nextSequentialId)) {
+            _nextSequentialId++;
+        }
+    }
+
+    /// @inheritdoc IERC721ItemsFunctions
+    function mintSequential(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
+        for (uint256 i = 0; i < amount; i++) {
+            while (_exists(_nextSequentialId)) {
+                _nextSequentialId++;
+            }
+            _mint(to, _nextSequentialId);
+            _nextSequentialId++;
+        }
+        _totalSupply += amount;
     }
 
     //
     // Views
     //
+
+    /// @inheritdoc IERC721ItemsFunctions
+    function totalSupply() external view returns (uint256) {
+        return _totalSupply;
+    }
 
     /**
      * Check interface support.
