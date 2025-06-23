@@ -7,10 +7,8 @@ import { ERC20Mock } from "../../../../_mocks/ERC20Mock.sol";
 import { ERC721Items } from "src/tokens/ERC721/presets/items/ERC721Items.sol";
 import { ERC721Sale } from "src/tokens/ERC721/utility/sale/ERC721Sale.sol";
 import { ERC721SaleFactory } from "src/tokens/ERC721/utility/sale/ERC721SaleFactory.sol";
-import { IERC721Sale, IERC721SaleFunctions, IERC721SaleSignals } from "src/tokens/ERC721/utility/sale/IERC721Sale.sol";
+import { IERC721SaleFunctions, IERC721SaleSignals } from "src/tokens/ERC721/utility/sale/IERC721Sale.sol";
 import { IMerkleProofSingleUseSignals } from "src/tokens/common/IMerkleProofSingleUse.sol";
-
-import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
 
 // solhint-disable not-rely-on-time
 
@@ -51,11 +49,9 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
     //
 
     // Minting denied when no sale active.
-    function testMintInactiveFail(
-        bool useFactory,
-        address mintTo,
-        uint256 amount
-    ) public assumeSafe(mintTo, amount) withFactory(useFactory) {
+    function testMintInactiveFail(bool useFactory, address mintTo, uint256 amount) public withFactory(useFactory) {
+        assumeSafeAddress(mintTo);
+        amount = bound(amount, 1, 20);
         uint256 cost = amount * perTokenCost;
         vm.expectRevert(SaleInactive.selector);
         sale.mint{ value: cost }(mintTo, amount, address(0), cost, TestHelper.blankProof());
@@ -68,7 +64,9 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
         uint256 amount,
         uint64 startTime,
         uint64 endTime
-    ) public assumeSafe(mintTo, amount) withFactory(useFactory) {
+    ) public withFactory(useFactory) {
+        assumeSafeAddress(mintTo);
+        amount = bound(amount, 1, 20);
         startTime = uint64(bound(startTime, 0, type(uint64).max - 1));
         endTime = uint64(bound(endTime, 0, type(uint64).max - 1));
 
@@ -82,7 +80,7 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
         }
 
         vm.warp(uint256(endTime) - 1);
-        sale.setSaleDetails(0, perTokenCost, address(0), uint64(startTime), uint64(endTime), "");
+        sale.setSaleDetails(type(uint256).max, perTokenCost, address(0), uint64(startTime), uint64(endTime), "");
         vm.warp(uint256(endTime) + 1);
 
         uint256 cost = amount * perTokenCost;
@@ -96,20 +94,17 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
         bool useFactory,
         address mintTo,
         uint256 amount,
-        uint256 supplyCap
-    ) public assumeSafe(mintTo, amount) withFactory(useFactory) {
-        if (supplyCap == 0 || supplyCap > 20) {
-            supplyCap = 1;
-        }
-        if (amount <= supplyCap) {
-            amount = supplyCap + 1;
-        }
+        uint256 remainingSupply
+    ) public withFactory(useFactory) {
+        assumeSafeAddress(mintTo);
+        amount = bound(amount, 2, 20);
+        remainingSupply = bound(remainingSupply, 1, amount - 1);
         sale.setSaleDetails(
-            supplyCap, perTokenCost, address(0), uint64(block.timestamp), uint64(block.timestamp + 1), ""
+            remainingSupply, perTokenCost, address(0), uint64(block.timestamp), uint64(block.timestamp + 1), ""
         );
         uint256 cost = amount * perTokenCost;
 
-        vm.expectRevert(abi.encodeWithSelector(InsufficientSupply.selector, 0, amount, supplyCap));
+        vm.expectRevert(abi.encodeWithSelector(InsufficientSupply.selector, remainingSupply, amount));
         sale.mint{ value: cost }(mintTo, amount, address(0), cost, TestHelper.blankProof());
     }
 
@@ -117,8 +112,17 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
     function testMintSuccess(
         bool useFactory,
         address mintTo,
-        uint256 amount
-    ) public assumeSafe(mintTo, amount) withFactory(useFactory) withSaleActive {
+        uint256 amount,
+        uint256 remainingSupply
+    ) public withFactory(useFactory) {
+        assumeSafeAddress(mintTo);
+        amount = bound(amount, 1, 20);
+        remainingSupply = bound(remainingSupply, amount, type(uint256).max);
+
+        sale.setSaleDetails(
+            remainingSupply, perTokenCost, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
+
         uint256 count = token.balanceOf(mintTo);
         uint256 cost = amount * perTokenCost;
         vm.expectEmit(true, true, true, true, address(token));
@@ -127,15 +131,19 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
         emit ItemsMinted(mintTo, amount);
         sale.mint{ value: cost }(mintTo, amount, address(0), cost, TestHelper.blankProof());
         assertEq(count + amount, token.balanceOf(mintTo));
+
+        // Check supply updated
+        IERC721SaleFunctions.SaleDetails memory saleDetails = sale.saleDetails();
+        assertEq(saleDetails.remainingSupply, remainingSupply - amount);
     }
 
     // Minting allowed when sale is free.
-    function testFreeMint(
-        bool useFactory,
-        address mintTo,
-        uint256 amount
-    ) public assumeSafe(mintTo, amount) withFactory(useFactory) {
-        sale.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
+    function testFreeMint(bool useFactory, address mintTo, uint256 amount) public withFactory(useFactory) {
+        assumeSafeAddress(mintTo);
+        amount = bound(amount, 1, 20);
+        sale.setSaleDetails(
+            type(uint256).max, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
 
         uint256 count = token.balanceOf(mintTo);
         vm.expectEmit(true, true, true, true, address(token));
@@ -150,10 +158,14 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
     function testERC20Mint(
         bool useFactory,
         address mintTo,
-        uint256 amount
-    ) public assumeSafe(mintTo, amount) withFactory(useFactory) withERC20 {
+        uint256 amount,
+        uint256 remainingSupply
+    ) public withFactory(useFactory) withERC20 {
+        assumeSafeAddress(mintTo);
+        amount = bound(amount, 1, 20);
+        remainingSupply = bound(remainingSupply, amount, type(uint256).max);
         sale.setSaleDetails(
-            0, perTokenCost, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+            remainingSupply, perTokenCost, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
         );
         uint256 cost = amount * perTokenCost;
 
@@ -174,9 +186,16 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
         bool useFactory,
         address mintTo,
         uint256 amount
-    ) public assumeSafe(mintTo, amount) withFactory(useFactory) withERC20 {
+    ) public withFactory(useFactory) withERC20 {
+        assumeSafeAddress(mintTo);
+        amount = bound(amount, 1, 20);
         sale.setSaleDetails(
-            0, perTokenCost, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+            type(uint256).max,
+            perTokenCost,
+            address(erc20),
+            uint64(block.timestamp - 1),
+            uint64(block.timestamp + 1),
+            ""
         );
         uint256 cost = amount * perTokenCost;
 
@@ -185,12 +204,12 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
     }
 
     // Minting fails with invalid maxTotal.
-    function testETHMintFailMaxTotal(
-        bool useFactory,
-        address mintTo,
-        uint256 amount
-    ) public assumeSafe(mintTo, amount) withFactory(useFactory) {
-        sale.setSaleDetails(0, perTokenCost, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
+    function testETHMintFailMaxTotal(bool useFactory, address mintTo, uint256 amount) public withFactory(useFactory) {
+        assumeSafeAddress(mintTo);
+        amount = bound(amount, 1, 20);
+        sale.setSaleDetails(
+            type(uint256).max, perTokenCost, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
         uint256 cost = amount * perTokenCost;
         vm.deal(address(this), cost);
 
@@ -204,9 +223,13 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
         address mintTo,
         uint256 amount,
         address wrongToken
-    ) public assumeSafe(mintTo, amount) withFactory(useFactory) withERC20 {
+    ) public withFactory(useFactory) withERC20 {
+        assumeSafeAddress(mintTo);
+        amount = bound(amount, 1, 20);
         address paymentToken = wrongToken == address(0) ? address(erc20) : address(0);
-        sale.setSaleDetails(0, 0, paymentToken, uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
+        sale.setSaleDetails(
+            type(uint256).max, 0, paymentToken, uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
 
         vm.expectRevert(abi.encodeWithSelector(InsufficientPayment.selector, paymentToken, 0, 0));
         sale.mint(mintTo, amount, wrongToken, 0, TestHelper.blankProof());
@@ -217,8 +240,12 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
         bool useFactory,
         address mintTo,
         uint256 amount
-    ) public assumeSafe(mintTo, amount) withFactory(useFactory) withERC20 {
-        sale.setSaleDetails(0, 0, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
+    ) public withFactory(useFactory) withERC20 {
+        assumeSafeAddress(mintTo);
+        amount = bound(amount, 1, 20);
+        sale.setSaleDetails(
+            type(uint256).max, 0, address(erc20), uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
 
         vm.expectRevert(abi.encodeWithSelector(InsufficientPayment.selector, address(0), 0, 1));
         sale.mint{ value: 1 }(mintTo, amount, address(erc20), 0, TestHelper.blankProof());
@@ -234,7 +261,9 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
 
         (bytes32 root, bytes32[] memory proof) = TestHelper.getMerkleParts(allowlist, 0, senderIndex);
 
-        sale.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+        sale.setSaleDetails(
+            type(uint256).max, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root
+        );
 
         vm.expectEmit(true, true, true, true, address(sale));
         emit ItemsMinted(sender, 1);
@@ -254,7 +283,9 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
 
         (bytes32 root, bytes32[] memory proof) = TestHelper.getMerkleParts(allowlist, 0, senderIndex);
 
-        sale.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+        sale.setSaleDetails(
+            type(uint256).max, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root
+        );
 
         vm.prank(sender);
         sale.mint(sender, 1, address(0), 0, proof);
@@ -275,7 +306,9 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
         (bytes32 root,) = TestHelper.getMerkleParts(allowlist, 0, 0);
         bytes32[] memory proof = TestHelper.blankProof();
 
-        sale.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+        sale.setSaleDetails(
+            type(uint256).max, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root
+        );
 
         vm.expectRevert(abi.encodeWithSelector(MerkleProofInvalid.selector, root, proof, sender, uint256(0)));
         vm.prank(sender);
@@ -289,7 +322,9 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
         vm.assume(allowlist[1] != sender);
 
         (bytes32 root, bytes32[] memory proof) = TestHelper.getMerkleParts(allowlist, 0, 1); // Wrong sender
-        sale.setSaleDetails(0, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+        sale.setSaleDetails(
+            type(uint256).max, 0, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), root
+        );
 
         vm.expectRevert(abi.encodeWithSelector(MerkleProofInvalid.selector, root, proof, sender, uint256(0)));
         vm.prank(sender);
@@ -308,22 +343,11 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
         _;
     }
 
-    modifier assumeSafe(address nonContract, uint256 amount) {
-        assumeSafeAddress(nonContract);
-        vm.assume(amount > 0 && amount < 20);
-        _;
-    }
-
     // Create ERC20. Give this contract 1000 ERC20 tokens. Approve token to spend 100 ERC20 tokens.
     modifier withERC20() {
         erc20 = new ERC20Mock(address(this));
         erc20.mint(address(this), 1000 ether);
         erc20.approve(address(sale), 1000 ether);
-        _;
-    }
-
-    modifier withSaleActive() {
-        sale.setSaleDetails(0, perTokenCost, address(0), uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
         _;
     }
 

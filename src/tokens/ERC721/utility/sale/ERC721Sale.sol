@@ -59,13 +59,13 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse, Si
     }
 
     /**
-     * Checks the sale is active and takes payment.
+     * Checks the sale is active, valid and takes payment.
      * @param _amount Amount of tokens to mint.
      * @param _expectedPaymentToken ERC20 token address to accept payment in. address(0) indicates ETH.
      * @param _maxTotal Maximum amount of payment tokens.
      * @param _proof Merkle proof for allowlist minting.
      */
-    function _payForActiveMint(
+    function _validateMint(
         uint256 _amount,
         address _expectedPaymentToken,
         uint256 _maxTotal,
@@ -75,6 +75,12 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse, Si
         if (_blockTimeOutOfBounds(_saleDetails.startTime, _saleDetails.endTime)) {
             revert SaleInactive();
         }
+        // Supply test
+        if (_saleDetails.remainingSupply < _amount) {
+            revert InsufficientSupply(_saleDetails.remainingSupply, _amount);
+        }
+        _saleDetails.remainingSupply -= _amount;
+        // Check proof
         requireMerkleProof(_saleDetails.merkleRoot, _proof, msg.sender, "");
 
         uint256 total = _saleDetails.cost * _amount;
@@ -123,21 +129,14 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse, Si
         uint256 maxTotal,
         bytes32[] calldata proof
     ) public payable {
-        _payForActiveMint(amount, paymentToken, maxTotal, proof);
-
-        uint256 currentSupply = IERC721ItemsFunctions(_items).totalSupply();
-        uint256 supplyCap = _saleDetails.supplyCap;
-        if (supplyCap > 0 && currentSupply + amount > supplyCap) {
-            revert InsufficientSupply(currentSupply, amount, supplyCap);
-        }
-
+        _validateMint(amount, paymentToken, maxTotal, proof);
         IERC721ItemsFunctions(_items).mintSequential(to, amount);
         emit ItemsMinted(to, amount);
     }
 
     /**
      * Set the sale details.
-     * @param supplyCap The maximum number of tokens that can be minted by the items contract. 0 indicates unlimited supply.
+     * @param remainingSupply The remaining number of tokens that can be minted by the items contract. 0 indicates unlimited supply.
      * @param cost The amount of payment tokens to accept for each token minted.
      * @param paymentToken The ERC20 token address to accept payment in. address(0) indicates ETH.
      * @param startTime The start time of the sale. Tokens cannot be minted before this time.
@@ -146,7 +145,7 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse, Si
      * @dev A zero end time indicates an inactive sale.
      */
     function setSaleDetails(
-        uint256 supplyCap,
+        uint256 remainingSupply,
         uint256 cost,
         address paymentToken,
         uint64 startTime,
@@ -157,8 +156,11 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse, Si
         if (endTime < startTime || endTime <= block.timestamp) {
             revert InvalidSaleDetails();
         }
-        _saleDetails = SaleDetails(supplyCap, cost, paymentToken, startTime, endTime, merkleRoot);
-        emit SaleDetailsUpdated(supplyCap, cost, paymentToken, startTime, endTime, merkleRoot);
+        if (remainingSupply == 0) {
+            revert InvalidSaleDetails();
+        }
+        _saleDetails = SaleDetails(remainingSupply, cost, paymentToken, startTime, endTime, merkleRoot);
+        emit SaleDetailsUpdated(remainingSupply, cost, paymentToken, startTime, endTime, merkleRoot);
     }
 
     //
