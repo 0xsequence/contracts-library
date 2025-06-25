@@ -115,23 +115,24 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
     //
     function testGlobalSaleDetails(
         uint256 cost,
-        uint256 supplyCap,
+        uint256 remainingSupply,
         uint64 startTime,
         uint64 endTime,
         bytes32 merkleRoot
     ) public {
+        remainingSupply = bound(remainingSupply, 1, type(uint256).max);
         endTime = uint64(bound(endTime, block.timestamp + 1, type(uint64).max));
-        endTime = uint64(bound(endTime, startTime, type(uint64).max));
+        startTime = uint64(bound(startTime, 0, endTime));
 
         // Setter
         vm.expectEmit(true, true, true, true, address(sale));
-        emit GlobalSaleDetailsUpdated(cost, supplyCap, startTime, endTime, merkleRoot);
-        sale.setGlobalSaleDetails(cost, supplyCap, startTime, endTime, merkleRoot);
+        emit GlobalSaleDetailsUpdated(cost, remainingSupply, startTime, endTime, merkleRoot);
+        sale.setGlobalSaleDetails(cost, remainingSupply, startTime, endTime, merkleRoot);
 
         // Getter
         IERC1155SaleFunctions.SaleDetails memory _saleDetails = sale.globalSaleDetails();
         assertEq(cost, _saleDetails.cost);
-        assertEq(supplyCap, _saleDetails.supplyCap);
+        assertEq(remainingSupply, _saleDetails.remainingSupply);
         assertEq(startTime, _saleDetails.startTime);
         assertEq(endTime, _saleDetails.endTime);
         assertEq(merkleRoot, _saleDetails.merkleRoot);
@@ -140,23 +141,24 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
     function testTokenSaleDetails(
         uint256 tokenId,
         uint256 cost,
-        uint256 supplyCap,
+        uint256 remainingSupply,
         uint64 startTime,
         uint64 endTime,
         bytes32 merkleRoot
     ) public {
+        remainingSupply = bound(remainingSupply, 1, type(uint256).max);
         endTime = uint64(bound(endTime, block.timestamp + 1, type(uint64).max));
-        endTime = uint64(bound(endTime, startTime, type(uint64).max));
+        startTime = uint64(bound(startTime, 0, endTime));
 
         // Setter
         vm.expectEmit(true, true, true, true, address(sale));
-        emit TokenSaleDetailsUpdated(tokenId, cost, supplyCap, startTime, endTime, merkleRoot);
-        sale.setTokenSaleDetails(tokenId, cost, supplyCap, startTime, endTime, merkleRoot);
+        emit TokenSaleDetailsUpdated(tokenId, cost, remainingSupply, startTime, endTime, merkleRoot);
+        sale.setTokenSaleDetails(tokenId, cost, remainingSupply, startTime, endTime, merkleRoot);
 
         // Getter
         IERC1155SaleFunctions.SaleDetails memory _saleDetails = sale.tokenSaleDetails(tokenId);
         assertEq(cost, _saleDetails.cost);
-        assertEq(supplyCap, _saleDetails.supplyCap);
+        assertEq(remainingSupply, _saleDetails.remainingSupply);
         assertEq(startTime, _saleDetails.startTime);
         assertEq(endTime, _saleDetails.endTime);
         assertEq(merkleRoot, _saleDetails.merkleRoot);
@@ -165,14 +167,14 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
     function testTokenSaleDetailsBatch(
         uint256[] memory tokenIds,
         uint256[] memory costs,
-        uint256[] memory supplyCaps,
+        uint256[] memory remainingSupplys,
         uint64[] memory startTimes,
         uint64[] memory endTimes,
         bytes32[] memory merkleRoots
     ) public {
         uint256 minLength = tokenIds.length;
         minLength = minLength > costs.length ? costs.length : minLength;
-        minLength = minLength > supplyCaps.length ? supplyCaps.length : minLength;
+        minLength = minLength > remainingSupplys.length ? remainingSupplys.length : minLength;
         minLength = minLength > startTimes.length ? startTimes.length : minLength;
         minLength = minLength > endTimes.length ? endTimes.length : minLength;
         minLength = minLength > merkleRoots.length ? merkleRoots.length : minLength;
@@ -182,7 +184,7 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         assembly {
             mstore(tokenIds, minLength)
             mstore(costs, minLength)
-            mstore(supplyCaps, minLength)
+            mstore(remainingSupplys, minLength)
             mstore(startTimes, minLength)
             mstore(endTimes, minLength)
             mstore(merkleRoots, minLength)
@@ -200,25 +202,27 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
             vm.assume(tokenIds[i] != tokenIds[i + 1]);
         }
 
+        // Bound values
         for (uint256 i = 0; i < minLength; i++) {
+            remainingSupplys[i] = bound(remainingSupplys[i], 1, type(uint256).max);
             endTimes[i] = uint64(bound(endTimes[i], block.timestamp + 1, type(uint64).max));
-            endTimes[i] = uint64(bound(endTimes[i], startTimes[i], type(uint64).max));
+            startTimes[i] = uint64(bound(startTimes[i], 0, endTimes[i]));
         }
 
         // Setter
         for (uint256 i = 0; i < minLength; i++) {
             vm.expectEmit(true, true, true, true, address(sale));
             emit TokenSaleDetailsUpdated(
-                tokenIds[i], costs[i], supplyCaps[i], startTimes[i], endTimes[i], merkleRoots[i]
+                tokenIds[i], costs[i], remainingSupplys[i], startTimes[i], endTimes[i], merkleRoots[i]
             );
         }
-        sale.setTokenSaleDetailsBatch(tokenIds, costs, supplyCaps, startTimes, endTimes, merkleRoots);
+        sale.setTokenSaleDetailsBatch(tokenIds, costs, remainingSupplys, startTimes, endTimes, merkleRoots);
 
         // Getter
         IERC1155SaleFunctions.SaleDetails[] memory _saleDetails = sale.tokenSaleDetailsBatch(tokenIds);
         for (uint256 i = 0; i < minLength; i++) {
             assertEq(costs[i], _saleDetails[i].cost);
-            assertEq(supplyCaps[i], _saleDetails[i].supplyCap);
+            assertEq(remainingSupplys[i], _saleDetails[i].remainingSupply);
             assertEq(startTimes[i], _saleDetails[i].startTime);
             assertEq(endTimes[i], _saleDetails[i].endTime);
             assertEq(merkleRoots[i], _saleDetails[i].merkleRoot);

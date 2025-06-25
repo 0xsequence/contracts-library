@@ -5,7 +5,7 @@ interface IERC1155SaleFunctions {
 
     struct SaleDetails {
         uint256 cost;
-        uint256 supplyCap; // 0 supply cap indicates unlimited supply
+        uint256 remainingSupply;
         uint64 startTime;
         uint64 endTime; // 0 end time indicates sale inactive
         bytes32 merkleRoot; // Root of allowed addresses
@@ -74,10 +74,10 @@ interface IERC1155SaleFunctions {
 interface IERC1155SaleSignals {
 
     event GlobalSaleDetailsUpdated(
-        uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot
+        uint256 cost, uint256 remainingSupply, uint64 startTime, uint64 endTime, bytes32 merkleRoot
     );
     event TokenSaleDetailsUpdated(
-        uint256 tokenId, uint256 cost, uint256 supplyCap, uint64 startTime, uint64 endTime, bytes32 merkleRoot
+        uint256 tokenId, uint256 cost, uint256 remainingSupply, uint64 startTime, uint64 endTime, bytes32 merkleRoot
     );
     event ItemsMinted(address to, uint256[] tokenIds, uint256[] amounts);
 
@@ -117,8 +117,10 @@ interface IERC1155SaleSignals {
 
     /**
      * Insufficient supply of tokens.
+     * @param remainingSupply Remaining supply.
+     * @param amount Amount to mint.
      */
-    error InsufficientSupply(uint256 currentSupply, uint256 requestedAmount, uint256 maxSupply);
+    error InsufficientSupply(uint256 remainingSupply, uint256 amount);
 
 }
 

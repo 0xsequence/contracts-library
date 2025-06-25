@@ -20,9 +20,9 @@ The `ERC721Items` contract is a preset that configures the `ERC721BaseToken` con
 
 The `ERC721Sale` contract is a preset that configures the `ERC721BaseToken` contract to allow for the sale of tokens. It adds a `mint(address to, uint256 amount, bytes32[] memory proof)` function allows for the minting of tokens under various conditions.
 
-Conditions may be set by the contract owner using the `setSaleDetails(uint256 supplyCap, uint256 cost, address paymentToken, uint64 startTime, uint64 endTime, bytes32 merkleRoot)` function that can only be called by accounts with the `MINT_ADMIN_ROLE`. The variables function as follows:
+Conditions may be set by the contract owner using the `setSaleDetails(uint256 remainingSupply, uint256 cost, address paymentToken, uint64 startTime, uint64 endTime, bytes32 merkleRoot)` function that can only be called by accounts with the `MINT_ADMIN_ROLE`. The variables function as follows:
 
-- supplyCap: The maximum number of tokens that can be minted. 0 indicates unlimited supply.
+- remainingSupply: The maximum number of tokens that can be minted by this contract.
 - cost: The amount of payment tokens to accept for each token minted.
 - paymentToken: The ERC20 token address to accept payment in. address(0) indicates ETH.
 - startTime: The start time of the sale. Tokens cannot be minted before this time.

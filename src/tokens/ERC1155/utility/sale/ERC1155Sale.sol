@@ -4,12 +4,8 @@ pragma solidity ^0.8.19;
 import { MerkleProofSingleUse } from "../../../common/MerkleProofSingleUse.sol";
 import { SignalsImplicitModeControlled } from "../../../common/SignalsImplicitModeControlled.sol";
 import { AccessControlEnumerable, IERC20, SafeERC20, WithdrawControlled } from "../../../common/WithdrawControlled.sol";
-import { ERC1155Supply } from "../../extensions/supply/ERC1155Supply.sol";
-import { IERC1155SupplyFunctions } from "../../extensions/supply/IERC1155Supply.sol";
 import { IERC1155ItemsFunctions } from "../../presets/items/IERC1155Items.sol";
 import { IERC1155Sale, IERC1155SaleFunctions } from "./IERC1155Sale.sol";
-
-import { IERC1155 } from "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
 
 contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, SignalsImplicitModeControlled {
 
@@ -65,14 +61,14 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
     }
 
     /**
-     * Checks the sale is active and takes payment.
+     * Checks the sale is active, valid and takes payment.
      * @param _tokenIds Token IDs to mint.
      * @param _amounts Amounts of tokens to mint.
      * @param _expectedPaymentToken ERC20 token address to accept payment in. address(0) indicates ETH.
      * @param _maxTotal Maximum amount of payment tokens.
      * @param _proof Merkle proof for allowlist minting.
      */
-    function _payForActiveMint(
+    function _validateMint(
         uint256[] memory _tokenIds,
         uint256[] memory _amounts,
         address _expectedPaymentToken,
@@ -106,12 +102,20 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
                     revert SaleInactive(tokenId);
                 }
                 // Use global sale details
+                if (_globalSaleDetails.remainingSupply < amount) {
+                    revert InsufficientSupply(_globalSaleDetails.remainingSupply, amount);
+                }
                 globalMerkleCheckRequired = true;
                 totalCost += gSaleDetails.cost * amount;
+                _globalSaleDetails.remainingSupply -= amount;
             } else {
                 // Use token sale details
+                if (saleDetails.remainingSupply < amount) {
+                    revert InsufficientSupply(saleDetails.remainingSupply, amount);
+                }
                 requireMerkleProof(saleDetails.merkleRoot, _proof, msg.sender, bytes32(tokenId));
                 totalCost += saleDetails.cost * amount;
+                _tokenSaleDetails[tokenId].remainingSupply -= amount;
             }
             totalAmount += amount;
         }
@@ -170,24 +174,10 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
         uint256 maxTotal,
         bytes32[] calldata proof
     ) public payable {
-        _payForActiveMint(tokenIds, amounts, expectedPaymentToken, maxTotal, proof);
-
-        IERC1155SupplyFunctions items = IERC1155SupplyFunctions(_items);
-        uint256 totalAmount = 0;
-        uint256 nMint = tokenIds.length;
-        for (uint256 i = 0; i < nMint; i++) {
-            // Update storage balance
-            uint256 tokenSupplyCap = _tokenSaleDetails[tokenIds[i]].supplyCap;
-            if (tokenSupplyCap > 0 && items.tokenSupply(tokenIds[i]) + amounts[i] > tokenSupplyCap) {
-                revert InsufficientSupply(items.tokenSupply(tokenIds[i]), amounts[i], tokenSupplyCap);
-            }
-            totalAmount += amounts[i];
+        if (tokenIds.length != amounts.length) {
+            revert InvalidTokenIds();
         }
-        uint256 totalSupplyCap = _globalSaleDetails.supplyCap;
-        if (totalSupplyCap > 0 && items.totalSupply() + totalAmount > totalSupplyCap) {
-            revert InsufficientSupply(items.totalSupply(), totalAmount, totalSupplyCap);
-        }
-
+        _validateMint(tokenIds, amounts, expectedPaymentToken, maxTotal, proof);
         IERC1155ItemsFunctions(_items).batchMint(to, tokenIds, amounts, data);
         emit ItemsMinted(to, tokenIds, amounts);
     }
@@ -210,7 +200,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
     /**
      * Set the global sale details.
      * @param cost The amount of payment tokens to accept for each token minted.
-     * @param supplyCap The maximum number of tokens that can be minted by the items contract.
+     * @param remainingSupply The maximum number of tokens that can be minted by the items contract.
      * @param startTime The start time of the sale. Tokens cannot be minted before this time.
      * @param endTime The end time of the sale. Tokens cannot be minted after this time.
      * @param merkleRoot The merkle root for allowlist minting.
@@ -219,7 +209,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
      */
     function setGlobalSaleDetails(
         uint256 cost,
-        uint256 supplyCap,
+        uint256 remainingSupply,
         uint64 startTime,
         uint64 endTime,
         bytes32 merkleRoot
@@ -228,15 +218,18 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
         if (endTime < startTime || endTime <= block.timestamp) {
             revert InvalidSaleDetails();
         }
-        _globalSaleDetails = SaleDetails(cost, supplyCap, startTime, endTime, merkleRoot);
-        emit GlobalSaleDetailsUpdated(cost, supplyCap, startTime, endTime, merkleRoot);
+        if (remainingSupply == 0) {
+            revert InvalidSaleDetails();
+        }
+        _globalSaleDetails = SaleDetails(cost, remainingSupply, startTime, endTime, merkleRoot);
+        emit GlobalSaleDetailsUpdated(cost, remainingSupply, startTime, endTime, merkleRoot);
     }
 
     /**
      * Set the sale details for an individual token.
      * @param tokenId The token ID to set the sale details for.
      * @param cost The amount of payment tokens to accept for each token minted.
-     * @param supplyCap The maximum number of tokens that can be minted by the items contract.
+     * @param remainingSupply The maximum number of tokens that can be minted by this contract.
      * @param startTime The start time of the sale. Tokens cannot be minted before this time.
      * @param endTime The end time of the sale. Tokens cannot be minted after this time.
      * @param merkleRoot The merkle root for allowlist minting.
@@ -246,7 +239,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
     function setTokenSaleDetails(
         uint256 tokenId,
         uint256 cost,
-        uint256 supplyCap,
+        uint256 remainingSupply,
         uint64 startTime,
         uint64 endTime,
         bytes32 merkleRoot
@@ -255,15 +248,18 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
         if (endTime < startTime || endTime <= block.timestamp) {
             revert InvalidSaleDetails();
         }
-        _tokenSaleDetails[tokenId] = SaleDetails(cost, supplyCap, startTime, endTime, merkleRoot);
-        emit TokenSaleDetailsUpdated(tokenId, cost, supplyCap, startTime, endTime, merkleRoot);
+        if (remainingSupply == 0) {
+            revert InvalidSaleDetails();
+        }
+        _tokenSaleDetails[tokenId] = SaleDetails(cost, remainingSupply, startTime, endTime, merkleRoot);
+        emit TokenSaleDetailsUpdated(tokenId, cost, remainingSupply, startTime, endTime, merkleRoot);
     }
 
     /**
      * Set the sale details for a batch of tokens.
      * @param tokenIds The token IDs to set the sale details for.
      * @param costs The amount of payment tokens to accept for each token minted.
-     * @param supplyCaps The maximum number of tokens that can be minted by the items contract.
+     * @param remainingSupplies The maximum number of tokens that can be minted by this contract.
      * @param startTimes The start time of the sale. Tokens cannot be minted before this time.
      * @param endTimes The end time of the sale. Tokens cannot be minted after this time.
      * @param merkleRoots The merkle root for allowlist minting.
@@ -274,13 +270,13 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
     function setTokenSaleDetailsBatch(
         uint256[] calldata tokenIds,
         uint256[] calldata costs,
-        uint256[] calldata supplyCaps,
+        uint256[] calldata remainingSupplies,
         uint64[] calldata startTimes,
         uint64[] calldata endTimes,
         bytes32[] calldata merkleRoots
     ) public onlyRole(MINT_ADMIN_ROLE) {
         if (
-            tokenIds.length != costs.length || tokenIds.length != supplyCaps.length
+            tokenIds.length != costs.length || tokenIds.length != remainingSupplies.length
                 || tokenIds.length != startTimes.length || tokenIds.length != endTimes.length
                 || tokenIds.length != merkleRoots.length
         ) {
@@ -299,9 +295,14 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
             if (endTimes[i] < startTimes[i] || endTimes[i] <= block.timestamp) {
                 revert InvalidSaleDetails();
             }
+            if (remainingSupplies[i] == 0) {
+                revert InvalidSaleDetails();
+            }
             _tokenSaleDetails[tokenId] =
-                SaleDetails(costs[i], supplyCaps[i], startTimes[i], endTimes[i], merkleRoots[i]);
-            emit TokenSaleDetailsUpdated(tokenId, costs[i], supplyCaps[i], startTimes[i], endTimes[i], merkleRoots[i]);
+                SaleDetails(costs[i], remainingSupplies[i], startTimes[i], endTimes[i], merkleRoots[i]);
+            emit TokenSaleDetailsUpdated(
+                tokenId, costs[i], remainingSupplies[i], startTimes[i], endTimes[i], merkleRoots[i]
+            );
         }
     }
 
