@@ -31,9 +31,7 @@ contract ERC1155PackFactory is IERC1155PackFactory, SequenceProxyFactory {
         address royaltyReceiver,
         uint96 royaltyFeeNumerator,
         address implicitModeValidator,
-        bytes32 implicitModeProjectId,
-        bytes32 merkleRoot,
-        uint256 supply
+        bytes32 implicitModeProjectId
     ) external override returns (address proxyAddr) {
         bytes32 salt = keccak256(
             abi.encode(
@@ -56,9 +54,7 @@ contract ERC1155PackFactory is IERC1155PackFactory, SequenceProxyFactory {
             royaltyReceiver,
             royaltyFeeNumerator,
             implicitModeValidator,
-            implicitModeProjectId,
-            merkleRoot,
-            supply
+            implicitModeProjectId
         );
         emit ERC1155PackDeployed(proxyAddr);
         return proxyAddr;

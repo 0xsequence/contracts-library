@@ -14,8 +14,6 @@ interface IERC1155PackFactoryFunctions {
      * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
      * @param implicitModeValidator The implicit mode validator address
      * @param implicitModeProjectId The implicit mode project id
-     * @param merkleRoot merkle root built from all possible pack contents.
-     * @param supply total amount of packs.
      * @return proxyAddr The address of the ERC-1155 Pack Proxy
      */
     function deploy(
@@ -27,9 +25,7 @@ interface IERC1155PackFactoryFunctions {
         address royaltyReceiver,
         uint96 royaltyFeeNumerator,
         address implicitModeValidator,
-        bytes32 implicitModeProjectId,
-        bytes32 merkleRoot,
-        uint256 supply
+        bytes32 implicitModeProjectId
     ) external returns (address proxyAddr);
 
     /**
