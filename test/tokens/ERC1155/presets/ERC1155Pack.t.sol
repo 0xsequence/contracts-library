@@ -71,9 +71,12 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
 
         pack = ERC1155Pack(
             factory.deploy(
-                proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0), root, 4
+                proxyOwner, owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0)
             )
         );
+
+        vm.prank(owner);
+        pack.setPacksContent(root, 4, 0);
 
         reentryAttacker = new PackReentryMock(address(pack));
 
@@ -83,11 +86,8 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
     }
 
     function testReinitializeFails() public {
-        _preparePacksContent();
-        (bytes32 root,) = TestHelper.getMerklePartsPacks(packsContent, 0);
-
         vm.expectRevert(InvalidInitialization.selector);
-        pack.initialize(owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0), root, 3);
+        pack.initialize(owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0));
     }
 
     function testSupportsInterface() public view {
@@ -189,9 +189,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
             params.royaltyReceiver,
             params.royaltyFeeNumerator,
             params.implicitModeValidator,
-            params.implicitModeProjectId,
-            params.merkleRoot,
-            params.supply
+            params.implicitModeProjectId
         );
         address predictedAddr = factory.determineAddress(
             params.proxyOwner,
@@ -324,9 +322,10 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         (bytes32 root,) = TestHelper.getMerklePartsPacks(packsContent, 0);
 
         ERC1155PackHack packHack = new ERC1155PackHack();
-        packHack.initialize(
-            owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0), root, size
-        );
+        packHack.initialize(owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0));
+
+        vm.prank(owner);
+        packHack.setPacksContent(root, size, 0);
 
         pack = packHack;
 

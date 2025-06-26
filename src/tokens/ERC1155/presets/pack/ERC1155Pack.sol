@@ -21,7 +21,7 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
 
     constructor() ERC1155Items() { }
 
-    /// @inheritdoc IERC1155Pack
+    /// @inheritdoc ERC1155Items
     function initialize(
         address owner,
         string memory tokenName,
@@ -30,14 +30,9 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
         address royaltyReceiver,
         uint96 royaltyFeeNumerator,
         address implicitModeValidator,
-        bytes32 implicitModeProjectId,
-        bytes32 _merkleRoot,
-        uint256 _supply
-    ) public virtual {
+        bytes32 implicitModeProjectId
+    ) public virtual override {
         _grantRole(PACK_ADMIN_ROLE, owner);
-        merkleRoot[0] = _merkleRoot;
-        supply[0] = _supply;
-        remainingSupply[0] = _supply;
         super.initialize(
             owner,
             tokenName,
@@ -71,7 +66,7 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
         uint256 revealAfterBlock = block.number + 1;
         _commitments[packId][msg.sender] = revealAfterBlock;
 
-        emit Commit(msg.sender, revealAfterBlock, packId);
+        emit Commit(msg.sender, packId);
     }
 
     /// @inheritdoc IERC1155Pack

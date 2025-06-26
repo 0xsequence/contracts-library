@@ -41,37 +41,10 @@ interface IERC1155Pack {
     error AllPacksOpened();
 
     /// @notice Emitted when a user make a commitment
-    event Commit(address indexed user, uint256 blockNumber, uint256 packId);
+    event Commit(address indexed user, uint256 packId);
 
     /// @notice Emitted when a reveal is successful
     event Reveal(address user, uint256 packId);
-
-    /**
-     * Initialize the contract.
-     * @param owner Owner address
-     * @param tokenName Token name
-     * @param tokenBaseURI Base URI for token metadata
-     * @param tokenContractURI Contract URI for token metadata
-     * @param royaltyReceiver Address of who should be sent the royalty payment
-     * @param royaltyFeeNumerator The royalty fee numerator in basis points (e.g. 15% would be 1500)
-     * @param implicitModeValidator The implicit mode validator address
-     * @param implicitModeProjectId The implicit mode project id
-     * @param _merkleRoot merkle root built from all possible pack contents.
-     * @param _supply total amount of packs.
-     * @dev This should be called immediately after deployment.
-     */
-    function initialize(
-        address owner,
-        string memory tokenName,
-        string memory tokenBaseURI,
-        string memory tokenContractURI,
-        address royaltyReceiver,
-        uint96 royaltyFeeNumerator,
-        address implicitModeValidator,
-        bytes32 implicitModeProjectId,
-        bytes32 _merkleRoot,
-        uint256 _supply
-    ) external;
 
     /**
      * Set all possible pack contents.
