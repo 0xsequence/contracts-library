@@ -1,54 +1,74 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-interface IERC1155SaleFunctions {
+interface IERC1155Sale {
 
+    /**
+     * Sale details.
+     * @param minTokenId Minimum token ID for this sale. (Inclusive)
+     * @param maxTokenId Maximum token ID for this sale. (Inclusive)
+     * @param cost Cost per token.
+     * @param paymentToken ERC20 token address to accept payment in. address(0) indicates payment in ETH.
+     * @param supply Maximum number of tokens that can be minted (per token ID).
+     * @param startTime Start time of the sale. (Inclusive)
+     * @param endTime End time of the sale. (Inclusive)
+     * @param merkleRoot Merkle root for allowlist minting. 0 indicates no proof required.
+     */
     struct SaleDetails {
+        uint256 minTokenId;
+        uint256 maxTokenId;
         uint256 cost;
-        uint256 remainingSupply;
+        address paymentToken;
+        uint256 supply;
         uint64 startTime;
-        uint64 endTime; // 0 end time indicates sale inactive
-        bytes32 merkleRoot; // Root of allowed addresses
+        uint64 endTime;
+        bytes32 merkleRoot;
     }
 
     /**
-     * Get global sales details.
-     * @return Sale details.
-     * @notice Global sales details apply to all tokens.
-     * @notice Global sales details are overriden when token sale is active.
+     * Get the total number of sale details.
+     * @return Total number of sale details.
      */
-    function globalSaleDetails() external view returns (SaleDetails memory);
+    function saleDetailsCount() external view returns (uint256);
 
     /**
-     * Get token sale details.
-     * @param tokenId Token ID to get sale details for.
-     * @return Sale details.
-     * @notice Token sale details override global sale details.
+     * Get sale details.
+     * @param saleIndex Index of the sale details to get.
+     * @return details Sale details.
      */
-    function tokenSaleDetails(
-        uint256 tokenId
-    ) external view returns (SaleDetails memory);
+    function saleDetails(
+        uint256 saleIndex
+    ) external view returns (SaleDetails memory details);
 
     /**
-     * Get sale details for multiple tokens.
-     * @param tokenIds Array of token IDs to retrieve sale details for.
-     * @return Array of sale details corresponding to each token ID.
-     * @notice Each token's sale details override the global sale details if set.
+     * Get sale details for multiple sale indexes.
+     * @param saleIndexes Array of sale indexes to retrieve sale details for.
+     * @return details Array of sale details corresponding to each sale index.
      */
-    function tokenSaleDetailsBatch(
-        uint256[] calldata tokenIds
-    ) external view returns (SaleDetails[] memory);
+    function saleDetailsBatch(
+        uint256[] calldata saleIndexes
+    ) external view returns (SaleDetails[] memory details);
 
     /**
-     * Get payment token.
-     * @return Payment token address.
-     * @notice address(0) indicates payment in ETH.
+     * Add new sale details.
+     * @param details Sale details to add.
+     * @return saleIndex Index of the newly added sale details.
      */
-    function paymentToken() external view returns (address);
+    function addSaleDetails(
+        SaleDetails calldata details
+    ) external returns (uint256 saleIndex);
+
+    /**
+     * Update existing sale details.
+     * @param saleIndex Index of the sale details to update.
+     * @param details Sale details to update.
+     */
+    function updateSaleDetails(uint256 saleIndex, SaleDetails calldata details) external;
 
     /**
      * Mint tokens.
      * @param to Address to mint tokens to.
+     * @param saleIndex Index of the token sale details to mint.
      * @param tokenIds Token IDs to mint.
      * @param amounts Amounts of tokens to mint.
      * @param data Data to pass if receiver is contract.
@@ -61,25 +81,37 @@ interface IERC1155SaleFunctions {
      */
     function mint(
         address to,
-        uint256[] memory tokenIds,
-        uint256[] memory amounts,
-        bytes memory data,
+        uint256[] calldata tokenIds,
+        uint256[] calldata amounts,
+        bytes calldata data,
+        uint256 saleIndex,
         address paymentToken,
         uint256 maxTotal,
         bytes32[] calldata proof
     ) external payable;
 
-}
+    /**
+     * Emitted when sale details are added.
+     * @param saleIndex Index of the sale details that were added.
+     * @param details Sale details that were added.
+     */
+    event SaleDetailsAdded(uint256 saleIndex, SaleDetails details);
 
-interface IERC1155SaleSignals {
+    /**
+     * Emitted when sale details are updated.
+     * @param saleIndex Index of the sale details that were updated.
+     * @param details Sale details that were updated.
+     */
+    event SaleDetailsUpdated(uint256 saleIndex, SaleDetails details);
 
-    event GlobalSaleDetailsUpdated(
-        uint256 cost, uint256 remainingSupply, uint64 startTime, uint64 endTime, bytes32 merkleRoot
-    );
-    event TokenSaleDetailsUpdated(
-        uint256 tokenId, uint256 cost, uint256 remainingSupply, uint64 startTime, uint64 endTime, bytes32 merkleRoot
-    );
-    event ItemsMinted(address to, uint256[] tokenIds, uint256[] amounts);
+    /**
+     * Emitted when tokens are minted.
+     * @param to Address that minted the tokens.
+     * @param tokenIds Token IDs that were minted.
+     * @param amounts Amounts of tokens that were minted.
+     * @param saleIndex Index of the sale details that were minted.
+     */
+    event ItemsMinted(address to, uint256[] tokenIds, uint256[] amounts, uint256 saleIndex);
 
     /**
      * Contract already initialized.
@@ -92,15 +124,14 @@ interface IERC1155SaleSignals {
     error InvalidSaleDetails();
 
     /**
-     * Sale is not active globally.
+     * Sale details index does not exist.
      */
-    error GlobalSaleInactive();
+    error SaleDetailsNotFound(uint256 index);
 
     /**
      * Sale is not active.
-     * @param tokenId Invalid Token ID.
      */
-    error SaleInactive(uint256 tokenId);
+    error SaleInactive();
 
     /**
      * Insufficient tokens for payment.
@@ -123,5 +154,3 @@ interface IERC1155SaleSignals {
     error InsufficientSupply(uint256 remainingSupply, uint256 amount);
 
 }
-
-interface IERC1155Sale is IERC1155SaleFunctions, IERC1155SaleSignals { }

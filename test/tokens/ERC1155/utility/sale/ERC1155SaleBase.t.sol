@@ -6,9 +6,8 @@ import { ERC20Mock } from "../../../../_mocks/ERC20Mock.sol";
 
 import { IERC1155Supply, IERC1155SupplySignals } from "src/tokens/ERC1155/extensions/supply/IERC1155Supply.sol";
 import { ERC1155Items } from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
-import { ERC1155Sale } from "src/tokens/ERC1155/utility/sale/ERC1155Sale.sol";
+import { ERC1155Sale, IERC1155Sale } from "src/tokens/ERC1155/utility/sale/ERC1155Sale.sol";
 import { ERC1155SaleFactory } from "src/tokens/ERC1155/utility/sale/ERC1155SaleFactory.sol";
-import { IERC1155SaleFunctions, IERC1155SaleSignals } from "src/tokens/ERC1155/utility/sale/IERC1155Sale.sol";
 
 import { IAccessControl } from "openzeppelin-contracts/contracts/access/IAccessControl.sol";
 import { Strings } from "openzeppelin-contracts/contracts/utils/Strings.sol";
@@ -18,7 +17,7 @@ import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsIm
 
 // solhint-disable not-rely-on-time
 
-contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplySignals {
+contract ERC1155SaleBaseTest is TestHelper, IERC1155SupplySignals {
 
     // Redeclare events
     event TransferSingle(
@@ -50,14 +49,14 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
 
     function setUpFromFactory() public {
         ERC1155SaleFactory factory = new ERC1155SaleFactory(address(this));
-        sale = ERC1155Sale(factory.deploy(proxyOwner, address(this), address(token), address(0), bytes32(0)));
+        sale = ERC1155Sale(factory.deploy(0, proxyOwner, address(this), address(token), address(0), bytes32(0)));
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
     }
 
     function testSupportsInterface() public view {
         assertTrue(sale.supportsInterface(type(IERC165).interfaceId));
         assertTrue(sale.supportsInterface(type(IAccessControl).interfaceId));
-        assertTrue(sale.supportsInterface(type(IERC1155SaleFunctions).interfaceId));
+        assertTrue(sale.supportsInterface(type(IERC1155Sale).interfaceId));
         assertTrue(sale.supportsInterface(type(ISignalsImplicitMode).interfaceId));
     }
 
@@ -84,16 +83,13 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         checkSelectorCollision(0xed4c2ac7); // setImplicitModeProjectId(bytes32)
         checkSelectorCollision(0x0bb310de); // setImplicitModeValidator(address)
         checkSelectorCollision(0x6a326ab1); // setPaymentToken(address)
-        checkSelectorCollision(0x4f651ccd); // setTokenSaleDetails(uint256,uint256,uint256,uint64,uint64,bytes32)
-        checkSelectorCollision(0xf07f04ff); // setTokenSaleDetailsBatch(uint256[],uint256[],uint256[],uint64[],uint64[],bytes32[])
         checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
-        checkSelectorCollision(0x0869678c); // tokenSaleDetails(uint256)
-        checkSelectorCollision(0xff81434e); // tokenSaleDetailsBatch(uint256[])
         checkSelectorCollision(0x44004cc1); // withdrawERC20(address,address,uint256)
         checkSelectorCollision(0x4782f779); // withdrawETH(address,uint256)
     }
 
     function testFactoryDetermineAddress(
+        uint256 nonce,
         address _proxyOwner,
         address tokenOwner,
         address items,
@@ -104,129 +100,157 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         vm.assume(tokenOwner != address(0));
         ERC1155SaleFactory factory = new ERC1155SaleFactory(address(this));
         address deployedAddr =
-            factory.deploy(_proxyOwner, tokenOwner, items, implicitModeValidator, implicitModeProjectId);
-        address predictedAddr =
-            factory.determineAddress(_proxyOwner, tokenOwner, items, implicitModeValidator, implicitModeProjectId);
+            factory.deploy(nonce, _proxyOwner, tokenOwner, items, implicitModeValidator, implicitModeProjectId);
+        address predictedAddr = factory.determineAddress(
+            nonce, _proxyOwner, tokenOwner, items, implicitModeValidator, implicitModeProjectId
+        );
         assertEq(deployedAddr, predictedAddr);
     }
 
     //
-    // Setter and getter
+    // Admin
     //
-    function testGlobalSaleDetails(
-        uint256 cost,
-        uint256 remainingSupply,
-        uint64 startTime,
-        uint64 endTime,
-        bytes32 merkleRoot
+    function test_addSaleDetails_success(
+        IERC1155Sale.SaleDetails[] memory beforeDetails,
+        IERC1155Sale.SaleDetails memory details
     ) public {
-        remainingSupply = bound(remainingSupply, 1, type(uint256).max);
-        endTime = uint64(bound(endTime, block.timestamp + 1, type(uint64).max));
-        startTime = uint64(bound(startTime, 0, endTime));
+        for (uint256 i = 0; i < beforeDetails.length; i++) {
+            sale.addSaleDetails(validSaleDetails(0, beforeDetails[i]));
+        }
 
-        // Setter
-        vm.expectEmit(true, true, true, true, address(sale));
-        emit GlobalSaleDetailsUpdated(cost, remainingSupply, startTime, endTime, merkleRoot);
-        sale.setGlobalSaleDetails(cost, remainingSupply, startTime, endTime, merkleRoot);
+        details = validSaleDetails(0, details);
+        vm.expectEmit(true, true, true, true);
+        emit IERC1155Sale.SaleDetailsAdded(beforeDetails.length, details);
+        uint256 saleIndex = sale.addSaleDetails(details);
 
-        // Getter
-        IERC1155SaleFunctions.SaleDetails memory _saleDetails = sale.globalSaleDetails();
-        assertEq(cost, _saleDetails.cost);
-        assertEq(remainingSupply, _saleDetails.remainingSupply);
-        assertEq(startTime, _saleDetails.startTime);
-        assertEq(endTime, _saleDetails.endTime);
-        assertEq(merkleRoot, _saleDetails.merkleRoot);
+        assertEq(sale.saleDetailsCount(), beforeDetails.length + 1);
+        IERC1155Sale.SaleDetails memory actual = sale.saleDetails(saleIndex);
+        _compareSaleDetails(actual, details);
     }
 
-    function testTokenSaleDetails(
-        uint256 tokenId,
-        uint256 cost,
-        uint256 remainingSupply,
-        uint64 startTime,
-        uint64 endTime,
-        bytes32 merkleRoot
+    function test_addSaleDetails_fail_invalidTokenId(
+        IERC1155Sale.SaleDetails memory details
     ) public {
-        remainingSupply = bound(remainingSupply, 1, type(uint256).max);
-        endTime = uint64(bound(endTime, block.timestamp + 1, type(uint64).max));
-        startTime = uint64(bound(startTime, 0, endTime));
-
-        // Setter
-        vm.expectEmit(true, true, true, true, address(sale));
-        emit TokenSaleDetailsUpdated(tokenId, cost, remainingSupply, startTime, endTime, merkleRoot);
-        sale.setTokenSaleDetails(tokenId, cost, remainingSupply, startTime, endTime, merkleRoot);
-
-        // Getter
-        IERC1155SaleFunctions.SaleDetails memory _saleDetails = sale.tokenSaleDetails(tokenId);
-        assertEq(cost, _saleDetails.cost);
-        assertEq(remainingSupply, _saleDetails.remainingSupply);
-        assertEq(startTime, _saleDetails.startTime);
-        assertEq(endTime, _saleDetails.endTime);
-        assertEq(merkleRoot, _saleDetails.merkleRoot);
+        details = validSaleDetails(0, details);
+        details.minTokenId = bound(details.minTokenId, 1, type(uint256).max);
+        details.maxTokenId = bound(details.maxTokenId, 0, details.minTokenId - 1);
+        vm.expectRevert(abi.encodeWithSelector(IERC1155Sale.InvalidSaleDetails.selector));
+        sale.addSaleDetails(details);
     }
 
-    function testTokenSaleDetailsBatch(
-        uint256[] memory tokenIds,
-        uint256[] memory costs,
-        uint256[] memory remainingSupplys,
-        uint64[] memory startTimes,
-        uint64[] memory endTimes,
-        bytes32[] memory merkleRoots
+    function test_addSaleDetails_fail_invalidSupply(
+        IERC1155Sale.SaleDetails memory details
     ) public {
-        uint256 minLength = tokenIds.length;
-        minLength = minLength > costs.length ? costs.length : minLength;
-        minLength = minLength > remainingSupplys.length ? remainingSupplys.length : minLength;
-        minLength = minLength > startTimes.length ? startTimes.length : minLength;
-        minLength = minLength > endTimes.length ? endTimes.length : minLength;
-        minLength = minLength > merkleRoots.length ? merkleRoots.length : minLength;
-        minLength = minLength > 5 ? 5 : minLength; // Max 5
-        vm.assume(minLength > 0);
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            mstore(tokenIds, minLength)
-            mstore(costs, minLength)
-            mstore(remainingSupplys, minLength)
-            mstore(startTimes, minLength)
-            mstore(endTimes, minLength)
-            mstore(merkleRoots, minLength)
-        }
+        details = validSaleDetails(0, details);
+        details.supply = 0;
+        vm.expectRevert(abi.encodeWithSelector(IERC1155Sale.InvalidSaleDetails.selector));
+        sale.addSaleDetails(details);
+    }
 
-        // Sort tokenIds ascending and ensure no duplicates
-        for (uint256 i = 0; i < minLength; i++) {
-            for (uint256 j = i + 1; j < minLength; j++) {
-                if (tokenIds[i] > tokenIds[j]) {
-                    (tokenIds[i], tokenIds[j]) = (tokenIds[j], tokenIds[i]);
-                }
-            }
-        }
-        for (uint256 i = 0; i < minLength - 1; i++) {
-            vm.assume(tokenIds[i] != tokenIds[i + 1]);
-        }
+    function test_addSaleDetails_fail_invalidStartTime(
+        IERC1155Sale.SaleDetails memory details
+    ) public {
+        details = validSaleDetails(0, details);
+        details.startTime = uint64(bound(details.startTime, 1, type(uint64).max));
+        details.endTime = uint64(bound(details.endTime, 0, details.startTime - 1));
+        vm.expectRevert(abi.encodeWithSelector(IERC1155Sale.InvalidSaleDetails.selector));
+        sale.addSaleDetails(details);
+    }
 
-        // Bound values
-        for (uint256 i = 0; i < minLength; i++) {
-            remainingSupplys[i] = bound(remainingSupplys[i], 1, type(uint256).max);
-            endTimes[i] = uint64(bound(endTimes[i], block.timestamp + 1, type(uint64).max));
-            startTimes[i] = uint64(bound(startTimes[i], 0, endTimes[i]));
+    function test_updateSaleDetails_success(
+        IERC1155Sale.SaleDetails[] memory beforeDetails,
+        IERC1155Sale.SaleDetails memory newDetails,
+        uint256 saleIndex
+    ) public {
+        vm.assume(beforeDetails.length > 0);
+        saleIndex = bound(saleIndex, 0, beforeDetails.length - 1);
+        for (uint256 i = 0; i < beforeDetails.length; i++) {
+            sale.addSaleDetails(validSaleDetails(0, beforeDetails[i]));
         }
+        uint256 beforeUpdateCount = sale.saleDetailsCount();
 
-        // Setter
-        for (uint256 i = 0; i < minLength; i++) {
-            vm.expectEmit(true, true, true, true, address(sale));
-            emit TokenSaleDetailsUpdated(
-                tokenIds[i], costs[i], remainingSupplys[i], startTimes[i], endTimes[i], merkleRoots[i]
-            );
-        }
-        sale.setTokenSaleDetailsBatch(tokenIds, costs, remainingSupplys, startTimes, endTimes, merkleRoots);
+        newDetails = validSaleDetails(0, newDetails);
 
-        // Getter
-        IERC1155SaleFunctions.SaleDetails[] memory _saleDetails = sale.tokenSaleDetailsBatch(tokenIds);
-        for (uint256 i = 0; i < minLength; i++) {
-            assertEq(costs[i], _saleDetails[i].cost);
-            assertEq(remainingSupplys[i], _saleDetails[i].remainingSupply);
-            assertEq(startTimes[i], _saleDetails[i].startTime);
-            assertEq(endTimes[i], _saleDetails[i].endTime);
-            assertEq(merkleRoots[i], _saleDetails[i].merkleRoot);
+        vm.expectEmit(true, true, true, true);
+        emit IERC1155Sale.SaleDetailsUpdated(saleIndex, newDetails);
+        sale.updateSaleDetails(saleIndex, newDetails);
+
+        assertEq(sale.saleDetailsCount(), beforeUpdateCount); // Unchanged
+        IERC1155Sale.SaleDetails memory actual = sale.saleDetails(saleIndex);
+        _compareSaleDetails(actual, newDetails);
+    }
+
+    function test_updateSaleDetails_fail_notFound(
+        IERC1155Sale.SaleDetails memory newDetails,
+        uint256 saleIndex
+    ) public {
+        vm.assume(saleIndex >= sale.saleDetailsCount());
+        vm.expectRevert(abi.encodeWithSelector(IERC1155Sale.SaleDetailsNotFound.selector, saleIndex));
+        sale.updateSaleDetails(saleIndex, newDetails);
+    }
+
+    function test_updateSaleDetails_fail_invalidTokenId(
+        IERC1155Sale.SaleDetails memory details
+    ) public {
+        details = validSaleDetails(0, details);
+        uint256 saleIndex = sale.addSaleDetails(details);
+        details.minTokenId = bound(details.minTokenId, 1, type(uint256).max);
+        details.maxTokenId = bound(details.maxTokenId, 0, details.minTokenId - 1);
+        vm.expectRevert(abi.encodeWithSelector(IERC1155Sale.InvalidSaleDetails.selector));
+        sale.updateSaleDetails(saleIndex, details);
+    }
+
+    function test_updateSaleDetails_fail_invalidSupply(
+        IERC1155Sale.SaleDetails memory details
+    ) public {
+        details = validSaleDetails(0, details);
+        uint256 saleIndex = sale.addSaleDetails(details);
+        details.supply = 0;
+        vm.expectRevert(abi.encodeWithSelector(IERC1155Sale.InvalidSaleDetails.selector));
+        sale.updateSaleDetails(saleIndex, details);
+    }
+
+    function test_updateSaleDetails_fail_invalidStartTime(
+        IERC1155Sale.SaleDetails memory details
+    ) public {
+        details = validSaleDetails(0, details);
+        uint256 saleIndex = sale.addSaleDetails(details);
+        details.startTime = uint64(bound(details.startTime, 1, type(uint64).max));
+        details.endTime = uint64(bound(details.endTime, 0, details.startTime - 1));
+        vm.expectRevert(abi.encodeWithSelector(IERC1155Sale.InvalidSaleDetails.selector));
+        sale.updateSaleDetails(saleIndex, details);
+    }
+
+    function test_saleDetails_fail_notFound(
+        uint256 saleIndex
+    ) public {
+        vm.assume(saleIndex >= sale.saleDetailsCount());
+        vm.expectRevert(abi.encodeWithSelector(IERC1155Sale.SaleDetailsNotFound.selector, saleIndex));
+        sale.saleDetails(saleIndex);
+    }
+
+    function test_saleDetailsBatch(
+        IERC1155Sale.SaleDetails[] memory details
+    ) public {
+        uint256[] memory saleIndexes = new uint256[](details.length);
+        for (uint256 i = 0; i < details.length; i++) {
+            details[i] = validSaleDetails(0, details[i]);
+            saleIndexes[i] = sale.addSaleDetails(details[i]);
         }
+        assertEq(sale.saleDetailsCount(), details.length);
+        IERC1155Sale.SaleDetails[] memory actual = sale.saleDetailsBatch(saleIndexes);
+        assertEq(actual.length, details.length);
+        for (uint256 i = 0; i < details.length; i++) {
+            _compareSaleDetails(actual[i], details[i]);
+        }
+    }
+
+    function test_saleDetailsBatch_fail_notFound(
+        uint256[] memory saleIndexes
+    ) public {
+        vm.assume(saleIndexes.length > 0);
+        vm.expectRevert(abi.encodeWithSelector(IERC1155Sale.SaleDetailsNotFound.selector, saleIndexes[0]));
+        sale.saleDetailsBatch(saleIndexes);
     }
 
     //
@@ -295,12 +319,33 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         _;
     }
 
-    modifier assumeSafe(address nonContract, uint256 tokenId, uint256 amount) {
-        assumeSafeAddress(nonContract);
-        vm.assume(nonContract != proxyOwner);
-        vm.assume(tokenId < 100);
-        vm.assume(amount > 0 && amount < 20);
-        _;
+    function validSaleDetails(
+        uint256 validTokenId,
+        IERC1155Sale.SaleDetails memory saleDetails
+    ) public view returns (IERC1155Sale.SaleDetails memory) {
+        saleDetails.minTokenId = bound(saleDetails.minTokenId, 0, validTokenId);
+        saleDetails.maxTokenId = bound(saleDetails.maxTokenId, validTokenId, type(uint256).max);
+        saleDetails.supply = bound(saleDetails.supply, 1, type(uint256).max);
+        saleDetails.cost = bound(saleDetails.cost, 0, type(uint256).max / saleDetails.supply);
+        saleDetails.startTime = uint64(bound(saleDetails.startTime, 0, block.timestamp));
+        saleDetails.endTime = uint64(bound(saleDetails.endTime, block.timestamp, type(uint64).max));
+        saleDetails.paymentToken = address(0);
+        saleDetails.merkleRoot = bytes32(0);
+        return saleDetails;
+    }
+
+    function _compareSaleDetails(
+        IERC1155Sale.SaleDetails memory actual,
+        IERC1155Sale.SaleDetails memory expected
+    ) internal pure {
+        assertEq(actual.minTokenId, expected.minTokenId);
+        assertEq(actual.maxTokenId, expected.maxTokenId);
+        assertEq(actual.cost, expected.cost);
+        assertEq(actual.paymentToken, expected.paymentToken);
+        assertEq(actual.supply, expected.supply);
+        assertEq(actual.startTime, expected.startTime);
+        assertEq(actual.endTime, expected.endTime);
+        assertEq(actual.merkleRoot, expected.merkleRoot);
     }
 
 }

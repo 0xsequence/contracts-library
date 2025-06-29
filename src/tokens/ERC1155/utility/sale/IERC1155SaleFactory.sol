@@ -5,6 +5,7 @@ interface IERC1155SaleFactoryFunctions {
 
     /**
      * Creates an ERC-1155 Sale proxy contract
+     * @param nonce Extra salt to add to the salt used to compute the address
      * @param proxyOwner The owner of the ERC-1155 Sale proxy
      * @param tokenOwner The owner of the ERC-1155 Sale implementation
      * @param items The ERC-1155 Items contract address
@@ -14,6 +15,7 @@ interface IERC1155SaleFactoryFunctions {
      * @notice The deployed contract must be granted the MINTER_ROLE on the ERC-1155 Items contract.
      */
     function deploy(
+        uint256 nonce,
         address proxyOwner,
         address tokenOwner,
         address items,
@@ -23,6 +25,7 @@ interface IERC1155SaleFactoryFunctions {
 
     /**
      * Computes the address of a proxy instance.
+     * @param nonce Extra salt to add to the salt used to compute the address
      * @param proxyOwner The owner of the ERC-1155 Sale proxy
      * @param tokenOwner The owner of the ERC-1155 Sale implementation
      * @param items The ERC-1155 Items contract address
@@ -31,6 +34,7 @@ interface IERC1155SaleFactoryFunctions {
      * @return proxyAddr The address of the ERC-1155 Sale Proxy
      */
     function determineAddress(
+        uint256 nonce,
         address proxyOwner,
         address tokenOwner,
         address items,
