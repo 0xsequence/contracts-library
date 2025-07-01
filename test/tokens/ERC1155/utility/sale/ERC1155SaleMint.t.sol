@@ -671,6 +671,81 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SupplySignals, IMerkleProofS
         assertEq(address(sale).balance, expectedCost);
     }
 
+    function test_mint_repeat_success_proof(
+        bool useFactory,
+        address recipient,
+        IERC1155Sale.SaleDetails memory details,
+        uint256 tokenId1,
+        uint256 tokenId2,
+        uint256 amount1,
+        uint256 amount2,
+        address[] memory allowlist,
+        uint256 leafIndex1,
+        uint256 leafIndex2
+    ) public withFactory(useFactory) {
+        assumeSafeAddress(recipient);
+        vm.assume(tokenId1 != tokenId2);
+        if (tokenId1 > tokenId2) {
+            (tokenId1, tokenId2) = (tokenId2, tokenId1);
+        }
+        details = validSaleDetails(tokenId1, details);
+        details.maxTokenId = bound(details.maxTokenId, tokenId2, type(uint256).max);
+
+        // Avoid overflows on total cost
+        details.cost = details.cost / 10 + 1;
+        details.supply = details.supply / 10 + 1;
+
+        vm.assume(allowlist.length > 1);
+        uint256 maxAllowList = allowlist.length > 10 ? 10 : allowlist.length;
+        assembly {
+            mstore(allowlist, maxAllowList)
+        }
+
+        // Construct a merkle tree that supports multiple tokens
+        bytes32[] memory leaves = new bytes32[](allowlist.length * 2);
+        leafIndex1 = bound(leafIndex1, 0, leaves.length - 1);
+        leafIndex2 = bound(leafIndex2, 0, leaves.length - 1);
+        vm.assume(leafIndex1 != leafIndex2);
+        for (uint256 i = 0; i < leaves.length; i++) {
+            if (i == leafIndex1) {
+                leaves[i] = keccak256(abi.encodePacked(address(this), bytes32(tokenId1)));
+            } else if (i == leafIndex2) {
+                leaves[i] = keccak256(abi.encodePacked(address(this), bytes32(tokenId2)));
+            } else {
+                leaves[i] = keccak256(abi.encodePacked(allowlist[i / 2], bytes32(i % 2 == 0 ? tokenId1 : tokenId2)));
+            }
+        }
+        details.merkleRoot = getRoot(leaves);
+        bytes32[][] memory proofs = new bytes32[][](2);
+        proofs[0] = getProof(leaves, leafIndex1);
+        proofs[1] = getProof(leaves, leafIndex2);
+
+        amount1 = bound(amount1, 1, details.supply);
+        amount2 = bound(amount2, 1, details.supply);
+        uint256[] memory tokenIds = new uint256[](2);
+        tokenIds[0] = tokenId1;
+        tokenIds[1] = tokenId2;
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = amount1;
+        amounts[1] = amount2;
+        uint256[] memory saleIndexes = new uint256[](2);
+        saleIndexes[0] = sale.addSaleDetails(details);
+        saleIndexes[1] = saleIndexes[0];
+
+        uint256 expectedCost = details.cost * (amount1 + amount2);
+        vm.deal(address(this), expectedCost);
+
+        vm.expectEmit(true, true, true, true, address(token));
+        emit TransferBatch(address(sale), address(0), recipient, tokenIds, amounts);
+        vm.expectEmit(true, true, true, true, address(sale));
+        emit IERC1155Sale.ItemsMinted(recipient, tokenIds, amounts, saleIndexes);
+        sale.mint{ value: expectedCost }(
+            recipient, tokenIds, amounts, "", saleIndexes, address(0), expectedCost, proofs
+        );
+
+        assertEq(address(sale).balance, expectedCost);
+    }
+
     function test_mint_multiple_success_ERC20(
         bool useFactory,
         address recipient,
