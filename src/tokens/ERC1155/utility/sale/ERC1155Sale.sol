@@ -52,29 +52,36 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
      * Checks the sale is active, valid and takes payment.
      * @param _tokenIds Token IDs to mint.
      * @param _amounts Amounts of tokens to mint.
-     * @param _saleIndex Sale index to mint from.
+     * @param _saleIndexes Sale indexes for each token.
      * @param _expectedPaymentToken ERC20 token address to accept payment in. address(0) indicates ETH.
      * @param _maxTotal Maximum amount of payment tokens.
-     * @param _proof Merkle proof for allowlist minting.
+     * @param _proofs Merkle proofs for allowlist minting.
      */
     function _validateMint(
         uint256[] calldata _tokenIds,
         uint256[] calldata _amounts,
-        uint256 _saleIndex,
+        uint256[] calldata _saleIndexes,
         address _expectedPaymentToken,
         uint256 _maxTotal,
-        bytes32[] calldata _proof
+        bytes32[][] calldata _proofs
     ) private {
         uint256 totalCost;
 
-        // Find the sale details for the token
-        if (_saleIndex >= _saleDetails.length) {
-            revert SaleDetailsNotFound(_saleIndex);
+        // Validate input arrays have matching lengths
+        uint256 length = _tokenIds.length;
+        if (length != _amounts.length || length != _saleIndexes.length || length != _proofs.length) {
+            revert InvalidArrayLengths();
         }
-        SaleDetails memory details = _saleDetails[_saleIndex];
 
-        for (uint256 i; i < _tokenIds.length; i++) {
+        for (uint256 i; i < length; i++) {
             uint256 tokenId = _tokenIds[i];
+            uint256 saleIndex = _saleIndexes[i];
+
+            // Find the sale details for the token
+            if (saleIndex >= _saleDetails.length) {
+                revert SaleDetailsNotFound(saleIndex);
+            }
+            SaleDetails memory details = _saleDetails[saleIndex];
 
             // Check if token is within the sale range
             if (tokenId < details.minTokenId || tokenId > details.maxTokenId) {
@@ -87,26 +94,30 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
                 revert SaleInactive();
             }
 
+            // Validate payment token matches expected
+            if (details.paymentToken != _expectedPaymentToken) {
+                revert PaymentTokenMismatch();
+            }
+
             uint256 amount = _amounts[i];
+            if (amount == 0) {
+                revert InvalidAmount();
+            }
 
             // Check supply
-            uint256 minted = _tokensMintedPerSale[tokenId][_saleIndex];
+            uint256 minted = _tokensMintedPerSale[tokenId][saleIndex];
             if (amount > details.supply - minted) {
                 revert InsufficientSupply(details.supply - minted, amount);
             }
 
             // Check merkle proof
-            requireMerkleProof(details.merkleRoot, _proof, msg.sender, bytes32(tokenId));
+            requireMerkleProof(details.merkleRoot, _proofs[i], msg.sender, bytes32(tokenId));
 
             // Update supply and calculate cost
-            _tokensMintedPerSale[tokenId][_saleIndex] = minted + amount;
+            _tokensMintedPerSale[tokenId][saleIndex] = minted + amount;
             totalCost += details.cost * amount;
         }
 
-        if (_expectedPaymentToken != details.paymentToken) {
-            // Caller expected different payment token
-            revert InsufficientPayment(details.paymentToken, totalCost, 0);
-        }
         if (_maxTotal < totalCost) {
             // Caller expected to pay less
             revert InsufficientPayment(_expectedPaymentToken, totalCost, _maxTotal);
@@ -132,23 +143,21 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
 
     /// @inheritdoc IERC1155Sale
     /// @notice Sale must be active for all tokens.
+    /// @dev All sales must use the same payment token.
     /// @dev An empty proof is supplied when no proof is required.
     function mint(
         address to,
         uint256[] calldata tokenIds,
         uint256[] calldata amounts,
         bytes calldata data,
-        uint256 saleIndex,
+        uint256[] calldata saleIndexes,
         address expectedPaymentToken,
         uint256 maxTotal,
-        bytes32[] calldata proof
+        bytes32[][] calldata proofs
     ) public payable {
-        if (tokenIds.length != amounts.length) {
-            revert InvalidTokenIds();
-        }
-        _validateMint(tokenIds, amounts, saleIndex, expectedPaymentToken, maxTotal, proof);
+        _validateMint(tokenIds, amounts, saleIndexes, expectedPaymentToken, maxTotal, proofs);
         IERC1155ItemsFunctions(_items).batchMint(to, tokenIds, amounts, data);
-        emit ItemsMinted(to, tokenIds, amounts, saleIndex);
+        emit ItemsMinted(to, tokenIds, amounts, saleIndexes);
     }
 
     //

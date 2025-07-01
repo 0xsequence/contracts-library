@@ -68,15 +68,15 @@ interface IERC1155Sale {
     /**
      * Mint tokens.
      * @param to Address to mint tokens to.
-     * @param saleIndex Index of the token sale details to mint.
      * @param tokenIds Token IDs to mint.
      * @param amounts Amounts of tokens to mint.
      * @param data Data to pass if receiver is contract.
-     * @param paymentToken ERC20 token address to accept payment in. address(0) indicates ETH.
+     * @param saleIndexes Sale indexes for each token. Must match tokenIds length.
+     * @param expectedPaymentToken ERC20 token address to accept payment in. address(0) indicates ETH.
      * @param maxTotal Maximum amount of payment tokens.
-     * @param proof Merkle proof for allowlist minting.
+     * @param proofs Merkle proofs for allowlist minting. Must match tokenIds length.
      * @notice Sale must be active for all tokens.
-     * @dev tokenIds must be sorted ascending without duplicates.
+     * @dev All sales must use the same payment token.
      * @dev An empty proof is supplied when no proof is required.
      */
     function mint(
@@ -84,10 +84,10 @@ interface IERC1155Sale {
         uint256[] calldata tokenIds,
         uint256[] calldata amounts,
         bytes calldata data,
-        uint256 saleIndex,
-        address paymentToken,
+        uint256[] calldata saleIndexes,
+        address expectedPaymentToken,
         uint256 maxTotal,
-        bytes32[] calldata proof
+        bytes32[][] calldata proofs
     ) external payable;
 
     /**
@@ -109,9 +109,9 @@ interface IERC1155Sale {
      * @param to Address that minted the tokens.
      * @param tokenIds Token IDs that were minted.
      * @param amounts Amounts of tokens that were minted.
-     * @param saleIndex Index of the sale details that were minted.
+     * @param saleIndexes Sale indexes that were minted from.
      */
-    event ItemsMinted(address to, uint256[] tokenIds, uint256[] amounts, uint256 saleIndex);
+    event ItemsMinted(address to, uint256[] tokenIds, uint256[] amounts, uint256[] saleIndexes);
 
     /**
      * Contract already initialized.
@@ -142,15 +142,25 @@ interface IERC1155Sale {
     error InsufficientPayment(address currency, uint256 expected, uint256 actual);
 
     /**
-     * Invalid token IDs.
-     */
-    error InvalidTokenIds();
-
-    /**
      * Insufficient supply of tokens.
      * @param remainingSupply Remaining supply.
      * @param amount Amount to mint.
      */
     error InsufficientSupply(uint256 remainingSupply, uint256 amount);
+
+    /**
+     * Invalid array lengths.
+     */
+    error InvalidArrayLengths();
+
+    /**
+     * Invalid amount.
+     */
+    error InvalidAmount();
+
+    /**
+     * Payment token mismatch between sales.
+     */
+    error PaymentTokenMismatch();
 
 }
