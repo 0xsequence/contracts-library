@@ -103,10 +103,11 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
 
     /// @inheritdoc IERC1155Pack
     function refundPack(address user, uint256 packId) external {
-        if (_commitments[packId][user] == 0) {
+        uint256 commitment = _commitments[packId][user];
+        if (commitment == 0) {
             revert NoCommit();
         }
-        if (uint256(blockhash(_commitments[packId][user])) != 0 || block.number <= _commitments[packId][user]) {
+        if (uint256(blockhash(commitment)) != 0 || block.number <= commitment) {
             revert PendingReveal();
         }
         delete _commitments[packId][user];
@@ -124,13 +125,13 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
             revert AllPacksOpened();
         }
 
-        bytes32 blockHash = blockhash(_commitments[packId][user]);
+        uint256 commitment = _commitments[packId][user];
+        if (commitment == 0) {
+            revert NoCommit();
+        }
+        bytes32 blockHash = blockhash(commitment);
         if (uint256(blockHash) == 0) {
             revert InvalidCommit();
-        }
-
-        if (_commitments[packId][user] == 0) {
-            revert NoCommit();
         }
 
         randomIdx = uint256(keccak256(abi.encode(blockHash, user))) % remainingSupply[packId];
