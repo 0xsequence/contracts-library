@@ -26,11 +26,6 @@ interface IERC1155Pack {
     error NoCommit();
 
     /**
-     * No balance.
-     */
-    error NoBalance();
-
-    /**
      * Invalid proof.
      */
     error InvalidProof();

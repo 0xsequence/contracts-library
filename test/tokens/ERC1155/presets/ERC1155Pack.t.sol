@@ -18,6 +18,8 @@ import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IE
 
 import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsImplicitMode.sol";
 
+import { ERC1155 } from "solady/tokens/ERC1155.sol";
+
 contract ERC1155PackHack is ERC1155Pack {
 
     function setAllExceptOneClaimed(
@@ -218,7 +220,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
     ) public {
         assumeSafeAddress(user);
         vm.prank(user);
-        vm.expectRevert(IERC1155Pack.NoBalance.selector);
+        vm.expectRevert(ERC1155.InsufficientBalance.selector);
         pack.commit(0);
     }
 
