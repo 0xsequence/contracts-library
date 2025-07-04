@@ -6,7 +6,7 @@ import { ERC1155Items } from "../items/ERC1155Items.sol";
 import { IERC1155ItemsFunctions } from "../items/IERC1155Items.sol";
 import { IERC1155Pack } from "./IERC1155Pack.sol";
 
-import { MerkleProof } from "openzeppelin-contracts/contracts/utils/cryptography/MerkleProof.sol";
+import { MerkleProofLib } from "solady/utils/MerkleProofLib.sol";
 
 contract ERC1155Pack is ERC1155Items, IERC1155Pack {
 
@@ -79,7 +79,7 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
         (uint256 randomIndex, uint256 revealIdx) = _getRevealIdx(user, packId);
 
         bytes32 leaf = keccak256(abi.encode(revealIdx, packContent));
-        if (!MerkleProof.verify(proof, merkleRoot[packId], leaf)) {
+        if (!MerkleProofLib.verify(proof, merkleRoot[packId], leaf)) {
             revert InvalidProof();
         }
 
