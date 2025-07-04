@@ -59,9 +59,6 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
         if (_commitments[packId][msg.sender] != 0) {
             revert PendingReveal();
         }
-        if (balanceOf(msg.sender, packId) == 0) {
-            revert NoBalance();
-        }
         _burn(msg.sender, packId, 1);
         uint256 revealAfterBlock = block.number + 1;
         _commitments[packId][msg.sender] = revealAfterBlock;
