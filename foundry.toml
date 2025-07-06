@@ -4,6 +4,7 @@ out = 'out'
 libs = ['lib']
 solc = "0.8.27"
 solc-version = "0.8.27"
+evm_version = "paris"
 via_ir = true
 use_literal_content = true
 
