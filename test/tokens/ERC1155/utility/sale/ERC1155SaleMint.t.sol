@@ -156,7 +156,7 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         }
 
         vm.warp(uint256(endTime) - 1);
-        sale.setGlobalSaleDetails(perTokenCost, amount, startTime, endTime, "");
+        sale.setGlobalSaleDetails(0, type(uint256).max, perTokenCost, amount, startTime, endTime, "");
         vm.warp(uint256(endTime) + 1);
 
         uint256 cost = amount * perTokenCost;
@@ -206,7 +206,13 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         amount = bound(amount, 2, 20);
         remainingSupply = bound(remainingSupply, 1, amount - 1);
         sale.setGlobalSaleDetails(
-            perTokenCost, remainingSupply, uint64(block.timestamp), uint64(block.timestamp + 1), ""
+            0,
+            type(uint256).max,
+            perTokenCost,
+            remainingSupply,
+            uint64(block.timestamp),
+            uint64(block.timestamp + 1),
+            ""
         );
 
         uint256 cost = amount * perTokenCost;
@@ -336,7 +342,9 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         uint256 amount
     ) public withFactory(useFactory) {
         (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
-        sale.setGlobalSaleDetails(0, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
+        sale.setGlobalSaleDetails(
+            0, type(uint256).max, 0, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
         uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
         uint256[] memory amounts = TestHelper.singleToArray(amount);
 
@@ -382,7 +390,13 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         sale.setPaymentToken(address(erc20));
         sale.setGlobalSaleDetails(
-            perTokenCost, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+            0,
+            type(uint256).max,
+            perTokenCost,
+            type(uint256).max,
+            uint64(block.timestamp - 1),
+            uint64(block.timestamp + 1),
+            ""
         );
         uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
         uint256[] memory amounts = TestHelper.singleToArray(amount);
@@ -418,7 +432,13 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
 
         if (globalActive) {
             sale.setGlobalSaleDetails(
-                0, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), root
+                0,
+                type(uint256).max,
+                0,
+                type(uint256).max,
+                uint64(block.timestamp - 1),
+                uint64(block.timestamp + 1),
+                root
             );
         } else {
             sale.setTokenSaleDetails(
@@ -466,7 +486,9 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
 
         (bytes32 root, bytes32[] memory proof) = TestHelper.getMerkleParts(allowlist, type(uint256).max, senderIndex);
 
-        sale.setGlobalSaleDetails(0, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), root);
+        sale.setGlobalSaleDetails(
+            0, type(uint256).max, 0, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), root
+        );
 
         vm.expectEmit(true, true, true, true, address(sale));
         emit ItemsMinted(sender, tokenIds, amounts);
@@ -522,7 +544,13 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
 
         if (globalActive) {
             sale.setGlobalSaleDetails(
-                0, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), root
+                0,
+                type(uint256).max,
+                0,
+                type(uint256).max,
+                uint64(block.timestamp - 1),
+                uint64(block.timestamp + 1),
+                root
             );
         } else {
             sale.setTokenSaleDetails(
@@ -553,7 +581,13 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
 
         if (globalActive) {
             sale.setGlobalSaleDetails(
-                0, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), root
+                0,
+                type(uint256).max,
+                0,
+                type(uint256).max,
+                uint64(block.timestamp - 1),
+                uint64(block.timestamp + 1),
+                root
             );
         } else {
             sale.setTokenSaleDetails(
@@ -567,6 +601,34 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         vm.expectRevert(abi.encodeWithSelector(MerkleProofInvalid.selector, root, proof, sender, salt));
         vm.prank(sender);
         sale.mint(sender, tokenIds, amounts, "", address(0), 0, proof);
+    }
+
+    function testGlobalMintFailOutOfRange(
+        bool useFactory,
+        address mintTo,
+        uint256 tokenId,
+        uint256 amount,
+        bool tokenIsUnder, // Or over
+        uint256 minTokenId,
+        uint256 maxTokenId
+    ) public withFactory(useFactory) {
+        (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
+        tokenId = bound(tokenId, 1, type(uint256).max - 1);
+        if (tokenIsUnder) {
+            minTokenId = bound(minTokenId, tokenId + 1, type(uint256).max);
+            maxTokenId = bound(maxTokenId, minTokenId, type(uint256).max);
+        } else {
+            maxTokenId = bound(maxTokenId, 0, tokenId - 1);
+            minTokenId = bound(minTokenId, 0, maxTokenId);
+        }
+        sale.setGlobalSaleDetails(
+            minTokenId, maxTokenId, 0, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
+        uint256[] memory tokenIds = TestHelper.singleToArray(tokenId);
+        uint256[] memory amounts = TestHelper.singleToArray(amount);
+
+        vm.expectRevert(abi.encodeWithSelector(SaleInactive.selector, tokenId));
+        sale.mint(mintTo, tokenIds, amounts, "", address(0), 0, TestHelper.blankProof());
     }
 
     // Minting fails with invalid maxTotal.
@@ -594,7 +656,13 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
 
         sale.setPaymentToken(address(erc20));
         sale.setGlobalSaleDetails(
-            perTokenCost, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+            0,
+            type(uint256).max,
+            perTokenCost,
+            type(uint256).max,
+            uint64(block.timestamp - 1),
+            uint64(block.timestamp + 1),
+            ""
         );
         vm.expectRevert(err);
         sale.mint(mintTo, tokenIds, amounts, "", address(erc20), cost - 1, TestHelper.blankProof());
@@ -611,7 +679,9 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         address paymentToken = wrongToken == address(0) ? address(erc20) : address(0);
         sale.setPaymentToken(paymentToken);
-        sale.setGlobalSaleDetails(0, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
+        sale.setGlobalSaleDetails(
+            0, type(uint256).max, 0, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
 
         bytes memory err = abi.encodeWithSelector(InsufficientPayment.selector, paymentToken, 0, 0);
         vm.expectRevert(err);
@@ -650,7 +720,9 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
     ) public withFactory(useFactory) withERC20 {
         (tokenId, amount) = assumeSafe(mintTo, tokenId, amount);
         sale.setPaymentToken(address(erc20));
-        sale.setGlobalSaleDetails(0, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), "");
+        sale.setGlobalSaleDetails(
+            0, type(uint256).max, 0, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+        );
 
         bytes memory err = abi.encodeWithSelector(InsufficientPayment.selector, address(0), 0, 1);
         vm.expectRevert(err);
@@ -714,7 +786,13 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
 
     modifier withGlobalSaleActive() {
         sale.setGlobalSaleDetails(
-            perTokenCost, type(uint256).max, uint64(block.timestamp - 1), uint64(block.timestamp + 1), ""
+            0,
+            type(uint256).max,
+            perTokenCost,
+            type(uint256).max,
+            uint64(block.timestamp - 1),
+            uint64(block.timestamp + 1),
+            ""
         );
         _;
     }

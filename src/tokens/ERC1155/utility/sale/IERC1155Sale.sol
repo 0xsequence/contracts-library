@@ -3,6 +3,16 @@ pragma solidity ^0.8.19;
 
 interface IERC1155SaleFunctions {
 
+    struct GlobalSaleDetails {
+        uint256 minTokenId;
+        uint256 maxTokenId;
+        uint256 cost;
+        uint256 remainingSupply;
+        uint64 startTime;
+        uint64 endTime; // 0 end time indicates sale inactive
+        bytes32 merkleRoot; // Root of allowed addresses
+    }
+
     struct SaleDetails {
         uint256 cost;
         uint256 remainingSupply;
@@ -17,7 +27,7 @@ interface IERC1155SaleFunctions {
      * @notice Global sales details apply to all tokens.
      * @notice Global sales details are overriden when token sale is active.
      */
-    function globalSaleDetails() external view returns (SaleDetails memory);
+    function globalSaleDetails() external view returns (GlobalSaleDetails memory);
 
     /**
      * Get token sale details.
@@ -74,7 +84,13 @@ interface IERC1155SaleFunctions {
 interface IERC1155SaleSignals {
 
     event GlobalSaleDetailsUpdated(
-        uint256 cost, uint256 remainingSupply, uint64 startTime, uint64 endTime, bytes32 merkleRoot
+        uint256 minTokenId,
+        uint256 maxTokenId,
+        uint256 cost,
+        uint256 remainingSupply,
+        uint64 startTime,
+        uint64 endTime,
+        bytes32 merkleRoot
     );
     event TokenSaleDetailsUpdated(
         uint256 tokenId, uint256 cost, uint256 remainingSupply, uint64 startTime, uint64 endTime, bytes32 merkleRoot

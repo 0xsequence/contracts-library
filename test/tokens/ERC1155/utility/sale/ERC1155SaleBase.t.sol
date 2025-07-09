@@ -114,6 +114,8 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
     // Setter and getter
     //
     function testGlobalSaleDetails(
+        uint256 minTokenId,
+        uint256 maxTokenId,
         uint256 cost,
         uint256 remainingSupply,
         uint64 startTime,
@@ -126,11 +128,13 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
 
         // Setter
         vm.expectEmit(true, true, true, true, address(sale));
-        emit GlobalSaleDetailsUpdated(cost, remainingSupply, startTime, endTime, merkleRoot);
-        sale.setGlobalSaleDetails(cost, remainingSupply, startTime, endTime, merkleRoot);
+        emit GlobalSaleDetailsUpdated(minTokenId, maxTokenId, cost, remainingSupply, startTime, endTime, merkleRoot);
+        sale.setGlobalSaleDetails(minTokenId, maxTokenId, cost, remainingSupply, startTime, endTime, merkleRoot);
 
         // Getter
-        IERC1155SaleFunctions.SaleDetails memory _saleDetails = sale.globalSaleDetails();
+        IERC1155SaleFunctions.GlobalSaleDetails memory _saleDetails = sale.globalSaleDetails();
+        assertEq(minTokenId, _saleDetails.minTokenId);
+        assertEq(maxTokenId, _saleDetails.maxTokenId);
         assertEq(cost, _saleDetails.cost);
         assertEq(remainingSupply, _saleDetails.remainingSupply);
         assertEq(startTime, _saleDetails.startTime);

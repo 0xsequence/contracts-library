@@ -17,7 +17,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
     // ERC20 token address for payment. address(0) indicated payment in ETH.
     address private _paymentToken;
 
-    SaleDetails private _globalSaleDetails;
+    GlobalSaleDetails private _globalSaleDetails;
     mapping(uint256 => SaleDetails) private _tokenSaleDetails;
 
     /**
@@ -79,7 +79,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
         uint256 totalCost;
         uint256 totalAmount;
 
-        SaleDetails memory gSaleDetails = _globalSaleDetails;
+        GlobalSaleDetails memory gSaleDetails = _globalSaleDetails;
         bool globalSaleInactive = _blockTimeOutOfBounds(gSaleDetails.startTime, gSaleDetails.endTime);
         bool globalMerkleCheckRequired = false;
         for (uint256 i; i < _tokenIds.length; i++) {
@@ -97,7 +97,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
             bool tokenSaleInactive = _blockTimeOutOfBounds(saleDetails.startTime, saleDetails.endTime);
             if (tokenSaleInactive) {
                 // Prefer token sale
-                if (globalSaleInactive) {
+                if (gSaleDetails.minTokenId > tokenId || gSaleDetails.maxTokenId < tokenId || globalSaleInactive) {
                     // Both sales inactive
                     revert SaleInactive(tokenId);
                 }
@@ -199,6 +199,8 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
 
     /**
      * Set the global sale details.
+     * @param minTokenId The minimum token ID to apply the sale to.
+     * @param maxTokenId The maximum token ID to apply the sale to.
      * @param cost The amount of payment tokens to accept for each token minted.
      * @param remainingSupply The maximum number of tokens that can be minted by the items contract.
      * @param startTime The start time of the sale. Tokens cannot be minted before this time.
@@ -208,6 +210,8 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
      * @notice The payment token is set globally.
      */
     function setGlobalSaleDetails(
+        uint256 minTokenId,
+        uint256 maxTokenId,
         uint256 cost,
         uint256 remainingSupply,
         uint64 startTime,
@@ -221,8 +225,9 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
         if (remainingSupply == 0) {
             revert InvalidSaleDetails();
         }
-        _globalSaleDetails = SaleDetails(cost, remainingSupply, startTime, endTime, merkleRoot);
-        emit GlobalSaleDetailsUpdated(cost, remainingSupply, startTime, endTime, merkleRoot);
+        _globalSaleDetails =
+            GlobalSaleDetails(minTokenId, maxTokenId, cost, remainingSupply, startTime, endTime, merkleRoot);
+        emit GlobalSaleDetailsUpdated(minTokenId, maxTokenId, cost, remainingSupply, startTime, endTime, merkleRoot);
     }
 
     /**
@@ -316,7 +321,7 @@ contract ERC1155Sale is IERC1155Sale, WithdrawControlled, MerkleProofSingleUse, 
      * @notice Global sales details apply to all tokens.
      * @notice Global sales details are overriden when token sale is active.
      */
-    function globalSaleDetails() external view returns (SaleDetails memory) {
+    function globalSaleDetails() external view returns (GlobalSaleDetails memory) {
         return _globalSaleDetails;
     }
 
