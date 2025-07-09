@@ -18,29 +18,16 @@ This folder contains contracts that are pre-configured for specific use cases.
 
 The `ERC1155Items` contract is a preset that configures the `ERC1155BaseToken` contract to allow minting of tokens. It adds a `MINTER_ROLE` and a `mint(address to, uint256 amount)` function that can only be called by accounts with the `MINTER_ROLE`.
 
-## Utilities
-
-This folder contains contracts that work in conjunction with other ERC1155 contracts.
-
 ### Sale
 
-The `ERC1155Sale` contract is a utility contract that provides sale functionality for ERC-1155 tokens. It works in conjunction with an `ERC1155Items` contract to handle the minting and sale of tokens under various conditions.
+The `ERC1155Sale` contract is a preset that configures the `ERC1155BaseToken` contract to allow for the sale of tokens. It adds a `mint(address to, , uint256[] memory tokenIds, uint256[] memory amounts, bytes memory data, bytes32[] calldata proof)` function allows for the minting of tokens under various conditions.
 
-The contract supports multiple sale configurations through a sale details system. Each sale configuration includes:
-
-- Token ID range (minTokenId to maxTokenId)
-- Cost per token
-- Payment token (ETH or ERC20)
-- Supply limit per token ID
-- Sale time window (startTime to endTime)
-- Optional merkle root for allowlist minting
-
-Conditions may be set by the contract owner using the `addSaleDetails(SaleDetails calldata details)` function for new configurations or `updateSaleDetails(uint256 saleIndex, SaleDetails calldata details)` for existing ones. These functions can only be called by accounts with the `MINT_ADMIN_ROLE`.
+Conditions may be set by the contract owner. Set the payment token with `setPaymentToken(address paymentTokenAddr)`, then use either the `setTokenSaleDetails(uint256 tokenId, uint256 cost, uint256 remainingSupply, uint64 startTime, uint64 endTime, bytes32 merkleRoot)` function for single token settings or the `setGlobalSaleDetails(uint256 cost, uint256 remainingSupply, uint64 startTime, uint64 endTime, bytes32 merkleRoot)` function for global settings. These functions can only be called by accounts with the `MINT_ADMIN_ROLE`.
 
 When using a merkle proof, each caller may only use each root once. To prevent collisions ensure the same root is not used for multiple sale details.
-Leaves are defined as `keccak256(abi.encodePacked(caller, tokenId))`. The `caller` is the message sender, who will also receive the tokens. The `tokenId` is the id of the token that will be minted.
+Leaves are defined as `keccak256(abi.encodePacked(caller, tokenId))`. The `caller` is the message sender, who will also receive the tokens. The `tokenId` is the id of the token that will be minted, (for global sales `type(uint256).max` is used).
 
-For information about the function parameters, please refer to the function specification in `utility/sale/IERC1155Sale.sol`.
+For information about the function parameters, please refer to the function specification in `presets/sale/IERC1155Sale.sol`.
 
 ## Usage
 
