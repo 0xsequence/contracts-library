@@ -50,7 +50,7 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
 
     function setUpFromFactory() public {
         ERC1155SaleFactory factory = new ERC1155SaleFactory(address(this));
-        sale = ERC1155Sale(factory.deploy(proxyOwner, address(this), address(token), address(0), bytes32(0)));
+        sale = ERC1155Sale(factory.deploy(0, proxyOwner, address(this), address(token), address(0), bytes32(0)));
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
     }
 
@@ -94,6 +94,7 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
     }
 
     function testFactoryDetermineAddress(
+        uint256 nonce,
         address _proxyOwner,
         address tokenOwner,
         address items,
@@ -104,9 +105,10 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
         vm.assume(tokenOwner != address(0));
         ERC1155SaleFactory factory = new ERC1155SaleFactory(address(this));
         address deployedAddr =
-            factory.deploy(_proxyOwner, tokenOwner, items, implicitModeValidator, implicitModeProjectId);
-        address predictedAddr =
-            factory.determineAddress(_proxyOwner, tokenOwner, items, implicitModeValidator, implicitModeProjectId);
+            factory.deploy(nonce, _proxyOwner, tokenOwner, items, implicitModeValidator, implicitModeProjectId);
+        address predictedAddr = factory.determineAddress(
+            nonce, _proxyOwner, tokenOwner, items, implicitModeValidator, implicitModeProjectId
+        );
         assertEq(deployedAddr, predictedAddr);
     }
 

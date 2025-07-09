@@ -46,7 +46,7 @@ contract ERC1155SaleMintTest is TestHelper, IERC1155SaleSignals, IERC1155SupplyS
 
     function setUpFromFactory() public {
         ERC1155SaleFactory factory = new ERC1155SaleFactory(address(this));
-        sale = ERC1155Sale(factory.deploy(proxyOwner, address(this), address(token), address(0), bytes32(0)));
+        sale = ERC1155Sale(factory.deploy(0, proxyOwner, address(this), address(token), address(0), bytes32(0)));
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
     }
 
