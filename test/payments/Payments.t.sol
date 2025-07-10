@@ -117,7 +117,7 @@ contract PaymentsTest is TestHelper, IPaymentsSignals {
 
     /**
      * Test all public selectors for collisions against the proxy admin functions.
-     * @dev yarn ts-node scripts/outputSelectors.ts
+     * @dev pnpm ts-node scripts/outputSelectors.ts
      */
     function testSelectorCollision() public pure {
         checkSelectorCollision(0x0e6fe11f); // hashChainedCallDetails((address,bytes))

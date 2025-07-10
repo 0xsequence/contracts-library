@@ -1,4 +1,3 @@
-
 on: [push]
 
 name: ci
@@ -14,15 +13,19 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 18
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
       - uses: actions/cache@master
-        id: yarn-cache
+        id: pnpm-cache
         with:
           path: |
             node_modules
             */*/node_modules
-          key: ${{ runner.os }}-lerna-${{ hashFiles('**/package.json', '**/yarn.lock') }}
-      - run: yarn install --network-concurrency 1
-        if: ${{ steps.yarn-cache.outputs.cache-hit != 'true' }}
+            .pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/package.json', '**/pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
+        if: ${{ steps.pnpm-cache.outputs.cache-hit != 'true' }}
 
   lint-sol:
     name: Solidity lint
@@ -35,13 +38,17 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 18
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
       - uses: actions/cache@master
-        id: yarn-cache
+        id: pnpm-cache
         with:
           path: |
             node_modules
             */*/node_modules
-          key: ${{ runner.os }}-lerna-${{ hashFiles('**/package.json', '**/yarn.lock') }}
+            .pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/package.json', '**/pnpm-lock.yaml') }}
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -49,7 +56,7 @@ jobs:
           version: nightly
 
       - name: Run linting
-        run: yarn lint:sol
+        run: pnpm lint:sol
 
   foundry-tests:
     name: Foundry tests
@@ -62,13 +69,17 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 18
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10
       - uses: actions/cache@master
-        id: yarn-cache
+        id: pnpm-cache
         with:
           path: |
             node_modules
             */*/node_modules
-          key: ${{ runner.os }}-lerna-${{ hashFiles('**/package.json', '**/yarn.lock') }}
+            .pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/package.json', '**/pnpm-lock.yaml') }}
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -89,14 +100,18 @@ jobs:
   #     - uses: actions/setup-node@v1
   #       with:
   #         node-version: 18
+  #     - uses: pnpm/action-setup@v2
+  #       with:
+  #         version: 10
   #     - uses: actions/cache@master
-  #       id: yarn-cache
+  #       id: pnpm-cache
   #       with:
   #         path: |
   #           node_modules
   #           */*/node_modules
-  #         key: ${{ runner.os }}-lerna-${{ hashFiles('**/package.json', '**/yarn.lock') }}
-  #     - run: yarn coverage || true
+  #           .pnpm-store
+  #         key: ${{ runner.os }}-pnpm-${{ hashFiles('**/package.json', '**/pnpm-lock.yaml') }}
+  #     - run: pnpm coverage || true
   #     - name: Coveralls
   #       uses: coverallsapp/github-action@master
   #       with:

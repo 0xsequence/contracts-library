@@ -20,17 +20,17 @@ Base and preset **implementations of common token standards**:
 
 Clone the repository, including git submodules.
 
-Install dependencies with `yarn`.
+Install dependencies with `pnpm i`.
 
-Compile the contracts with `yarn build`.
+Compile the contracts with `pnpm build`.
 
 ### Testing
 
-Run tests with `yarn test`.
+Run tests with `pnpm test`.
 
-Run coverage report with `yarn coverage`. View coverage report with `genhtml -o report --branch-coverage --ignore-errors category lcov.info && py -m http.server`. Viewing the report with this command requires Python to be installed.
+Run coverage report with `pnpm run coverage`. View coverage report with `genhtml -o report --branch-coverage --ignore-errors category lcov.info && py -m http.server`. Viewing the report with this command requires Python to be installed.
 
-Compare gas usage with `yarn snapshot:compare`. Note as some test use random values, the gas usage may vary slightly between runs.
+Compare gas usage with `pnpm run snapshot:compare`. Note as some test use random values, the gas usage may vary slightly between runs.
 
 ### Deployment
 
@@ -43,7 +43,7 @@ cp .env.example .env
 Then run the deployment script.
 
 ```sh
-yarn deploy --rpc-url $RPC_URL --broadcast
+pnpm deploy --rpc-url $RPC_URL --broadcast
 ```
 
 ## Dependencies

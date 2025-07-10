@@ -62,7 +62,7 @@ contract ERC1155SaleBaseTest is TestHelper, IERC1155SupplySignals {
 
     /**
      * Test all public selectors for collisions against the proxy admin functions.
-     * @dev yarn ts-node scripts/outputSelectors.ts
+     * @dev pnpm ts-node scripts/outputSelectors.ts
      */
     function testSelectorCollision() public pure {
         checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
