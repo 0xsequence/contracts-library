@@ -93,6 +93,7 @@ contract DefaultProxy is IBase, IERC165, OwnablePrivate {
     function _delegateCall(
         address implementation
     ) internal {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let ptr := mload(0x40)
             calldatacopy(ptr, 0, calldatasize())
@@ -106,6 +107,7 @@ contract DefaultProxy is IBase, IERC165, OwnablePrivate {
 
     /// @notice Fallback function to route calls to extensions or the default implementation
     /// @dev This function is called when no other function matches the call
+    // solhint-disable-next-line no-complex-fallback
     fallback() external payable {
         DefaultProxyStorage.Data storage data = DefaultProxyStorage.load();
         address implementation = data.selectorToExtension[msg.sig];

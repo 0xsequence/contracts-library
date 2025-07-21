@@ -20,6 +20,7 @@ library OwnableStorage {
     /// @return data The stored owner data
     function load() internal pure returns (Data storage data) {
         bytes32 slot = STORAGE_SLOT;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             data.slot := slot
         }

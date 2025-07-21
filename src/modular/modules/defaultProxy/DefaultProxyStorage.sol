@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IBase } from "../../interfaces/IBase.sol";
-import { IExtension } from "../../interfaces/IExtension.sol";
-
 /// @title DefaultProxyStorage
 /// @author Michael Standen
 /// @notice Storage for the DefaultProxy module
@@ -37,6 +34,7 @@ library DefaultProxyStorage {
     /// @return data The stored default implementation data
     function load() internal pure returns (Data storage data) {
         bytes32 slot = STORAGE_SLOT;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             data.slot := slot
         }
