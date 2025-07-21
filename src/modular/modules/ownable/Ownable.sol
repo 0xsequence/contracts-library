@@ -13,7 +13,8 @@ contract Ownable is OwnablePrivate, IOwnable, IExtensionMetadata {
 
     /// @inheritdoc IOwnable
     function owner() public view virtual returns (address) {
-        return OwnableStorage.getOwner();
+        OwnableStorage.Data storage data = OwnableStorage.load();
+        return data.owner;
     }
 
     /// @inheritdoc IOwnable

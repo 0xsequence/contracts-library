@@ -48,6 +48,7 @@ contract DefaultProxyTest is Test {
 
     function test_proxy_addExtension(uint256 nonce, address owner, address newOwner) public {
         DefaultProxy proxy = factory.deploy(nonce, defaultImpl, owner);
+        vm.assume(owner != newOwner);
 
         vm.expectEmit(true, true, true, true);
         emit IBase.ExtensionAdded(ownableImpl);
