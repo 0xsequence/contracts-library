@@ -13,6 +13,9 @@ import { OwnablePrivate } from "../../modules/ownable/OwnablePrivate.sol";
 /// @dev This contract supports ERC165 even though it does not inherit the interface here
 contract DefaultProxy is IBase, IERC165, OwnablePrivate {
 
+    /// @notice Error thrown when adding an extension fails
+    error AddExtensionFailed(address extension);
+
     /// @notice Constructor
     /// @param defaultImpl The default implementation of the proxy
     constructor(address defaultImpl, address owner) {
@@ -38,7 +41,12 @@ contract DefaultProxy is IBase, IERC165, OwnablePrivate {
         data.extensionToData[extensionAddress] =
             DefaultProxyStorage.ExtensionData({ selectors: selectors, interfaceIds: interfaceIds });
 
-        extension.onAddExtension(initData);
+        (bool success,) =
+            address(extension).delegatecall(abi.encodeWithSelector(IExtension.onAddExtension.selector, initData));
+        if (!success) {
+            revert AddExtensionFailed(extensionAddress);
+        }
+
         emit ExtensionAdded(extension);
     }
 

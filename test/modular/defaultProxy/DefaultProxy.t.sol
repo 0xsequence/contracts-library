@@ -1,24 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
+// solhint-disable func-name-mixedcase
+
+import { DefaultImpl } from "../_mocks/DefaultImpl.sol";
 import { Test } from "forge-std/Test.sol";
-
-import { IERC165 } from "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
-
 import { DefaultProxy, IBase } from "src/modular/modules/defaultProxy/DefaultProxy.sol";
 import { DefaultProxyFactory, IDefaultProxyFactory } from "src/modular/modules/defaultProxy/DefaultProxyFactory.sol";
-
 import { IOwnable, Ownable } from "src/modular/modules/ownable/Ownable.sol";
-
-contract DefaultImpl is IERC165 {
-
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public pure returns (bool) {
-        return interfaceId == type(IERC165).interfaceId;
-    }
-
-}
 
 contract DefaultProxyTest is Test {
 

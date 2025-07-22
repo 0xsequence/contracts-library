@@ -25,10 +25,14 @@ contract Ownable is OwnablePrivate, IOwnable, IExtensionMetadata {
     }
 
     /// @inheritdoc IExtension
+    /// @param initData Encoded address of the new owner
     function onAddExtension(
         bytes calldata initData
-    ) external pure override {
-        // no-op
+    ) external override {
+        if (initData.length > 0) {
+            (address newOwner) = abi.decode(initData, (address));
+            _transferOwnership(newOwner);
+        }
     }
 
     /// @inheritdoc IExtensionMetadata
