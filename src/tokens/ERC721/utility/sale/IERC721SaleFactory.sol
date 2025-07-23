@@ -5,6 +5,7 @@ interface IERC721SaleFactoryFunctions {
 
     /**
      * Creates an ERC-721 Sale for given token contract
+     * @param nonce Nonce for randomizing the deployment address.
      * @param proxyOwner The owner of the ERC-721 Sale proxy
      * @param tokenOwner The owner of the ERC-721 Sale implementation
      * @param items The ERC-721 Items contract address
@@ -14,6 +15,7 @@ interface IERC721SaleFactoryFunctions {
      * @notice The deployed contract must be granted the MINTER_ROLE on the ERC-721 Items contract.
      */
     function deploy(
+        uint256 nonce,
         address proxyOwner,
         address tokenOwner,
         address items,
@@ -23,6 +25,7 @@ interface IERC721SaleFactoryFunctions {
 
     /**
      * Computes the address of a proxy instance.
+     * @param nonce Nonce for randomizing the deployment address.
      * @param proxyOwner The owner of the ERC-721 Sale proxy
      * @param tokenOwner The owner of the ERC-721 Sale implementation
      * @param items The ERC-721 Items contract address
@@ -31,6 +34,7 @@ interface IERC721SaleFactoryFunctions {
      * @return proxyAddr The address of the ERC-721 Sale Proxy
      */
     function determineAddress(
+        uint256 nonce,
         address proxyOwner,
         address tokenOwner,
         address items,

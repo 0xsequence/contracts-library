@@ -40,7 +40,7 @@ contract ERC721SaleMintTest is TestHelper, IERC721SaleSignals, IMerkleProofSingl
 
     function setUpFromFactory() public {
         ERC721SaleFactory factory = new ERC721SaleFactory(address(this));
-        sale = ERC721Sale(factory.deploy(proxyOwner, address(this), address(token), address(0), bytes32(0)));
+        sale = ERC721Sale(factory.deploy(0, proxyOwner, address(this), address(token), address(0), bytes32(0)));
         token.grantRole(keccak256("MINTER_ROLE"), address(sale));
     }
 

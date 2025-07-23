@@ -23,13 +23,14 @@ contract ERC721SaleFactory is IERC721SaleFactory, SequenceProxyFactory {
 
     /// @inheritdoc IERC721SaleFactoryFunctions
     function deploy(
+        uint256 nonce,
         address proxyOwner,
         address tokenOwner,
         address items,
         address implicitModeValidator,
         bytes32 implicitModeProjectId
     ) external returns (address proxyAddr) {
-        bytes32 salt = keccak256(abi.encode(tokenOwner, items, implicitModeValidator, implicitModeProjectId));
+        bytes32 salt = keccak256(abi.encode(nonce, tokenOwner, items, implicitModeValidator, implicitModeProjectId));
         proxyAddr = _createProxy(salt, proxyOwner, "");
         ERC721Sale(proxyAddr).initialize(tokenOwner, items, implicitModeValidator, implicitModeProjectId);
         emit ERC721SaleDeployed(proxyAddr);
@@ -38,13 +39,14 @@ contract ERC721SaleFactory is IERC721SaleFactory, SequenceProxyFactory {
 
     /// @inheritdoc IERC721SaleFactoryFunctions
     function determineAddress(
+        uint256 nonce,
         address proxyOwner,
         address tokenOwner,
         address items,
         address implicitModeValidator,
         bytes32 implicitModeProjectId
     ) external view returns (address proxyAddr) {
-        bytes32 salt = keccak256(abi.encode(tokenOwner, items, implicitModeValidator, implicitModeProjectId));
+        bytes32 salt = keccak256(abi.encode(nonce, tokenOwner, items, implicitModeValidator, implicitModeProjectId));
         return _computeProxyAddress(salt, proxyOwner, "");
     }
 
