@@ -130,7 +130,11 @@ contract ERC721Sale is IERC721Sale, WithdrawControlled, MerkleProofSingleUse, Si
         bytes32[] calldata proof
     ) public payable {
         _validateMint(amount, paymentToken, maxTotal, proof);
-        IERC721ItemsFunctions(_items).mintSequential(to, amount);
+        try IERC721ItemsFunctions(_items).mintSequential(to, amount) { }
+        catch {
+            // On failure, support old minting method.
+            IERC721ItemsFunctions(_items).mint(to, amount);
+        }
         emit ItemsMinted(to, amount);
     }
 
