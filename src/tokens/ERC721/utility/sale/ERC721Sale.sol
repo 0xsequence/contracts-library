@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import { MerkleProofSingleUse } from "../../../common/MerkleProofSingleUse.sol";
 import { SignalsImplicitModeControlled } from "../../../common/SignalsImplicitModeControlled.sol";
-import { AccessControlEnumerable, IERC20, SafeERC20, WithdrawControlled } from "../../../common/WithdrawControlled.sol";
+import { IERC20, SafeERC20, WithdrawControlled } from "../../../common/WithdrawControlled.sol";
 import { IERC721ItemsFunctions } from "../../presets/items/IERC721Items.sol";
 import { IERC721Sale, IERC721SaleFunctions } from "./IERC721Sale.sol";
 
