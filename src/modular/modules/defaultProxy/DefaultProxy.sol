@@ -41,6 +41,7 @@ contract DefaultProxy is IBase, IERC165, OwnablePrivate {
         data.extensionToData[extensionAddress] =
             DefaultProxyStorage.ExtensionData({ selectors: selectors, interfaceIds: interfaceIds });
 
+        // solhint-disable avoid-low-level-calls
         (bool success,) =
             address(extension).delegatecall(abi.encodeWithSelector(IExtension.onAddExtension.selector, initData));
         if (!success) {

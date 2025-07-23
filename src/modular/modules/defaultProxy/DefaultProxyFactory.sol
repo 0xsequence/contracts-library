@@ -16,7 +16,6 @@ contract DefaultProxyFactory is IDefaultProxyFactory {
         address proxy = Create2.deploy(0, salt, creationCode);
         emit Deployed(proxy);
         return DefaultProxy(payable(proxy));
-        //FIXME Add initData to this?
     }
 
     /// @inheritdoc IDefaultProxyFactory
