@@ -6,7 +6,7 @@ import { IDefaultProxyIntrospection, IExtension } from "./IDefaultProxyIntrospec
 
 /// @title DefaultProxyIntrospection
 /// @author Michael Standen
-/// @notice Introspection module for the DefaultProxy storage
+/// @notice Introspection module for the default proxy.
 contract DefaultProxyIntrospection is IDefaultProxyIntrospection {
 
     /// @inheritdoc IDefaultProxyIntrospection

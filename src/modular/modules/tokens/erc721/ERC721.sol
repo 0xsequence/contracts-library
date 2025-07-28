@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { OwnablePrivate } from "../../ownable/OwnablePrivate.sol";
+import { OwnableInternal } from "../../ownable/OwnableInternal.sol";
 import { ERC721Storage } from "./ERC721Storage.sol";
 import { ERC721 as SoladyERC721 } from "lib/solady/src/tokens/ERC721.sol";
 import { LibString } from "lib/solady/src/utils/LibString.sol";
@@ -9,8 +9,8 @@ import { LibString } from "lib/solady/src/utils/LibString.sol";
 /// @title ERC721
 /// @author Michael Standen
 /// @notice ERC721 module
-/// @dev Relies on the OwnablePrivate contract to manage ownership of the ERC721
-contract ERC721 is SoladyERC721, OwnablePrivate {
+/// @dev Relies on the Ownable module to manage ownership of the ERC721.
+contract ERC721 is SoladyERC721, OwnableInternal {
 
     /// @notice Set the ERC721 metadata
     /// @param name_ The name of the ERC721

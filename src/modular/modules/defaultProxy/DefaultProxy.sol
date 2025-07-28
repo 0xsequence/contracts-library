@@ -5,13 +5,13 @@ import { IBase, IExtension } from "../../interfaces/IBase.sol";
 import { DefaultProxyStorage } from "./DefaultProxyStorage.sol";
 
 import { IERC165 } from "../../interfaces/IERC165.sol";
-import { OwnablePrivate } from "../../modules/ownable/OwnablePrivate.sol";
+import { OwnableInternal } from "../../modules/ownable/OwnableInternal.sol";
 
 /// @title DefaultProxy
 /// @author Michael Standen
 /// @notice Proxy that delegates all calls to configured extensions or the default implementation
 /// @dev This contract supports ERC165 even though it does not inherit the interface here
-contract DefaultProxy is IBase, IERC165, OwnablePrivate {
+contract DefaultProxy is IBase, IERC165, OwnableInternal {
 
     /// @notice Error thrown when adding an extension fails
     error AddExtensionFailed(address extension);

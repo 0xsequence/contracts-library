@@ -4,10 +4,10 @@ pragma solidity ^0.8.19;
 import { AccessControlStorage } from "./AccessControlStorage.sol";
 import { IAccessControl } from "./IAccessControl.sol";
 
-/// @title AccessControlPrivate
+/// @title AccessControlInternal
 /// @author Michael Standen
-/// @notice AccessControl modifiers
-contract AccessControlPrivate {
+/// @notice Internal features for the access control module.
+contract AccessControlInternal {
 
     bytes32 internal constant _DEFAULT_ADMIN_ROLE = 0x00;
 

@@ -2,15 +2,15 @@
 pragma solidity ^0.8.19;
 
 import { IExtension } from "../../../../interfaces/IExtension.sol";
-import { AccessControlPrivate } from "../../../accessControl/AccessControlPrivate.sol";
+import { AccessControlInternal } from "../../../accessControl/AccessControlInternal.sol";
 import { ERC721Storage } from "../ERC721Storage.sol";
 import { IERC721MintAccessControl } from "./IERC721MintAccessControl.sol";
 
 /// @title ERC721MintAccessControl
 /// @author Michael Standen
-/// @notice ERC721MintAccessControl module
-/// @dev Relies on the AccessControl module to check if the caller has the role
-contract ERC721MintAccessControl is AccessControlPrivate, IExtension, IERC721MintAccessControl {
+/// @notice Extension to enable minting of ERC721 tokens with access control.
+/// @dev Relies on the access control module to check if the caller has the role.
+contract ERC721MintAccessControl is AccessControlInternal, IExtension, IERC721MintAccessControl {
 
     bytes32 internal constant _MINT_ROLE = keccak256("MINT_ROLE");
 

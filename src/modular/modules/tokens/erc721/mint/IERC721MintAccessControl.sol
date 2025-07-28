@@ -5,7 +5,7 @@ import { IExtension } from "../../../../interfaces/IExtension.sol";
 
 /// @title IERC721MintAccessControl
 /// @author Michael Standen
-/// @notice Interface for the ERC721MintAccessControl module
+/// @notice Interface for the ERC721MintAccessControl extension.
 interface IERC721MintAccessControl is IExtension {
 
     /// @notice Mint a token

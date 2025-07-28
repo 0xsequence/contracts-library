@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 /// @title IOwnable
 /// @author Michael Standen
-/// @notice Interface for the Ownable module
+/// @notice Interface for the ownable module.
 interface IOwnable {
 
     /// @notice Emitted when the ownership of the contract is transferred

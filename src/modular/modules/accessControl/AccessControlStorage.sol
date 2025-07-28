@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 /// @title AccessControlStorage
 /// @author Michael Standen
-/// @notice Storage for the AccessControl module
+/// @notice Storage for the access control module.
 library AccessControlStorage {
 
     /// @notice AccessControl storage struct

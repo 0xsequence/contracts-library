@@ -5,7 +5,7 @@ import { IExtension } from "./IExtension.sol";
 
 /// @title IBase
 /// @author Michael Standen
-/// @notice Base interface.
+/// @notice Base interface for the modular contract proxy.
 interface IBase {
 
     /// @notice Emitted when an extension is added.
@@ -15,10 +15,6 @@ interface IBase {
     /// @notice Emitted when an extension is removed.
     /// @param extension The extension that was removed.
     event ExtensionRemoved(IExtension extension);
-
-    /// @notice Thrown when a call is made to the contract for a selector that is not assigned.
-    /// @param selector The selector that is not assigned.
-    error SelectorNotAssigned(bytes4 selector);
 
     /// @notice Add an extension.
     /// @param extension The extension to add.

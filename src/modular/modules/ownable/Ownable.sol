@@ -3,13 +3,13 @@ pragma solidity ^0.8.19;
 
 import { IExtension, IExtensionMetadata } from "../../interfaces/IExtensionMetadata.sol";
 import { IOwnable } from "./IOwnable.sol";
-import { OwnablePrivate } from "./OwnablePrivate.sol";
+import { OwnableInternal } from "./OwnableInternal.sol";
 import { OwnableStorage } from "./OwnableStorage.sol";
 
 /// @title Ownable
 /// @author Michael Standen
-/// @notice Ownable module
-contract Ownable is OwnablePrivate, IOwnable, IExtensionMetadata {
+/// @notice Extension to enable contract-level ownership.
+contract Ownable is OwnableInternal, IOwnable, IExtensionMetadata {
 
     /// @inheritdoc IOwnable
     function owner() public view virtual returns (address) {

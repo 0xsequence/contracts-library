@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 /// @title OwnableStorage
 /// @author Michael Standen
-/// @notice Storage for the Ownable module
+/// @notice Storage for the ownable module.
 library OwnableStorage {
 
     /// @notice Ownable storage struct

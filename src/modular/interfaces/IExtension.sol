@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 /// @title IExtension
 /// @author Michael Standen
-/// @notice Extension interface.
+/// @notice Interface for modular contract extensions.
 interface IExtension {
 
     /// @notice Called when the extension is added to the base.

@@ -5,7 +5,7 @@ import { IExtension } from "./IExtension.sol";
 
 /// @title IExtensionMetadata
 /// @author Michael Standen
-/// @notice Extension metadata interface.
+/// @notice Extended metadata interface for modular contract extensions.
 interface IExtensionMetadata is IExtension {
 
     /// @notice Extension metadata structure

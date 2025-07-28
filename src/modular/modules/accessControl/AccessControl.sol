@@ -2,14 +2,14 @@
 pragma solidity ^0.8.19;
 
 import { IExtension, IExtensionMetadata } from "../../interfaces/IExtensionMetadata.sol";
-import { AccessControlPrivate } from "./AccessControlPrivate.sol";
+import { AccessControlInternal } from "./AccessControlInternal.sol";
 import { AccessControlStorage } from "./AccessControlStorage.sol";
 import { IAccessControl } from "./IAccessControl.sol";
 
 /// @title AccessControl
 /// @author Michael Standen
-/// @notice AccessControl module
-contract AccessControl is AccessControlPrivate, IAccessControl, IExtensionMetadata {
+/// @notice Extension to enable access control.
+contract AccessControl is AccessControlInternal, IAccessControl, IExtensionMetadata {
 
     /// @inheritdoc IAccessControl
     function hasRole(bytes32 role, address account) external view returns (bool) {

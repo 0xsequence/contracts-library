@@ -7,7 +7,7 @@ import { Create2 } from "lib/openzeppelin-contracts/contracts/utils/Create2.sol"
 
 /// @title DefaultProxyFactory
 /// @author Michael Standen
-/// @notice Factory for creating DefaultProxy instances
+/// @notice Factory for creating default proxy instances.
 contract DefaultProxyFactory is IDefaultProxyFactory {
 
     /// @inheritdoc IDefaultProxyFactory

@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 /// @title DefaultProxyStorage
 /// @author Michael Standen
-/// @notice Storage for the DefaultProxy module
+/// @notice Storage for the default proxy module.
 library DefaultProxyStorage {
 
     /// @notice Extension data storage struct

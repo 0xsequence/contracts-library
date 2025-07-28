@@ -4,11 +4,13 @@ pragma solidity ^0.8.19;
 import { IOwnable } from "./IOwnable.sol";
 import { OwnableStorage } from "./OwnableStorage.sol";
 
-/// @title OwnablePrivate
+/// @title OwnableInternal
 /// @author Michael Standen
-/// @notice Implementation of ownable that does not expose the interface
-contract OwnablePrivate {
+/// @notice Internal features for the ownable module.
+contract OwnableInternal {
 
+    /// @notice Transfers ownership of the contract to a new account
+    /// @param newOwner The new owner of the contract
     function _transferOwnership(
         address newOwner
     ) internal {

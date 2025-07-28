@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 /// @title IAccessControl
 /// @author Michael Standen
-/// @notice Interface for the AccessControl module
+/// @notice Interface for the access control module.
 interface IAccessControl {
 
     /// @notice Emitted when the role is granted

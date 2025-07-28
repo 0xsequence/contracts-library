@@ -5,6 +5,9 @@ import { IExtension } from "../../../../interfaces/IExtension.sol";
 import { ERC721Storage } from "../ERC721Storage.sol";
 import { IERC721Burn } from "./IERC721Burn.sol";
 
+/// @title ERC721Burn
+/// @author Michael Standen
+/// @notice Enables burning of ERC721 tokens.
 contract ERC721Burn is IExtension, IERC721Burn {
 
     /// @dev `keccak256(bytes("Transfer(address,address,uint256)"))`.
