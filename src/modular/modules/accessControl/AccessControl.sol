@@ -52,19 +52,14 @@ contract AccessControl is AccessControlInternal, IAccessControl, IExtensionMetad
     }
 
     /// @inheritdoc IExtension
-    function supportedSelectors() external pure override returns (bytes4[] memory selectors) {
-        selectors = new bytes4[](3);
-        selectors[0] = IAccessControl.hasRole.selector;
-        selectors[1] = IAccessControl.grantRole.selector;
-        selectors[2] = IAccessControl.revokeRole.selector;
-        return selectors;
-    }
-
-    /// @inheritdoc IExtension
-    function supportedInterfaces() external pure override returns (bytes4[] memory interfaceIds) {
-        interfaceIds = new bytes4[](1);
-        interfaceIds[0] = type(IAccessControl).interfaceId;
-        return interfaceIds;
+    function extensionSupport() external pure override returns (ExtensionSupport memory support) {
+        support.interfaces = new bytes4[](1);
+        support.interfaces[0] = type(IAccessControl).interfaceId;
+        support.selectors = new bytes4[](3);
+        support.selectors[0] = IAccessControl.hasRole.selector;
+        support.selectors[1] = IAccessControl.grantRole.selector;
+        support.selectors[2] = IAccessControl.revokeRole.selector;
+        return support;
     }
 
 }

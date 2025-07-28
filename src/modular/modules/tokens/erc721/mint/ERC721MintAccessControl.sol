@@ -72,17 +72,12 @@ contract ERC721MintAccessControl is AccessControlInternal, IExtension, IERC721Mi
     }
 
     /// @inheritdoc IExtension
-    function supportedSelectors() external pure override returns (bytes4[] memory selectors) {
-        selectors = new bytes4[](1);
-        selectors[0] = IERC721MintAccessControl.mint.selector;
-        return selectors;
-    }
-
-    /// @inheritdoc IExtension
-    function supportedInterfaces() external pure override returns (bytes4[] memory interfaceIds) {
-        interfaceIds = new bytes4[](1);
-        interfaceIds[0] = type(IERC721MintAccessControl).interfaceId;
-        return interfaceIds;
+    function extensionSupport() external pure override returns (ExtensionSupport memory support) {
+        support.interfaces = new bytes4[](1);
+        support.interfaces[0] = type(IERC721MintAccessControl).interfaceId;
+        support.selectors = new bytes4[](1);
+        support.selectors[0] = IERC721MintAccessControl.mint.selector;
+        return support;
     }
 
 }

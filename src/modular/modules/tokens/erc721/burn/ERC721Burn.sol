@@ -84,18 +84,13 @@ contract ERC721Burn is IExtension, IERC721Burn {
     }
 
     /// @inheritdoc IExtension
-    function supportedSelectors() external pure override returns (bytes4[] memory selectors) {
-        selectors = new bytes4[](2);
-        selectors[0] = IERC721Burn.burn.selector;
-        selectors[1] = IERC721Burn.batchBurn.selector;
-        return selectors;
-    }
-
-    /// @inheritdoc IExtension
-    function supportedInterfaces() external pure override returns (bytes4[] memory interfaceIds) {
-        interfaceIds = new bytes4[](1);
-        interfaceIds[0] = type(IERC721Burn).interfaceId;
-        return interfaceIds;
+    function extensionSupport() external pure override returns (ExtensionSupport memory support) {
+        support.interfaces = new bytes4[](1);
+        support.interfaces[0] = type(IERC721Burn).interfaceId;
+        support.selectors = new bytes4[](2);
+        support.selectors[0] = IERC721Burn.burn.selector;
+        support.selectors[1] = IERC721Burn.batchBurn.selector;
+        return support;
     }
 
 }

@@ -30,16 +30,15 @@ contract DefaultProxy is IBase, IERC165, OwnableInternal {
         DefaultProxyStorage.Data storage data = DefaultProxyStorage.load();
 
         // Register all supported selectors and interface ids for this extension
-        bytes4[] memory selectors = extension.supportedSelectors();
-        for (uint256 i = 0; i < selectors.length; i++) {
-            data.selectorToExtension[selectors[i]] = extensionAddress;
+        IExtension.ExtensionSupport memory support = extension.extensionSupport();
+        for (uint256 i = 0; i < support.selectors.length; i++) {
+            data.selectorToExtension[support.selectors[i]] = extensionAddress;
         }
-        bytes4[] memory interfaceIds = extension.supportedInterfaces();
-        for (uint256 i = 0; i < interfaceIds.length; i++) {
-            data.interfaceSupported[interfaceIds[i]] = true;
+        for (uint256 i = 0; i < support.interfaces.length; i++) {
+            data.interfaceSupported[support.interfaces[i]] = true;
         }
         data.extensionToData[extensionAddress] =
-            DefaultProxyStorage.ExtensionData({ selectors: selectors, interfaceIds: interfaceIds });
+            DefaultProxyStorage.ExtensionData({ selectors: support.selectors, interfaceIds: support.interfaces });
 
         // solhint-disable avoid-low-level-calls
         (bool success,) =

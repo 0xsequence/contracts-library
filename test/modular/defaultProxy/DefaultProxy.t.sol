@@ -5,6 +5,7 @@ pragma solidity ^0.8.19;
 
 import { DefaultImpl } from "../_mocks/DefaultImpl.sol";
 import { Test } from "forge-std/Test.sol";
+import { IExtension } from "src/modular/interfaces/IExtension.sol";
 import { DefaultProxy, IBase } from "src/modular/modules/defaultProxy/DefaultProxy.sol";
 import { DefaultProxyFactory, IDefaultProxyFactory } from "src/modular/modules/defaultProxy/DefaultProxyFactory.sol";
 import { IOwnable, Ownable } from "src/modular/modules/ownable/Ownable.sol";
@@ -48,9 +49,9 @@ contract DefaultProxyTest is Test {
         assertEq(Ownable(address(proxy)).owner(), owner);
 
         // Supports new interface ids
-        bytes4[] memory interfaceIds = ownableImpl.supportedInterfaces();
-        for (uint256 i = 0; i < interfaceIds.length; i++) {
-            assertTrue(proxy.supportsInterface(interfaceIds[i]));
+        IExtension.ExtensionSupport memory support = ownableImpl.extensionSupport();
+        for (uint256 i = 0; i < support.interfaces.length; i++) {
+            assertTrue(proxy.supportsInterface(support.interfaces[i]));
         }
 
         // Can transfer ownership
@@ -88,9 +89,9 @@ contract DefaultProxyTest is Test {
         proxy.removeExtension(ownableImpl);
 
         // Selectors are no longer supported
-        bytes4[] memory selectors = ownableImpl.supportedSelectors();
-        for (uint256 i = 0; i < selectors.length; i++) {
-            assertFalse(proxy.supportsInterface(selectors[i]));
+        IExtension.ExtensionSupport memory support = ownableImpl.extensionSupport();
+        for (uint256 i = 0; i < support.selectors.length; i++) {
+            assertFalse(proxy.supportsInterface(support.selectors[i]));
         }
 
         // Can no longer access functions

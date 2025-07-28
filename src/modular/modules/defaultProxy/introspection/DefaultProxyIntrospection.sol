@@ -43,20 +43,15 @@ contract DefaultProxyIntrospection is IDefaultProxyIntrospection {
     }
 
     /// @inheritdoc IExtension
-    function supportedInterfaces() external pure returns (bytes4[] memory) {
-        bytes4[] memory interfaces = new bytes4[](1);
-        interfaces[0] = type(IDefaultProxyIntrospection).interfaceId;
-        return interfaces;
-    }
-
-    /// @inheritdoc IExtension
-    function supportedSelectors() external pure returns (bytes4[] memory) {
-        bytes4[] memory selectors = new bytes4[](4);
-        selectors[0] = IDefaultProxyIntrospection.defaultImpl.selector;
-        selectors[1] = IDefaultProxyIntrospection.selectorToExtension.selector;
-        selectors[2] = IDefaultProxyIntrospection.interfaceSupported.selector;
-        selectors[3] = IDefaultProxyIntrospection.extensionToData.selector;
-        return selectors;
+    function extensionSupport() external pure returns (ExtensionSupport memory support) {
+        support.interfaces = new bytes4[](1);
+        support.interfaces[0] = type(IDefaultProxyIntrospection).interfaceId;
+        support.selectors = new bytes4[](4);
+        support.selectors[0] = IDefaultProxyIntrospection.defaultImpl.selector;
+        support.selectors[1] = IDefaultProxyIntrospection.selectorToExtension.selector;
+        support.selectors[2] = IDefaultProxyIntrospection.interfaceSupported.selector;
+        support.selectors[3] = IDefaultProxyIntrospection.extensionToData.selector;
+        return support;
     }
 
 }

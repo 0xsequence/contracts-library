@@ -47,18 +47,13 @@ contract Ownable is OwnableInternal, IOwnable, IExtensionMetadata {
     }
 
     /// @inheritdoc IExtension
-    function supportedSelectors() external pure override returns (bytes4[] memory selectors) {
-        selectors = new bytes4[](2);
-        selectors[0] = IOwnable.owner.selector;
-        selectors[1] = IOwnable.transferOwnership.selector;
-        return selectors;
-    }
-
-    /// @inheritdoc IExtension
-    function supportedInterfaces() external pure override returns (bytes4[] memory interfaceIds) {
-        interfaceIds = new bytes4[](1);
-        interfaceIds[0] = type(IOwnable).interfaceId;
-        return interfaceIds;
+    function extensionSupport() external pure override returns (ExtensionSupport memory support) {
+        support.interfaces = new bytes4[](1);
+        support.interfaces[0] = type(IOwnable).interfaceId;
+        support.selectors = new bytes4[](2);
+        support.selectors[0] = IOwnable.owner.selector;
+        support.selectors[1] = IOwnable.transferOwnership.selector;
+        return support;
     }
 
 }
