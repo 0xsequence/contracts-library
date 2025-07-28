@@ -64,7 +64,7 @@ contract DefaultProxyStorageSetter {
     function setDefaultImpl(
         address defaultImpl
     ) public {
-        DefaultProxyStorage.load().defaultImpl = defaultImpl;
+        DefaultProxyStorage.storeDefaultImpl(defaultImpl);
     }
 
     function setSelectorToExtension(bytes4 selector, address extension) public {

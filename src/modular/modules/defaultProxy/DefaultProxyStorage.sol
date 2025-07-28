@@ -15,17 +15,18 @@ library DefaultProxyStorage {
     }
 
     /// @notice Default implementation storage struct
-    /// @param defaultImpl The default implementation
     /// @param selectorToExtension Mapping from function selector to extension address
     /// @param interfaceSupported Mapping from interface id to whether it is supported
     /// @param extensionToData Mapping from extension address to extension data
     /// @custom:storage-location erc7201:defaultProxy.data
     struct Data {
-        address defaultImpl;
         mapping(bytes4 => address) selectorToExtension;
         mapping(bytes4 => bool) interfaceSupported;
         mapping(address => ExtensionData) extensionToData;
     }
+
+    bytes32 private constant DEFAULT_IMPL_SLOT =
+        keccak256(abi.encode("eip1967.proxy.implementation")) & ~bytes32(uint256(0xff));
 
     bytes32 private constant STORAGE_SLOT =
         keccak256(abi.encode(uint256(keccak256("defaultProxy.data")) - 1)) & ~bytes32(uint256(0xff));
@@ -37,6 +38,28 @@ library DefaultProxyStorage {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             data.slot := slot
+        }
+    }
+
+    /// @notice Load the default implementation from storage
+    /// @return defaultImpl The default implementation
+    function loadDefaultImpl() internal view returns (address defaultImpl) {
+        bytes32 slot = DEFAULT_IMPL_SLOT;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            defaultImpl := sload(slot)
+        }
+    }
+
+    /// @notice Store the default implementation in storage
+    /// @param defaultImpl The default implementation
+    function storeDefaultImpl(
+        address defaultImpl
+    ) internal {
+        bytes32 slot = DEFAULT_IMPL_SLOT;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            sstore(slot, defaultImpl)
         }
     }
 

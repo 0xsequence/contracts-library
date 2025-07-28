@@ -11,7 +11,7 @@ contract DefaultProxyIntrospection is IDefaultProxyIntrospection {
 
     /// @inheritdoc IDefaultProxyIntrospection
     function defaultImpl() external view returns (address) {
-        return DefaultProxyStorage.load().defaultImpl;
+        return DefaultProxyStorage.loadDefaultImpl();
     }
 
     /// @inheritdoc IDefaultProxyIntrospection

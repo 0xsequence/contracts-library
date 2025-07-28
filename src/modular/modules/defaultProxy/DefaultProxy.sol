@@ -20,7 +20,7 @@ contract DefaultProxy is IBase, IERC165, OwnableInternal {
     /// @param defaultImpl The default implementation of the proxy
     constructor(address defaultImpl, address owner) {
         _transferOwnership(owner);
-        DefaultProxyStorage.load().defaultImpl = defaultImpl;
+        DefaultProxyStorage.storeDefaultImpl(defaultImpl);
     }
 
     /// @inheritdoc IBase
@@ -77,7 +77,7 @@ contract DefaultProxy is IBase, IERC165, OwnableInternal {
     /// @inheritdoc IERC165
     function supportsInterface(
         bytes4 interfaceId
-    ) public virtual returns (bool) {
+    ) public view virtual returns (bool) {
         // Base supported interfaces
         bool supported = interfaceId == type(IERC165).interfaceId || interfaceId == type(IBase).interfaceId;
         if (supported) {
@@ -92,7 +92,8 @@ contract DefaultProxy is IBase, IERC165, OwnableInternal {
         }
 
         // Default implementation supported interfaces
-        try IERC165(data.defaultImpl).supportsInterface(interfaceId) returns (bool defaultSupported) {
+        address defaultImpl = DefaultProxyStorage.loadDefaultImpl();
+        try IERC165(defaultImpl).supportsInterface(interfaceId) returns (bool defaultSupported) {
             return defaultSupported;
         } catch { }
         return false;
@@ -120,7 +121,7 @@ contract DefaultProxy is IBase, IERC165, OwnableInternal {
         DefaultProxyStorage.Data storage data = DefaultProxyStorage.load();
         address implementation = data.selectorToExtension[msg.sig];
         if (implementation == address(0)) {
-            implementation = data.defaultImpl;
+            implementation = DefaultProxyStorage.loadDefaultImpl();
         }
         _delegateCall(implementation);
     }
