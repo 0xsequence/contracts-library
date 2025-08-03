@@ -31,7 +31,7 @@ contract AccessControlTest is Test {
         vm.assume(defaultAdmin != owner);
 
         DefaultProxy proxy = factory.deploy(nonce, defaultImpl, owner);
-        bytes memory initData = abi.encode(defaultAdmin);
+        bytes memory initData = abi.encodePacked(defaultAdmin);
 
         // On add extension
 

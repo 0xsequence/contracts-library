@@ -6,7 +6,7 @@ pragma solidity ^0.8.19;
 /// @title ERC721Storage
 /// @author Michael Standen
 /// @notice Typed accessors for ERC721 hitchhiked storage layout.
-/// @dev This is a copy of the ERC721Storage library from solady.
+/// @dev This is a copy of the ERC721Storage library from solady with additional metadata and supply storage.
 library ERC721Storage {
 
     /// @notice Metadata for the ERC721
@@ -14,12 +14,19 @@ library ERC721Storage {
     /// @param symbol The symbol of the ERC721
     /// @param baseURI The base URI for the ERC721
     /// @param contractURI The contract URI for the ERC721
-    /// @custom:storage-location erc721_metadata
+    /// @custom:storage-location erc7201:erc721.metadata
     struct Metadata {
         string name;
         string symbol;
         string baseURI;
         string contractURI;
+    }
+
+    /// @notice Supply for the ERC721
+    /// @param totalSupply The total supply of the ERC721
+    /// @custom:storage-location erc7201:erc721.supply
+    struct Supply {
+        uint256 totalSupply;
     }
 
     /// @dev The balance is too high
@@ -30,11 +37,21 @@ library ERC721Storage {
     uint256 internal constant _ERC721_MASTER_SLOT_SEED_MASKED = 0x0a5a2e7a00000000;
     bytes32 private constant METADATA_STORAGE_SLOT =
         keccak256(abi.encode(uint256(keccak256("erc721.metadata")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 private constant SUPPLY_STORAGE_SLOT =
+        keccak256(abi.encode(uint256(keccak256("erc721.supply")) - 1)) & ~bytes32(uint256(0xff));
 
     /// @notice Get the metadata storage from storage
     /// @return data The stored metadata data
     function loadMetadata() internal pure returns (Metadata storage data) {
         bytes32 slot = METADATA_STORAGE_SLOT;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            data.slot := slot
+        }
+    }
+
+    function loadSupply() internal pure returns (Supply storage data) {
+        bytes32 slot = SUPPLY_STORAGE_SLOT;
         // solhint-disable-next-line no-inline-assembly
         assembly {
             data.slot := slot

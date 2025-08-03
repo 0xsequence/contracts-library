@@ -2,8 +2,8 @@
 pragma solidity ^0.8.19;
 
 import { IExtension, IExtensionMetadata } from "../../interfaces/IExtensionMetadata.sol";
+import { LibBytes } from "../../utils/LibBytes.sol";
 import { AccessControlInternal } from "./AccessControlInternal.sol";
-import { AccessControlStorage } from "./AccessControlStorage.sol";
 import { IAccessControl } from "./IAccessControl.sol";
 
 /// @title AccessControl
@@ -13,19 +13,17 @@ contract AccessControl is AccessControlInternal, IAccessControl, IExtensionMetad
 
     /// @inheritdoc IAccessControl
     function hasRole(bytes32 role, address account) external view returns (bool) {
-        return AccessControlStorage.getHasRole(role, account);
+        return _getHasRole(role, account);
     }
 
     /// @inheritdoc IAccessControl
     function grantRole(bytes32 role, address account) external onlyRole(_DEFAULT_ADMIN_ROLE) {
-        AccessControlStorage.setHasRole(role, account, true);
-        emit IAccessControl.RoleGranted(role, account, msg.sender);
+        _setHasRole(role, account, true);
     }
 
     /// @inheritdoc IAccessControl
     function revokeRole(bytes32 role, address account) external onlyRole(_DEFAULT_ADMIN_ROLE) {
-        AccessControlStorage.setHasRole(role, account, false);
-        emit IAccessControl.RoleRevoked(role, account, msg.sender);
+        _setHasRole(role, account, false);
     }
 
     /// @inheritdoc IExtension
@@ -34,9 +32,9 @@ contract AccessControl is AccessControlInternal, IAccessControl, IExtensionMetad
         bytes calldata initData
     ) external override {
         if (initData.length > 0) {
-            (address admin) = abi.decode(initData, (address));
-            AccessControlStorage.setHasRole(_DEFAULT_ADMIN_ROLE, admin, true);
-            emit IAccessControl.RoleGranted(_DEFAULT_ADMIN_ROLE, admin, msg.sender);
+            address admin;
+            (admin,) = LibBytes.readAddress(initData, 0);
+            _setHasRole(_DEFAULT_ADMIN_ROLE, admin, true);
         }
     }
 

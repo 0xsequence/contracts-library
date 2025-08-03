@@ -14,4 +14,10 @@ interface IERC721MintAccessControl is IExtension {
     /// @dev The caller must have the mint role
     function mint(address to, uint256 tokenId) external;
 
+    /// @notice Mint a sequential token
+    /// @param to The address to mint the token to
+    /// @param amount The amount of tokens to mint
+    /// @dev The caller must have the mint role
+    function mintSequential(address to, uint256 amount) external;
+
 }

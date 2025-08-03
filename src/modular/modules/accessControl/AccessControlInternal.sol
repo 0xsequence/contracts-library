@@ -20,4 +20,17 @@ contract AccessControlInternal {
         _;
     }
 
+    function _getHasRole(bytes32 role, address account) internal view returns (bool) {
+        return AccessControlStorage.getHasRole(role, account);
+    }
+
+    function _setHasRole(bytes32 role, address account, bool hasRole) internal {
+        AccessControlStorage.setHasRole(role, account, hasRole);
+        if (hasRole) {
+            emit IAccessControl.RoleGranted(role, account, msg.sender);
+        } else {
+            emit IAccessControl.RoleRevoked(role, account, msg.sender);
+        }
+    }
+
 }

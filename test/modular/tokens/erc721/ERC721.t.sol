@@ -28,7 +28,7 @@ contract ERC721Test is Test {
     modifier withMint() {
         AccessControl accessControl = new AccessControl();
         DefaultProxy(payable(address(erc721))).addExtension(accessControl, abi.encode(address(this)));
-        AccessControl(address(erc721)).grantRole(keccak256("MINT_ROLE"), address(this));
+        AccessControl(address(erc721)).grantRole(keccak256("MINTER_ROLE"), address(this));
         ERC721MintAccessControl mintAccessControl = new ERC721MintAccessControl();
         DefaultProxy(payable(address(erc721))).addExtension(mintAccessControl, "");
         _;
@@ -50,7 +50,9 @@ contract ERC721Test is Test {
         vm.assume(tokenId < 0xffffffff);
         vm.assume(bytes(baseURI).length > 0);
 
-        erc721.setMetadata(name, symbol, baseURI, contractURI);
+        erc721.setNameAndSymbol(name, symbol);
+        erc721.setBaseMetadataURI(baseURI);
+        erc721.setContractURI(contractURI);
 
         assertEq(erc721.name(), name);
         assertEq(erc721.symbol(), symbol);

@@ -64,6 +64,7 @@ contract ERC721Burn is IExtension, IERC721Burn {
         uint256 tokenId
     ) public virtual {
         _burn(msg.sender, tokenId);
+        ERC721Storage.loadSupply().totalSupply--;
     }
 
     /// @inheritdoc IERC721Burn
@@ -74,17 +75,18 @@ contract ERC721Burn is IExtension, IERC721Burn {
         for (uint256 i = 0; i < nBurn; i++) {
             _burn(msg.sender, tokenIds[i]);
         }
+        ERC721Storage.loadSupply().totalSupply -= nBurn;
     }
 
     /// @inheritdoc IExtension
     function onAddExtension(
         bytes calldata initData
-    ) external pure override {
+    ) public virtual override {
         // no-op
     }
 
     /// @inheritdoc IExtension
-    function extensionSupport() external pure override returns (ExtensionSupport memory support) {
+    function extensionSupport() public pure virtual override returns (ExtensionSupport memory support) {
         support.interfaces = new bytes4[](1);
         support.interfaces[0] = type(IERC721Burn).interfaceId;
         support.selectors = new bytes4[](2);

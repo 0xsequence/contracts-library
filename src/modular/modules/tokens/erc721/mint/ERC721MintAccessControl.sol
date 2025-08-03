@@ -2,8 +2,11 @@
 pragma solidity ^0.8.19;
 
 import { IExtension } from "../../../../interfaces/IExtension.sol";
+
+import { LibBytes } from "../../../../utils/LibBytes.sol";
 import { AccessControlInternal } from "../../../accessControl/AccessControlInternal.sol";
 import { ERC721Storage } from "../ERC721Storage.sol";
+import { ERC721MintAccessControlStorage } from "./ERC721MintAccessControlStorage.sol";
 import { IERC721MintAccessControl } from "./IERC721MintAccessControl.sol";
 
 /// @title ERC721MintAccessControl
@@ -12,7 +15,7 @@ import { IERC721MintAccessControl } from "./IERC721MintAccessControl.sol";
 /// @dev Relies on the access control module to check if the caller has the role.
 contract ERC721MintAccessControl is AccessControlInternal, IExtension, IERC721MintAccessControl {
 
-    bytes32 internal constant _MINT_ROLE = keccak256("MINT_ROLE");
+    bytes32 internal constant _MINTER_ROLE = keccak256("MINTER_ROLE");
 
     /// @dev `keccak256(bytes("Transfer(address,address,uint256)"))`.
     uint256 private constant _TRANSFER_EVENT_SIGNATURE =
@@ -43,7 +46,6 @@ contract ERC721MintAccessControl is AccessControlInternal, IExtension, IERC721Mi
             // Increment the balance of the owner.
             {
                 mstore(m, to)
-                mstore(add(m, 0x1c), masterSlot)
                 let balanceSlot := keccak256(add(m, 0x0c), 0x1c)
                 let balanceSlotPacked := add(sload(balanceSlot), 1)
                 // Revert if `to` is the zero address, or if the account balance overflows.
@@ -59,24 +61,62 @@ contract ERC721MintAccessControl is AccessControlInternal, IExtension, IERC721Mi
         }
     }
 
+    /// @dev See solady ERC721._exists
+    function _exists(
+        uint256 id
+    ) internal view returns (bool result) {
+        uint256 masterSlot = ERC721Storage._ERC721_MASTER_SLOT_SEED;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            let m := mload(0x40)
+            mstore(m, id)
+            mstore(add(m, 0x1c), masterSlot)
+            let ownershipSlot := add(id, add(id, keccak256(m, 0x20)))
+            let ownershipPacked := sload(ownershipSlot)
+            result := iszero(iszero(shl(96, ownershipPacked)))
+        }
+    }
+
     /// @inheritdoc IERC721MintAccessControl
-    function mint(address to, uint256 tokenId) external onlyRole(_MINT_ROLE) {
+    function mint(address to, uint256 tokenId) public virtual onlyRole(_MINTER_ROLE) {
         _mint(to, tokenId);
+        ERC721Storage.loadSupply().totalSupply++;
+    }
+
+    /// @inheritdoc IERC721MintAccessControl
+    function mintSequential(address to, uint256 amount) public virtual onlyRole(_MINTER_ROLE) {
+        ERC721MintAccessControlStorage.Data storage data = ERC721MintAccessControlStorage.load();
+        uint256 nextSequentialId = data.nextSequentialId;
+        for (uint256 i = 0; i < amount; i++) {
+            while (_exists(nextSequentialId)) {
+                nextSequentialId++;
+            }
+            _mint(to, nextSequentialId);
+            nextSequentialId++;
+        }
+        data.nextSequentialId = nextSequentialId;
+        ERC721Storage.loadSupply().totalSupply += amount;
     }
 
     /// @inheritdoc IExtension
+    /// @dev If initData is provided, the minter role is granted to the address in initData.
     function onAddExtension(
         bytes calldata initData
-    ) external pure override {
-        // no-op
+    ) public virtual override {
+        if (initData.length > 0) {
+            address minter;
+            (minter,) = LibBytes.readAddress(initData, 0);
+            AccessControlInternal._setHasRole(_MINTER_ROLE, minter, true);
+        }
     }
 
     /// @inheritdoc IExtension
-    function extensionSupport() external pure override returns (ExtensionSupport memory support) {
+    function extensionSupport() public pure virtual override returns (ExtensionSupport memory support) {
         support.interfaces = new bytes4[](1);
         support.interfaces[0] = type(IERC721MintAccessControl).interfaceId;
-        support.selectors = new bytes4[](1);
+        support.selectors = new bytes4[](2);
         support.selectors[0] = IERC721MintAccessControl.mint.selector;
+        support.selectors[1] = IERC721MintAccessControl.mintSequential.selector;
         return support;
     }
 

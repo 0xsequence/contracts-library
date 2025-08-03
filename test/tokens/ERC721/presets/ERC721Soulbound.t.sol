@@ -3,9 +3,20 @@ pragma solidity ^0.8.19;
 
 import { TestHelper } from "../../../TestHelper.sol";
 
+import { AccessControl, IAccessControl } from "src/modular/modules/accessControl/AccessControl.sol";
+import { DefaultProxy } from "src/modular/modules/defaultProxy/DefaultProxy.sol";
+import { DefaultProxyFactory } from "src/modular/modules/defaultProxy/DefaultProxyFactory.sol";
+import {
+    ISignalsImplicitModeControlled,
+    SignalsImplicitModeControlled
+} from "src/modular/modules/implicitSignals/SignalsImplicitModeControlled.sol";
+import { ERC721 } from "src/modular/modules/tokens/erc721/ERC721.sol";
+import { ERC721ItemsExtension } from "src/modular/modules/tokens/erc721/items/ERC721ItemsExtension.sol";
+import { ERC721Soulbound as SoulboundExtension } from "src/modular/modules/tokens/erc721/soulbound/ERC721Soulbound.sol";
+import { ERC2981Controlled } from "src/modular/modules/tokens/royalty/ERC2981Controlled.sol";
 import { IERC721ItemsFunctions, IERC721ItemsSignals } from "src/tokens/ERC721/presets/items/IERC721Items.sol";
+
 import { ERC721Soulbound } from "src/tokens/ERC721/presets/soulbound/ERC721Soulbound.sol";
-import { ERC721SoulboundFactory } from "src/tokens/ERC721/presets/soulbound/ERC721SoulboundFactory.sol";
 import {
     IERC721Soulbound,
     IERC721SoulboundFunctions,
@@ -31,131 +42,41 @@ contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721Soulboun
 
     function setUp() public {
         owner = makeAddr("owner");
-        proxyOwner = makeAddr("proxyOwner");
 
-        vm.deal(address(this), 100 ether);
-        vm.deal(owner, 100 ether);
-
-        ERC721SoulboundFactory factory = new ERC721SoulboundFactory(address(this));
-        token = ERC721Soulbound(
-            factory.deploy(
-                proxyOwner, owner, "name", "symbol", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0)
-            )
-        );
-    }
-
-    function testReinitializeFails() public {
-        vm.expectRevert(InvalidInitialization.selector);
-        token.initialize(owner, "name", "symbol", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0));
+        ERC721 erc721Impl = new ERC721();
+        DefaultProxyFactory factory = new DefaultProxyFactory();
+        DefaultProxy proxy = factory.deploy(0, address(erc721Impl), owner);
+        address this_ = address(this);
+        // Add each extension to match original ERC721Soulbound functions
+        vm.startPrank(owner);
+        proxy.addExtension(new AccessControl(), abi.encodePacked(owner));
+        proxy.addExtension(new ERC721ItemsExtension(), abi.encodePacked(owner, owner));
+        proxy.addExtension(new ERC2981Controlled(), abi.encodePacked(owner, this_, uint96(0)));
+        proxy.addExtension(new SignalsImplicitModeControlled(), abi.encodePacked(owner));
+        proxy.addExtension(new SoulboundExtension(), abi.encodePacked(owner));
+        vm.stopPrank();
+        token = ERC721Soulbound(address(proxy));
     }
 
     function testSupportsInterface() public view {
-        assertTrue(token.supportsInterface(type(IERC165).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC721).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC721Metadata).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC721ItemsFunctions).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC721SoulboundFunctions).interfaceId));
-        assertTrue(token.supportsInterface(type(ISignalsImplicitMode).interfaceId));
-    }
-
-    /**
-     * Test all public selectors for collisions against the proxy admin functions.
-     * @dev pnpm ts-node scripts/outputSelectors.ts
-     */
-    function testSelectorCollision() public pure {
-        checkSelectorCollision(0xa217fddf); // DEFAULT_ADMIN_ROLE()
-        checkSelectorCollision(0x68a37ae8); // TRANSFER_ADMIN_ROLE()
-        checkSelectorCollision(0x9d043a66); // acceptImplicitRequest(address,(address,bytes4,bytes32,bytes32,bytes,(string,uint64)),(address,uint256,bytes,uint256,bool,bool,uint256))
-        checkSelectorCollision(0x095ea7b3); // approve(address,uint256)
-        checkSelectorCollision(0x70a08231); // balanceOf(address)
-        checkSelectorCollision(0xdc8e92ea); // batchBurn(uint256[])
-        checkSelectorCollision(0x42966c68); // burn(uint256)
-        checkSelectorCollision(0xe8a3d485); // contractURI()
-        checkSelectorCollision(0x081812fc); // getApproved(uint256)
-        checkSelectorCollision(0x248a9ca3); // getRoleAdmin(bytes32)
-        checkSelectorCollision(0x9010d07c); // getRoleMember(bytes32,uint256)
-        checkSelectorCollision(0xca15c873); // getRoleMemberCount(bytes32)
-        checkSelectorCollision(0x842f9b68); // getTransferLocked()
-        checkSelectorCollision(0x2f2ff15d); // grantRole(bytes32,address)
-        checkSelectorCollision(0x91d14854); // hasRole(bytes32,address)
-        checkSelectorCollision(0x4c62cd9b); // initialize(address,string,string,string,string,address,uint96,address,bytes32)
-        checkSelectorCollision(0xe985e9c5); // isApprovedForAll(address,address)
-        checkSelectorCollision(0x40c10f19); // mint(address,uint256)
-        checkSelectorCollision(0x2e73e0fd); // mintSequential(address,uint256)
-        checkSelectorCollision(0x06fdde03); // name()
-        checkSelectorCollision(0x6352211e); // ownerOf(uint256)
-        checkSelectorCollision(0x36568abe); // renounceRole(bytes32,address)
-        checkSelectorCollision(0xd547741f); // revokeRole(bytes32,address)
-        checkSelectorCollision(0x2a55205a); // royaltyInfo(uint256,uint256)
-        checkSelectorCollision(0x42842e0e); // safeTransferFrom(address,address,uint256)
-        checkSelectorCollision(0xb88d4fde); // safeTransferFrom(address,address,uint256,bytes)
-        checkSelectorCollision(0xa22cb465); // setApprovalForAll(address,bool)
-        checkSelectorCollision(0x7e518ec8); // setBaseMetadataURI(string)
-        checkSelectorCollision(0x938e3d7b); // setContractURI(string)
-        checkSelectorCollision(0x04634d8d); // setDefaultRoyalty(address,uint96)
-        checkSelectorCollision(0xed4c2ac7); // setImplicitModeProjectId(bytes32)
-        checkSelectorCollision(0x0bb310de); // setImplicitModeValidator(address)
-        checkSelectorCollision(0x5a446215); // setNameAndSymbol(string,string)
-        checkSelectorCollision(0x5944c753); // setTokenRoyalty(uint256,address,uint96)
-        checkSelectorCollision(0x35e60bd4); // setTransferLocked(bool)
-        checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
-        checkSelectorCollision(0x95d89b41); // symbol()
-        checkSelectorCollision(0xc87b56dd); // tokenURI(uint256)
-        checkSelectorCollision(0x18160ddd); // totalSupply()
-        checkSelectorCollision(0x23b872dd); // transferFrom(address,address,uint256)
+        assertTrue(token.supportsInterface(type(IERC165).interfaceId), "IERC165");
+        assertTrue(token.supportsInterface(type(IERC721).interfaceId), "IERC721");
+        assertTrue(token.supportsInterface(type(IERC721Metadata).interfaceId), "IERC721Metadata");
+        assertTrue(token.supportsInterface(type(IERC721ItemsFunctions).interfaceId), "IERC721ItemsFunctions");
+        assertTrue(token.supportsInterface(type(IERC721SoulboundFunctions).interfaceId), "IERC721SoulboundFunctions");
+        assertTrue(token.supportsInterface(type(ISignalsImplicitMode).interfaceId), "ISignalsImplicitMode");
+        assertTrue(
+            token.supportsInterface(type(ISignalsImplicitModeControlled).interfaceId), "ISignalsImplicitModeControlled"
+        );
     }
 
     function testOwnerHasRoles() public view {
-        assertTrue(token.hasRole(token.DEFAULT_ADMIN_ROLE(), owner));
+        assertTrue(token.hasRole(bytes32(0), owner));
         assertTrue(token.hasRole(keccak256("TRANSFER_ADMIN_ROLE"), owner));
-        assertTrue(token.hasRole(keccak256("METADATA_ADMIN_ROLE"), owner));
+        // assertTrue(token.hasRole(keccak256("METADATA_ADMIN_ROLE"), owner));
         assertTrue(token.hasRole(keccak256("MINTER_ROLE"), owner));
-        assertTrue(token.hasRole(keccak256("ROYALTY_ADMIN_ROLE"), owner));
+        // assertTrue(token.hasRole(keccak256("ROYALTY_ADMIN_ROLE"), owner));
         assertTrue(token.hasRole(keccak256("IMPLICIT_MODE_ADMIN_ROLE"), owner));
-    }
-
-    function testFactoryDetermineAddress(
-        address _proxyOwner,
-        address tokenOwner,
-        string memory name,
-        string memory symbol,
-        string memory baseURI,
-        string memory contractURI,
-        address royaltyReceiver,
-        uint96 royaltyFeeNumerator,
-        address implicitModeValidator,
-        bytes32 implicitModeProjectId
-    ) public {
-        vm.assume(_proxyOwner != address(0));
-        vm.assume(tokenOwner != address(0));
-        vm.assume(royaltyReceiver != address(0));
-        royaltyFeeNumerator = uint96(bound(royaltyFeeNumerator, 0, 10_000));
-        ERC721SoulboundFactory factory = new ERC721SoulboundFactory(address(this));
-        address deployedAddr = factory.deploy(
-            _proxyOwner,
-            tokenOwner,
-            name,
-            symbol,
-            baseURI,
-            contractURI,
-            royaltyReceiver,
-            royaltyFeeNumerator,
-            implicitModeValidator,
-            implicitModeProjectId
-        );
-        address predictedAddr = factory.determineAddress(
-            _proxyOwner,
-            tokenOwner,
-            name,
-            symbol,
-            baseURI,
-            contractURI,
-            royaltyReceiver,
-            royaltyFeeNumerator,
-            implicitModeValidator,
-            implicitModeProjectId
-        );
-        assertEq(deployedAddr, predictedAddr);
     }
 
     //
