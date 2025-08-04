@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-/// @title ERC2981Controls
+/// @title IERC2981Controlled
 /// @author Michael Standen
 /// @notice NFT Royalty interface that allows updates
-interface ERC2981Controls {
+interface IERC2981Controlled {
 
     /// @notice Sets the default royalty information
     /// @param receiver The address to pay the royalty to

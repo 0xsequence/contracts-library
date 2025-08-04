@@ -27,7 +27,7 @@ contract ERC721Test is Test {
 
     modifier withMint() {
         AccessControl accessControl = new AccessControl();
-        DefaultProxy(payable(address(erc721))).addExtension(accessControl, abi.encode(address(this)));
+        DefaultProxy(payable(address(erc721))).addExtension(accessControl, abi.encodePacked(address(this)));
         AccessControl(address(erc721)).grantRole(keccak256("MINTER_ROLE"), address(this));
         ERC721MintAccessControl mintAccessControl = new ERC721MintAccessControl();
         DefaultProxy(payable(address(erc721))).addExtension(mintAccessControl, "");
@@ -73,6 +73,7 @@ contract ERC721Test is Test {
 
     function test_erc721_mint(address to, uint256 tokenId) public withMint {
         vm.assume(tokenId < 0xffffffff);
+        vm.assume(to != address(0));
 
         vm.expectEmit(true, true, true, true, address(erc721));
         emit SoladyERC721.Transfer(address(0), to, tokenId);
@@ -83,6 +84,7 @@ contract ERC721Test is Test {
 
     function test_erc721_burn(address to, uint256 tokenId) public withMint withBurn {
         vm.assume(tokenId < 0xffffffff);
+        vm.assume(to != address(0));
 
         vm.expectEmit(true, true, true, true, address(erc721));
         emit SoladyERC721.Transfer(address(0), to, tokenId);

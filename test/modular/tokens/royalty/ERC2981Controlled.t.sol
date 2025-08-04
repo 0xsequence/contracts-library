@@ -55,6 +55,8 @@ contract ERC2981ControlledTest is Test {
         uint96 royaltyBps,
         uint256 tokenId
     ) public {
+        vm.assume(receiver != address(0));
+
         vm.expectEmit(true, true, true, true, address(erc2981Controlled));
         emit IAccessControl.RoleGranted(ROYALTY_ADMIN_ROLE, admin, address(this));
         bytes memory initData = abi.encodePacked(admin, receiver, royaltyBps);
@@ -70,6 +72,8 @@ contract ERC2981ControlledTest is Test {
         uint96 royaltyBps,
         uint256 tokenId
     ) public withRole {
+        vm.assume(receiver != address(0));
+
         erc2981Controlled.setDefaultRoyalty(receiver, royaltyBps);
         (address actualReceiver, uint256 royaltyAmount) = erc2981Controlled.royaltyInfo(tokenId, 10000);
         assertEq(actualReceiver, receiver);
@@ -81,6 +85,8 @@ contract ERC2981ControlledTest is Test {
         uint96 royaltyBps,
         uint256 tokenId
     ) public withRole {
+        vm.assume(receiver != address(0));
+
         erc2981Controlled.setTokenRoyalty(tokenId, receiver, royaltyBps);
         (address actualReceiver, uint256 royaltyAmount) = erc2981Controlled.royaltyInfo(tokenId, 10000);
         assertEq(actualReceiver, receiver);

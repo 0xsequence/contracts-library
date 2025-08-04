@@ -5,22 +5,22 @@ import { LibBytes } from "../../../utils/LibBytes.sol";
 import { AccessControlInternal } from "../../accessControl/AccessControlInternal.sol";
 import { ERC2981 } from "./ERC2981.sol";
 import { ERC2981Storage } from "./ERC2981Storage.sol";
-import { ERC2981Controls } from "./IERC2981Controlled.sol";
+import { IERC2981Controlled } from "./IERC2981Controlled.sol";
 
 /// @title ERC2981Controlled
 /// @author Michael Standen
 /// @notice NFT Royalty Standard that allows updates by roles
-contract ERC2981Controlled is ERC2981, ERC2981Controls, AccessControlInternal {
+contract ERC2981Controlled is ERC2981, IERC2981Controlled, AccessControlInternal {
 
     bytes32 internal constant _ROYALTY_ADMIN_ROLE = keccak256("ROYALTY_ADMIN_ROLE");
 
-    /// @inheritdoc ERC2981Controls
+    /// @inheritdoc IERC2981Controlled
     function setDefaultRoyalty(address receiver, uint96 royaltyBps) external onlyRole(_ROYALTY_ADMIN_ROLE) {
         ERC2981Storage.Data storage data = ERC2981Storage.load();
         data.defaultRoyalty = ERC2981Storage.RoyaltyInfo(receiver, royaltyBps);
     }
 
-    /// @inheritdoc ERC2981Controls
+    /// @inheritdoc IERC2981Controlled
     function setTokenRoyalty(
         uint256 tokenId,
         address receiver,
@@ -38,14 +38,14 @@ contract ERC2981Controlled is ERC2981, ERC2981Controls, AccessControlInternal {
         for (uint256 i = 0; i < baseSupport.interfaces.length; i++) {
             support.interfaces[i] = baseSupport.interfaces[i];
         }
-        support.interfaces[baseSupport.interfaces.length] = type(ERC2981Controls).interfaceId;
+        support.interfaces[baseSupport.interfaces.length] = type(IERC2981Controlled).interfaceId;
         // Add selectors
         support.selectors = new bytes4[](baseSupport.selectors.length + 2);
         for (uint256 i = 0; i < baseSupport.selectors.length; i++) {
             support.selectors[i] = baseSupport.selectors[i];
         }
-        support.selectors[baseSupport.selectors.length] = ERC2981Controls.setDefaultRoyalty.selector;
-        support.selectors[baseSupport.selectors.length + 1] = ERC2981Controls.setTokenRoyalty.selector;
+        support.selectors[baseSupport.selectors.length] = IERC2981Controlled.setDefaultRoyalty.selector;
+        support.selectors[baseSupport.selectors.length + 1] = IERC2981Controlled.setTokenRoyalty.selector;
         return support;
     }
 
