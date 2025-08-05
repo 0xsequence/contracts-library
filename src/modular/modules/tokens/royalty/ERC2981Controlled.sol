@@ -31,8 +31,8 @@ contract ERC2981Controlled is ERC2981, IERC2981Controlled, AccessControlInternal
     }
 
     /// @inheritdoc ERC2981
-    function extensionSupport() public pure override returns (ExtensionSupport memory support) {
-        ExtensionSupport memory baseSupport = ERC2981.extensionSupport();
+    function describeCapabilities() public pure override returns (ModuleSupport memory support) {
+        ModuleSupport memory baseSupport = ERC2981.describeCapabilities();
         // Add interfaces
         support.interfaces = new bytes4[](baseSupport.interfaces.length + 1);
         for (uint256 i = 0; i < baseSupport.interfaces.length; i++) {
@@ -51,7 +51,7 @@ contract ERC2981Controlled is ERC2981, IERC2981Controlled, AccessControlInternal
 
     /// @inheritdoc ERC2981
     /// @param initData ERC2981 init data prefixed with the admin address
-    function onAddExtension(
+    function onAttachModule(
         bytes calldata initData
     ) public override {
         if (initData.length >= 20) {
@@ -59,7 +59,7 @@ contract ERC2981Controlled is ERC2981, IERC2981Controlled, AccessControlInternal
             address admin;
             (admin, pointer) = LibBytes.readAddress(initData, pointer);
             _setHasRole(_ROYALTY_ADMIN_ROLE, admin, true);
-            ERC2981.onAddExtension(initData[pointer:]);
+            ERC2981.onAttachModule(initData[pointer:]);
         }
     }
 

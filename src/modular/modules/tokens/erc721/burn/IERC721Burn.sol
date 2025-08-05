@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IExtension } from "../../../../interfaces/IExtension.sol";
+import { IModule } from "../../../../interfaces/IModule.sol";
 
-interface IERC721Burn is IExtension {
+interface IERC721Burn is IModule {
 
     /// @notice Burn a token
     /// @param tokenId The ID of the token to burn

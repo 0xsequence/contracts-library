@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import { ModularProxyStorage } from "../ModularProxyStorage.sol";
-import { IExtension, IModularProxyIntrospection } from "./IModularProxyIntrospection.sol";
+import { IModularProxyIntrospection, IModule } from "./IModularProxyIntrospection.sol";
 
 /// @title ModularProxyIntrospection
 /// @author Michael Standen
@@ -15,10 +15,10 @@ contract ModularProxyIntrospection is IModularProxyIntrospection {
     }
 
     /// @inheritdoc IModularProxyIntrospection
-    function selectorToExtension(
+    function selectorToModule(
         bytes4 selector
     ) external view returns (address) {
-        return ModularProxyStorage.load().selectorToExtension[selector];
+        return ModularProxyStorage.load().selectorToModule[selector];
     }
 
     /// @inheritdoc IModularProxyIntrospection
@@ -29,28 +29,28 @@ contract ModularProxyIntrospection is IModularProxyIntrospection {
     }
 
     /// @inheritdoc IModularProxyIntrospection
-    function extensionToData(
-        address extension
-    ) external view returns (ModularProxyStorage.ExtensionData memory data) {
-        return ModularProxyStorage.load().extensionToData[extension];
+    function moduleToData(
+        address module
+    ) external view returns (ModularProxyStorage.ModuleData memory data) {
+        return ModularProxyStorage.load().moduleToData[module];
     }
 
-    /// @inheritdoc IExtension
-    function onAddExtension(
+    /// @inheritdoc IModule
+    function onAttachModule(
         bytes calldata initData
     ) external override {
         // no-op
     }
 
-    /// @inheritdoc IExtension
-    function extensionSupport() external pure returns (ExtensionSupport memory support) {
+    /// @inheritdoc IModule
+    function describeCapabilities() external pure returns (ModuleSupport memory support) {
         support.interfaces = new bytes4[](1);
         support.interfaces[0] = type(IModularProxyIntrospection).interfaceId;
         support.selectors = new bytes4[](4);
         support.selectors[0] = IModularProxyIntrospection.defaultImpl.selector;
-        support.selectors[1] = IModularProxyIntrospection.selectorToExtension.selector;
+        support.selectors[1] = IModularProxyIntrospection.selectorToModule.selector;
         support.selectors[2] = IModularProxyIntrospection.interfaceSupported.selector;
-        support.selectors[3] = IModularProxyIntrospection.extensionToData.selector;
+        support.selectors[3] = IModularProxyIntrospection.moduleToData.selector;
         return support;
     }
 

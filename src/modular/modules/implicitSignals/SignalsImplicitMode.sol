@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IExtension, IExtensionMetadata } from "../../interfaces/IExtensionMetadata.sol";
+import { IModule, IModuleMetadata } from "../../interfaces/IModuleMetadata.sol";
 import { LibBytes } from "../../utils/LibBytes.sol";
 import { SignalsImplicitModeStorage } from "./SignalsImplicitModeStorage.sol";
 import {
@@ -14,7 +14,7 @@ import { IImplicitProjectValidation } from "lib/signals-implicit-mode/src/regist
 /// @title SignalsImplicitMode
 /// @author Michael Standen
 /// @notice Enable implicit mode validation by project
-contract SignalsImplicitMode is ISignalsImplicitMode, IExtensionMetadata {
+contract SignalsImplicitMode is ISignalsImplicitMode, IModuleMetadata {
 
     /// @inheritdoc ISignalsImplicitMode
     function acceptImplicitRequest(
@@ -27,9 +27,9 @@ contract SignalsImplicitMode is ISignalsImplicitMode, IExtensionMetadata {
         return validator.validateAttestation(wallet, attestation, data.projectId);
     }
 
-    /// @inheritdoc IExtension
+    /// @inheritdoc IModule
     /// @param initData Encoded validator and project id
-    function onAddExtension(
+    function onAttachModule(
         bytes calldata initData
     ) public virtual override {
         if (initData.length > 0) {
@@ -43,9 +43,9 @@ contract SignalsImplicitMode is ISignalsImplicitMode, IExtensionMetadata {
         }
     }
 
-    /// @inheritdoc IExtensionMetadata
-    function getMetadata() public pure virtual override returns (ExtensionMetadata memory metadata) {
-        return ExtensionMetadata({
+    /// @inheritdoc IModuleMetadata
+    function getMetadata() public pure virtual override returns (ModuleMetadata memory metadata) {
+        return ModuleMetadata({
             name: "SignalsImplicitMode",
             version: "1.0.0",
             description: "Implicit mode validation by project",
@@ -54,8 +54,8 @@ contract SignalsImplicitMode is ISignalsImplicitMode, IExtensionMetadata {
         });
     }
 
-    /// @inheritdoc IExtension
-    function extensionSupport() public pure virtual override returns (ExtensionSupport memory support) {
+    /// @inheritdoc IModule
+    function describeCapabilities() public pure virtual override returns (ModuleSupport memory support) {
         support.interfaces = new bytes4[](1);
         support.interfaces[0] = type(ISignalsImplicitMode).interfaceId;
         support.selectors = new bytes4[](1);

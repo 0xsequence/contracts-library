@@ -5,8 +5,8 @@ pragma solidity ^0.8.19;
 
 import { DefaultImpl } from "../_mocks/DefaultImpl.sol";
 import { Test } from "forge-std/Test.sol";
-import { IExtension } from "src/modular/interfaces/IExtension.sol";
-import { IBase, ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
+import { IModule } from "src/modular/interfaces/IModule.sol";
+import { IModularBase, ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
 import { IModularProxyFactory, ModularProxyFactory } from "src/modular/modules/modularProxy/ModularProxyFactory.sol";
 import { IOwnable, Ownable } from "src/modular/modules/ownable/Ownable.sol";
 
@@ -36,20 +36,20 @@ contract ModularProxyTest is Test {
         factory.deploy(nonce, defaultImpl_, owner);
     }
 
-    function test_proxy_addExtension(uint256 nonce, address owner, address newOwner) public {
+    function test_proxy_attachModule(uint256 nonce, address owner, address newOwner) public {
         ModularProxy proxy = factory.deploy(nonce, defaultImpl, owner);
         vm.assume(owner != newOwner);
 
         vm.expectEmit(true, true, true, true);
-        emit IBase.ExtensionAdded(ownableImpl);
+        emit IModularBase.ModuleAdded(ownableImpl);
         vm.prank(owner);
-        proxy.addExtension(ownableImpl, "");
+        proxy.attachModule(ownableImpl, "");
 
         // Can access functions
         assertEq(Ownable(address(proxy)).owner(), owner);
 
         // Supports new interface ids
-        IExtension.ExtensionSupport memory support = ownableImpl.extensionSupport();
+        IModule.ModuleSupport memory support = ownableImpl.describeCapabilities();
         for (uint256 i = 0; i < support.interfaces.length; i++) {
             assertTrue(proxy.supportsInterface(support.interfaces[i]));
         }
@@ -64,32 +64,32 @@ contract ModularProxyTest is Test {
         // Consistent storage used
         vm.prank(owner);
         vm.expectRevert(IOwnable.CallerIsNotOwner.selector);
-        proxy.addExtension(ownableImpl, "");
+        proxy.attachModule(ownableImpl, "");
     }
 
-    function test_proxy_addExtension_fail_notOwner(uint256 nonce, address owner, address notOwner) public {
+    function test_proxy_attachModule_fail_notOwner(uint256 nonce, address owner, address notOwner) public {
         vm.assume(notOwner != owner);
 
         ModularProxy proxy = factory.deploy(nonce, defaultImpl, owner);
 
         vm.prank(notOwner);
         vm.expectRevert(IOwnable.CallerIsNotOwner.selector);
-        proxy.addExtension(ownableImpl, "");
+        proxy.attachModule(ownableImpl, "");
     }
 
-    function test_proxy_removeExtension(uint256 nonce, address owner) public {
+    function test_proxy_detachModule(uint256 nonce, address owner) public {
         ModularProxy proxy = factory.deploy(nonce, defaultImpl, owner);
 
         vm.prank(owner);
-        proxy.addExtension(ownableImpl, "");
+        proxy.attachModule(ownableImpl, "");
 
         vm.expectEmit(true, true, true, true);
-        emit IBase.ExtensionRemoved(ownableImpl);
+        emit IModularBase.ModuleRemoved(ownableImpl);
         vm.prank(owner);
-        proxy.removeExtension(ownableImpl);
+        proxy.detachModule(ownableImpl);
 
         // Selectors are no longer supported
-        IExtension.ExtensionSupport memory support = ownableImpl.extensionSupport();
+        IModule.ModuleSupport memory support = ownableImpl.describeCapabilities();
         for (uint256 i = 0; i < support.selectors.length; i++) {
             assertFalse(proxy.supportsInterface(support.selectors[i]));
         }

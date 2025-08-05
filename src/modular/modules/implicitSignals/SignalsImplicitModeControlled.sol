@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { ExtensionSupportUtils } from "../../utils/ExtensionSupportUtils.sol";
 import { LibBytes } from "../../utils/LibBytes.sol";
+import { ModuleSupportUtils } from "../../utils/ModuleSupportUtils.sol";
 import { AccessControlInternal } from "../accessControl/AccessControlInternal.sol";
 import { ISignalsImplicitModeControlled } from "./ISignalsImplicitModeControlled.sol";
 import { SignalsImplicitMode } from "./SignalsImplicitMode.sol";
@@ -33,7 +33,7 @@ contract SignalsImplicitModeControlled is AccessControlInternal, SignalsImplicit
 
     /// @inheritdoc SignalsImplicitMode
     /// @param initData Encoded admin, validator and project id
-    function onAddExtension(
+    function onAttachModule(
         bytes calldata initData
     ) public virtual override {
         if (initData.length > 0) {
@@ -41,13 +41,13 @@ contract SignalsImplicitModeControlled is AccessControlInternal, SignalsImplicit
             address admin;
             (admin, pointer) = LibBytes.readAddress(initData, pointer);
             AccessControlInternal._setHasRole(_IMPLICIT_MODE_ADMIN_ROLE, admin, true);
-            SignalsImplicitMode.onAddExtension(initData[pointer:]);
+            SignalsImplicitMode.onAttachModule(initData[pointer:]);
         }
     }
 
     /// @inheritdoc SignalsImplicitMode
-    function getMetadata() public pure override returns (ExtensionMetadata memory metadata) {
-        return ExtensionMetadata({
+    function getMetadata() public pure override returns (ModuleMetadata memory metadata) {
+        return ModuleMetadata({
             name: "SignalsImplicitModeControlled",
             version: "1.0.0",
             description: "Implicit mode validation by project with admin controls",
@@ -57,16 +57,16 @@ contract SignalsImplicitModeControlled is AccessControlInternal, SignalsImplicit
     }
 
     /// @inheritdoc SignalsImplicitMode
-    function extensionSupport() public pure override returns (ExtensionSupport memory support) {
-        ExtensionSupport[] memory supers = new ExtensionSupport[](2);
+    function describeCapabilities() public pure override returns (ModuleSupport memory support) {
+        ModuleSupport[] memory supers = new ModuleSupport[](2);
         // ISignalsImplicitModeControlled
-        supers[0] = ExtensionSupport(new bytes4[](1), new bytes4[](2));
+        supers[0] = ModuleSupport(new bytes4[](1), new bytes4[](2));
         supers[0].interfaces[0] = type(ISignalsImplicitModeControlled).interfaceId;
         supers[0].selectors[0] = ISignalsImplicitModeControlled.setImplicitModeValidator.selector;
         supers[0].selectors[1] = ISignalsImplicitModeControlled.setImplicitModeProjectId.selector;
         // SignalsImplicitMode
-        supers[1] = SignalsImplicitMode.extensionSupport();
-        return ExtensionSupportUtils.flatten(supers);
+        supers[1] = SignalsImplicitMode.describeCapabilities();
+        return ModuleSupportUtils.flatten(supers);
     }
 
 }

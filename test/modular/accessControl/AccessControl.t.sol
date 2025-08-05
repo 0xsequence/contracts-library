@@ -6,7 +6,7 @@ pragma solidity ^0.8.19;
 import { DefaultImpl } from "../_mocks/DefaultImpl.sol";
 import { Test } from "forge-std/Test.sol";
 import { AccessControl, IAccessControl } from "src/modular/modules/accessControl/AccessControl.sol";
-import { IBase, ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
+import { IModularBase, ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
 import { IModularProxyFactory, ModularProxyFactory } from "src/modular/modules/modularProxy/ModularProxyFactory.sol";
 
 contract AccessControlTest is Test {
@@ -38,7 +38,7 @@ contract AccessControlTest is Test {
         vm.expectEmit(true, true, true, true, address(proxy));
         emit IAccessControl.RoleGranted(0x00, defaultAdmin, address(owner));
         vm.prank(owner);
-        proxy.addExtension(accessControlImpl, initData);
+        proxy.attachModule(accessControlImpl, initData);
 
         AccessControl accessControl = AccessControl(address(proxy));
 
@@ -69,7 +69,7 @@ contract AccessControlTest is Test {
 
         // Do not set an admin
         vm.prank(owner);
-        proxy.addExtension(accessControlImpl, "");
+        proxy.attachModule(accessControlImpl, "");
 
         AccessControl accessControl = AccessControl(address(proxy));
 

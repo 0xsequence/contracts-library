@@ -6,23 +6,23 @@ pragma solidity ^0.8.19;
 /// @notice Storage for the modular proxy module.
 library ModularProxyStorage {
 
-    /// @notice Extension data storage struct
-    /// @param selectors The selectors supported by the extension
-    /// @param interfaceIds The interface ids supported by the extension
-    struct ExtensionData {
+    /// @notice Module data storage struct
+    /// @param selectors The selectors supported by the module
+    /// @param interfaceIds The interface ids supported by the module
+    struct ModuleData {
         bytes4[] selectors;
         bytes4[] interfaceIds;
     }
 
     /// @notice Default implementation storage struct
-    /// @param selectorToExtension Mapping from function selector to extension address
+    /// @param selectorToModule Mapping from function selector to module address
     /// @param interfaceSupported Mapping from interface id to whether it is supported
-    /// @param extensionToData Mapping from extension address to extension data
+    /// @param moduleToData Mapping from module address to module data
     /// @custom:storage-location erc7201:modularProxy.data
     struct Data {
-        mapping(bytes4 => address) selectorToExtension;
+        mapping(bytes4 => address) selectorToModule;
         mapping(bytes4 => bool) interfaceSupported;
-        mapping(address => ExtensionData) extensionToData;
+        mapping(address => ModuleData) moduleToData;
     }
 
     bytes32 private constant DEFAULT_IMPL_SLOT =

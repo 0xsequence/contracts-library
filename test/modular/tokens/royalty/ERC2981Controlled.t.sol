@@ -9,7 +9,7 @@ import { ERC721 as SoladyERC721 } from "lib/solady/src/tokens/ERC721.sol";
 import { LibString } from "lib/solady/src/utils/LibString.sol";
 import { AccessControl } from "src/modular/modules/accessControl/AccessControl.sol";
 import { IAccessControl } from "src/modular/modules/accessControl/IAccessControl.sol";
-import { IBase, ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
+import { IModularBase, ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
 import { IModularProxyFactory, ModularProxyFactory } from "src/modular/modules/modularProxy/ModularProxyFactory.sol";
 import { ERC721 } from "src/modular/modules/tokens/erc721/ERC721.sol";
 import { ERC721Burn } from "src/modular/modules/tokens/erc721/burn/ERC721Burn.sol";
@@ -30,7 +30,7 @@ contract ERC2981ControlledTest is Test {
     }
 
     modifier withRole() {
-        erc2981Controlled.onAddExtension(abi.encodePacked(address(this)));
+        erc2981Controlled.onAttachModule(abi.encodePacked(address(this)));
         _;
     }
 
@@ -42,7 +42,7 @@ contract ERC2981ControlledTest is Test {
         vm.expectEmit(true, true, true, true, address(erc2981Controlled));
         emit IAccessControl.RoleGranted(ROYALTY_ADMIN_ROLE, admin, address(this));
         bytes memory initData = abi.encodePacked(admin);
-        erc2981Controlled.onAddExtension(initData);
+        erc2981Controlled.onAttachModule(initData);
 
         (address actualReceiver, uint256 actualRoyaltyAmount) = erc2981Controlled.royaltyInfo(tokenId, salePrice);
         assertEq(actualReceiver, address(0));
@@ -60,7 +60,7 @@ contract ERC2981ControlledTest is Test {
         vm.expectEmit(true, true, true, true, address(erc2981Controlled));
         emit IAccessControl.RoleGranted(ROYALTY_ADMIN_ROLE, admin, address(this));
         bytes memory initData = abi.encodePacked(admin, receiver, royaltyBps);
-        erc2981Controlled.onAddExtension(initData);
+        erc2981Controlled.onAttachModule(initData);
 
         (address actualReceiver, uint256 actualRoyaltyAmount) = erc2981Controlled.royaltyInfo(tokenId, 10000);
         assertEq(actualReceiver, receiver);

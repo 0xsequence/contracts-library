@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IBase, IExtension } from "../../interfaces/IBase.sol";
 import { IERC165 } from "../../interfaces/IERC165.sol";
+import { IModularBase, IModule } from "../../interfaces/IModularBase.sol";
 import { OwnableInternal } from "../../modules/ownable/OwnableInternal.sol";
 import { ModularProxyStorage } from "./ModularProxyStorage.sol";
 
 /// @title ModularProxy
 /// @author Michael Standen
-/// @notice Proxy that delegates all calls to configured extensions or the default implementation
+/// @notice Proxy that delegates all calls to configured modules or the default implementation
 /// @dev This contract supports ERC165 even though it does not inherit the interface here
-contract ModularProxy is IBase, IERC165, OwnableInternal {
+contract ModularProxy is IModularBase, IERC165, OwnableInternal {
 
-    /// @notice Error thrown when adding an extension fails
-    error AddExtensionFailed(address extension);
+    /// @notice Error thrown when attaching a module fails
+    error AttachModuleFailed(address module);
 
     /// @notice Constructor
     /// @param defaultImpl The default implementation of the proxy
@@ -22,55 +22,55 @@ contract ModularProxy is IBase, IERC165, OwnableInternal {
         ModularProxyStorage.storeDefaultImpl(defaultImpl);
     }
 
-    /// @inheritdoc IBase
-    function addExtension(IExtension extension, bytes calldata initData) external override onlyOwner {
-        address extensionAddress = address(extension);
+    /// @inheritdoc IModularBase
+    function attachModule(IModule module, bytes calldata initData) external override onlyOwner {
+        address moduleAddress = address(module);
 
         ModularProxyStorage.Data storage data = ModularProxyStorage.load();
 
-        // Register all supported selectors and interface ids for this extension
-        IExtension.ExtensionSupport memory support = extension.extensionSupport();
+        // Register all supported selectors and interface ids for this module
+        IModule.ModuleSupport memory support = module.describeCapabilities();
         for (uint256 i = 0; i < support.selectors.length; i++) {
-            data.selectorToExtension[support.selectors[i]] = extensionAddress;
+            data.selectorToModule[support.selectors[i]] = moduleAddress;
         }
         for (uint256 i = 0; i < support.interfaces.length; i++) {
             data.interfaceSupported[support.interfaces[i]] = true;
         }
-        data.extensionToData[extensionAddress] =
-            ModularProxyStorage.ExtensionData({ selectors: support.selectors, interfaceIds: support.interfaces });
+        data.moduleToData[moduleAddress] =
+            ModularProxyStorage.ModuleData({ selectors: support.selectors, interfaceIds: support.interfaces });
 
         // solhint-disable avoid-low-level-calls
         (bool success,) =
-            address(extension).delegatecall(abi.encodeWithSelector(IExtension.onAddExtension.selector, initData));
+            address(module).delegatecall(abi.encodeWithSelector(IModule.onAttachModule.selector, initData));
         if (!success) {
-            revert AddExtensionFailed(extensionAddress);
+            revert AttachModuleFailed(moduleAddress);
         }
 
-        emit ExtensionAdded(extension);
+        emit ModuleAdded(module);
     }
 
-    /// @inheritdoc IBase
-    function removeExtension(
-        IExtension extension
+    /// @inheritdoc IModularBase
+    function detachModule(
+        IModule module
     ) external override onlyOwner {
         ModularProxyStorage.Data storage data = ModularProxyStorage.load();
-        address extensionAddress = address(extension);
+        address moduleAddress = address(module);
 
-        // Remove all selectors for this extension
-        bytes4[] memory selectors = data.extensionToData[extensionAddress].selectors;
+        // Remove all selectors for this module
+        bytes4[] memory selectors = data.moduleToData[moduleAddress].selectors;
         for (uint256 i = 0; i < selectors.length; i++) {
-            delete data.selectorToExtension[selectors[i]];
+            delete data.selectorToModule[selectors[i]];
         }
 
-        // Remove all interface ids for this extension
-        bytes4[] memory interfaceIds = data.extensionToData[extensionAddress].interfaceIds;
+        // Remove all interface ids for this module
+        bytes4[] memory interfaceIds = data.moduleToData[moduleAddress].interfaceIds;
         for (uint256 i = 0; i < interfaceIds.length; i++) {
             delete data.interfaceSupported[interfaceIds[i]];
         }
 
-        delete data.extensionToData[extensionAddress];
+        delete data.moduleToData[moduleAddress];
 
-        emit ExtensionRemoved(extension);
+        emit ModuleRemoved(module);
     }
 
     /// @inheritdoc IERC165
@@ -78,12 +78,12 @@ contract ModularProxy is IBase, IERC165, OwnableInternal {
         bytes4 interfaceId
     ) public view virtual returns (bool) {
         // Base supported interfaces
-        bool supported = interfaceId == type(IERC165).interfaceId || interfaceId == type(IBase).interfaceId;
+        bool supported = interfaceId == type(IERC165).interfaceId || interfaceId == type(IModularBase).interfaceId;
         if (supported) {
             return true;
         }
 
-        // Extension supported interfaces
+        // Module supported interfaces
         ModularProxyStorage.Data storage data = ModularProxyStorage.load();
         supported = data.interfaceSupported[interfaceId];
         if (supported) {
@@ -113,12 +113,12 @@ contract ModularProxy is IBase, IERC165, OwnableInternal {
         }
     }
 
-    /// @notice Fallback function to route calls to extensions or the default implementation
+    /// @notice Fallback function to route calls to modules or the default implementation
     /// @dev This function is called when no other function matches the call
     // solhint-disable-next-line no-complex-fallback
     fallback() external payable {
         ModularProxyStorage.Data storage data = ModularProxyStorage.load();
-        address implementation = data.selectorToExtension[msg.sig];
+        address implementation = data.selectorToModule[msg.sig];
         if (implementation == address(0)) {
             implementation = ModularProxyStorage.loadDefaultImpl();
         }

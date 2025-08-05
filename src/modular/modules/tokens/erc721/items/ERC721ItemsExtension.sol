@@ -2,15 +2,15 @@
 pragma solidity ^0.8.19;
 
 import { IERC721Items, IERC721ItemsFunctions } from "../../../../../tokens/ERC721/presets/items/IERC721Items.sol";
-import { IExtension } from "../../../../interfaces/IExtension.sol";
-import { ExtensionSupportUtils } from "../../../../utils/ExtensionSupportUtils.sol";
+import { IModule } from "../../../../interfaces/IModule.sol";
+import { ModuleSupportUtils } from "../../../../utils/ModuleSupportUtils.sol";
 import { ERC721Storage } from "../ERC721Storage.sol";
 import { ERC721Burn } from "../burn/ERC721Burn.sol";
 import { ERC721MintAccessControl } from "../mint/ERC721MintAccessControl.sol";
 
 /// @title ERC721ItemsExtension
 /// @author Michael Standen
-/// @notice Extension to enable original ERC721Items compatibility.
+/// @notice Module to enable original ERC721Items compatibility.
 contract ERC721ItemsExtension is ERC721MintAccessControl, ERC721Burn, IERC721Items {
 
     /// @inheritdoc ERC721MintAccessControl
@@ -31,32 +31,32 @@ contract ERC721ItemsExtension is ERC721MintAccessControl, ERC721Burn, IERC721Ite
         return ERC721Storage.loadSupply().totalSupply;
     }
 
-    /// @inheritdoc IExtension
-    function onAddExtension(
+    /// @inheritdoc IModule
+    function onAttachModule(
         bytes calldata initData
     ) public virtual override(ERC721MintAccessControl, ERC721Burn) {
-        ERC721MintAccessControl.onAddExtension(initData);
+        ERC721MintAccessControl.onAttachModule(initData);
     }
 
-    /// @inheritdoc IExtension
-    function extensionSupport()
+    /// @inheritdoc IModule
+    function describeCapabilities()
         public
         pure
         virtual
         override(ERC721MintAccessControl, ERC721Burn)
-        returns (ExtensionSupport memory support)
+        returns (ModuleSupport memory support)
     {
-        ExtensionSupport[] memory supers = new ExtensionSupport[](3);
+        ModuleSupport[] memory supers = new ModuleSupport[](3);
         // ERC721 Items
-        supers[0] = ExtensionSupport(new bytes4[](1), new bytes4[](1));
+        supers[0] = ModuleSupport(new bytes4[](1), new bytes4[](1));
         supers[0].interfaces[0] = type(IERC721ItemsFunctions).interfaceId;
         supers[0].selectors[0] = IERC721ItemsFunctions.totalSupply.selector;
 
-        // Inherited extensions
-        supers[1] = ERC721MintAccessControl.extensionSupport();
-        supers[2] = ERC721Burn.extensionSupport();
+        // Inherited modules
+        supers[1] = ERC721MintAccessControl.describeCapabilities();
+        supers[2] = ERC721Burn.describeCapabilities();
 
-        return ExtensionSupportUtils.flatten(supers);
+        return ModuleSupportUtils.flatten(supers);
     }
 
 }

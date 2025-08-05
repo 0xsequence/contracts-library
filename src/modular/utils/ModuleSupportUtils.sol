@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IExtension } from "../interfaces/IExtension.sol";
+import { IModule } from "../interfaces/IModule.sol";
 
-/// @title ExtensionSupportUtils
+/// @title ModuleSupportUtils
 /// @author Michael Standen
-/// @notice Utility functions for extension support
-library ExtensionSupportUtils {
+/// @notice Utility functions for module support
+library ModuleSupportUtils {
 
-    /// @notice Flattens an array of extension supports into a single extension support
-    /// @param supers The array of extension supports to flatten
-    /// @return support The flattened extension support
+    /// @notice Flattens an array of module supports into a single module support
+    /// @param supers The array of module supports to flatten
+    /// @return support The flattened module support
     function flatten(
-        IExtension.ExtensionSupport[] memory supers
-    ) internal pure returns (IExtension.ExtensionSupport memory support) {
+        IModule.ModuleSupport[] memory supers
+    ) internal pure returns (IModule.ModuleSupport memory support) {
         // Determine the total number of interfaces and selectors
         uint256 nInterfaces = 0;
         uint256 nSelectors = 0;

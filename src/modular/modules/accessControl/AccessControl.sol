@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IExtension, IExtensionMetadata } from "../../interfaces/IExtensionMetadata.sol";
+import { IModule, IModuleMetadata } from "../../interfaces/IModuleMetadata.sol";
 import { LibBytes } from "../../utils/LibBytes.sol";
 import { AccessControlInternal } from "./AccessControlInternal.sol";
 import { IAccessControl } from "./IAccessControl.sol";
 
 /// @title AccessControl
 /// @author Michael Standen
-/// @notice Extension to enable access control.
-contract AccessControl is AccessControlInternal, IAccessControl, IExtensionMetadata {
+/// @notice Module to enable access control.
+contract AccessControl is AccessControlInternal, IAccessControl, IModuleMetadata {
 
     /// @inheritdoc IAccessControl
     function hasRole(bytes32 role, address account) external view returns (bool) {
@@ -26,9 +26,9 @@ contract AccessControl is AccessControlInternal, IAccessControl, IExtensionMetad
         _setHasRole(role, account, false);
     }
 
-    /// @inheritdoc IExtension
+    /// @inheritdoc IModule
     /// @param initData Encoded address of the default admin
-    function onAddExtension(
+    function onAttachModule(
         bytes calldata initData
     ) external override {
         if (initData.length > 0) {
@@ -38,9 +38,9 @@ contract AccessControl is AccessControlInternal, IAccessControl, IExtensionMetad
         }
     }
 
-    /// @inheritdoc IExtensionMetadata
-    function getMetadata() external pure override returns (ExtensionMetadata memory metadata) {
-        return ExtensionMetadata({
+    /// @inheritdoc IModuleMetadata
+    function getMetadata() external pure override returns (ModuleMetadata memory metadata) {
+        return ModuleMetadata({
             name: "AccessControl",
             version: "1.0.0",
             description: "AccessControl module",
@@ -49,8 +49,8 @@ contract AccessControl is AccessControlInternal, IAccessControl, IExtensionMetad
         });
     }
 
-    /// @inheritdoc IExtension
-    function extensionSupport() external pure override returns (ExtensionSupport memory support) {
+    /// @inheritdoc IModule
+    function describeCapabilities() external pure override returns (ModuleSupport memory support) {
         support.interfaces = new bytes4[](1);
         support.interfaces[0] = type(IAccessControl).interfaceId;
         support.selectors = new bytes4[](3);

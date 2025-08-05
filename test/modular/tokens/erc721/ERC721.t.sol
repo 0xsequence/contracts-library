@@ -8,7 +8,7 @@ import { Test } from "forge-std/Test.sol";
 import { ERC721 as SoladyERC721 } from "lib/solady/src/tokens/ERC721.sol";
 import { LibString } from "lib/solady/src/utils/LibString.sol";
 import { AccessControl } from "src/modular/modules/accessControl/AccessControl.sol";
-import { IBase, ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
+import { IModularBase, ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
 import { IModularProxyFactory, ModularProxyFactory } from "src/modular/modules/modularProxy/ModularProxyFactory.sol";
 import { ERC721 } from "src/modular/modules/tokens/erc721/ERC721.sol";
 import { ERC721Burn } from "src/modular/modules/tokens/erc721/burn/ERC721Burn.sol";
@@ -27,16 +27,16 @@ contract ERC721Test is Test {
 
     modifier withMint() {
         AccessControl accessControl = new AccessControl();
-        ModularProxy(payable(address(erc721))).addExtension(accessControl, abi.encodePacked(address(this)));
+        ModularProxy(payable(address(erc721))).attachModule(accessControl, abi.encodePacked(address(this)));
         AccessControl(address(erc721)).grantRole(keccak256("MINTER_ROLE"), address(this));
         ERC721MintAccessControl mintAccessControl = new ERC721MintAccessControl();
-        ModularProxy(payable(address(erc721))).addExtension(mintAccessControl, "");
+        ModularProxy(payable(address(erc721))).attachModule(mintAccessControl, "");
         _;
     }
 
     modifier withBurn() {
         ERC721Burn burn = new ERC721Burn();
-        ModularProxy(payable(address(erc721))).addExtension(burn, "");
+        ModularProxy(payable(address(erc721))).attachModule(burn, "");
         _;
     }
 

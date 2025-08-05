@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IExtension, IExtensionMetadata } from "../../interfaces/IExtensionMetadata.sol";
+import { IModule, IModuleMetadata } from "../../interfaces/IModuleMetadata.sol";
 import { IOwnable } from "./IOwnable.sol";
 import { OwnableInternal } from "./OwnableInternal.sol";
 import { OwnableStorage } from "./OwnableStorage.sol";
 
 /// @title Ownable
 /// @author Michael Standen
-/// @notice Extension to enable contract-level ownership.
-contract Ownable is OwnableInternal, IOwnable, IExtensionMetadata {
+/// @notice Module to enable contract-level ownership.
+contract Ownable is OwnableInternal, IOwnable, IModuleMetadata {
 
     /// @inheritdoc IOwnable
     function owner() public view virtual returns (address) {
@@ -24,9 +24,9 @@ contract Ownable is OwnableInternal, IOwnable, IExtensionMetadata {
         _transferOwnership(newOwner);
     }
 
-    /// @inheritdoc IExtension
+    /// @inheritdoc IModule
     /// @param initData Encoded address of the new owner
-    function onAddExtension(
+    function onAttachModule(
         bytes calldata initData
     ) external override {
         if (initData.length > 0) {
@@ -35,9 +35,9 @@ contract Ownable is OwnableInternal, IOwnable, IExtensionMetadata {
         }
     }
 
-    /// @inheritdoc IExtensionMetadata
-    function getMetadata() external pure override returns (ExtensionMetadata memory metadata) {
-        return ExtensionMetadata({
+    /// @inheritdoc IModuleMetadata
+    function getMetadata() external pure override returns (ModuleMetadata memory metadata) {
+        return ModuleMetadata({
             name: "Ownable",
             version: "1.0.0",
             description: "Ownable module",
@@ -46,8 +46,8 @@ contract Ownable is OwnableInternal, IOwnable, IExtensionMetadata {
         });
     }
 
-    /// @inheritdoc IExtension
-    function extensionSupport() external pure override returns (ExtensionSupport memory support) {
+    /// @inheritdoc IModule
+    function describeCapabilities() external pure override returns (ModuleSupport memory support) {
         support.interfaces = new bytes4[](1);
         support.interfaces[0] = type(IOwnable).interfaceId;
         support.selectors = new bytes4[](2);

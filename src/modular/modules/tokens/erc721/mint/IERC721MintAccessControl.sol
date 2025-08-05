@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IExtension } from "../../../../interfaces/IExtension.sol";
+import { IModule } from "../../../../interfaces/IModule.sol";
 
 /// @title IERC721MintAccessControl
 /// @author Michael Standen
-/// @notice Interface for the ERC721MintAccessControl extension.
-interface IERC721MintAccessControl is IExtension {
+/// @notice Interface for the ERC721MintAccessControl module.
+interface IERC721MintAccessControl is IModule {
 
     /// @notice Mint a token
     /// @param to The address to mint the token to

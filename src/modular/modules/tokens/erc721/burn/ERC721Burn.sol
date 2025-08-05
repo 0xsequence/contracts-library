@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IExtension } from "../../../../interfaces/IExtension.sol";
+import { IModule } from "../../../../interfaces/IModule.sol";
 import { ERC721Storage } from "../ERC721Storage.sol";
 import { IERC721Burn } from "./IERC721Burn.sol";
 
 /// @title ERC721Burn
 /// @author Michael Standen
 /// @notice Enables burning of ERC721 tokens.
-contract ERC721Burn is IExtension, IERC721Burn {
+contract ERC721Burn is IModule, IERC721Burn {
 
     /// @dev `keccak256(bytes("Transfer(address,address,uint256)"))`.
     uint256 private constant _TRANSFER_EVENT_SIGNATURE =
@@ -78,15 +78,15 @@ contract ERC721Burn is IExtension, IERC721Burn {
         ERC721Storage.loadSupply().totalSupply -= nBurn;
     }
 
-    /// @inheritdoc IExtension
-    function onAddExtension(
+    /// @inheritdoc IModule
+    function onAttachModule(
         bytes calldata initData
     ) public virtual override {
         // no-op
     }
 
-    /// @inheritdoc IExtension
-    function extensionSupport() public pure virtual override returns (ExtensionSupport memory support) {
+    /// @inheritdoc IModule
+    function describeCapabilities() public pure virtual override returns (ModuleSupport memory support) {
         support.interfaces = new bytes4[](1);
         support.interfaces[0] = type(IERC721Burn).interfaceId;
         support.selectors = new bytes4[](2);

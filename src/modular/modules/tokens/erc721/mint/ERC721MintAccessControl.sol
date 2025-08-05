@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IExtension } from "../../../../interfaces/IExtension.sol";
+import { IModule } from "../../../../interfaces/IModule.sol";
 
 import { LibBytes } from "../../../../utils/LibBytes.sol";
 import { AccessControlInternal } from "../../../accessControl/AccessControlInternal.sol";
@@ -11,9 +11,9 @@ import { IERC721MintAccessControl } from "./IERC721MintAccessControl.sol";
 
 /// @title ERC721MintAccessControl
 /// @author Michael Standen
-/// @notice Extension to enable minting of ERC721 tokens with access control.
+/// @notice Module to enable minting of ERC721 tokens with access control.
 /// @dev Relies on the access control module to check if the caller has the role.
-contract ERC721MintAccessControl is AccessControlInternal, IExtension, IERC721MintAccessControl {
+contract ERC721MintAccessControl is AccessControlInternal, IModule, IERC721MintAccessControl {
 
     bytes32 internal constant _MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -98,9 +98,9 @@ contract ERC721MintAccessControl is AccessControlInternal, IExtension, IERC721Mi
         ERC721Storage.loadSupply().totalSupply += amount;
     }
 
-    /// @inheritdoc IExtension
+    /// @inheritdoc IModule
     /// @dev If initData is provided, the minter role is granted to the address in initData.
-    function onAddExtension(
+    function onAttachModule(
         bytes calldata initData
     ) public virtual override {
         if (initData.length > 0) {
@@ -110,8 +110,8 @@ contract ERC721MintAccessControl is AccessControlInternal, IExtension, IERC721Mi
         }
     }
 
-    /// @inheritdoc IExtension
-    function extensionSupport() public pure virtual override returns (ExtensionSupport memory support) {
+    /// @inheritdoc IModule
+    function describeCapabilities() public pure virtual override returns (ModuleSupport memory support) {
         support.interfaces = new bytes4[](1);
         support.interfaces[0] = type(IERC721MintAccessControl).interfaceId;
         support.selectors = new bytes4[](2);

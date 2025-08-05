@@ -50,11 +50,11 @@ contract ERC721SoulboundTest is TestHelper, IERC721ItemsSignals, IERC721Soulboun
         address this_ = address(this);
         // Add each extension to match original ERC721Soulbound functions
         vm.startPrank(owner);
-        proxy.addExtension(new AccessControl(), abi.encodePacked(owner));
-        proxy.addExtension(new ERC721ItemsExtension(), abi.encodePacked(owner, owner));
-        proxy.addExtension(new ERC2981Controlled(), abi.encodePacked(owner, this_, uint96(0)));
-        proxy.addExtension(new SignalsImplicitModeControlled(), abi.encodePacked(owner));
-        proxy.addExtension(new SoulboundExtension(), abi.encodePacked(owner));
+        proxy.attachModule(new AccessControl(), abi.encodePacked(owner));
+        proxy.attachModule(new ERC721ItemsExtension(), abi.encodePacked(owner, owner));
+        proxy.attachModule(new ERC2981Controlled(), abi.encodePacked(owner, this_, uint96(0)));
+        proxy.attachModule(new SignalsImplicitModeControlled(), abi.encodePacked(owner));
+        proxy.attachModule(new SoulboundExtension(), abi.encodePacked(owner));
         vm.stopPrank();
         token = ERC721Soulbound(address(proxy));
     }

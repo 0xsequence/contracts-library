@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { IExtension } from "../../../../interfaces/IExtension.sol";
+import { IModule } from "../../../../interfaces/IModule.sol";
 
 import { LibBytes } from "../../../../utils/LibBytes.sol";
 import { AccessControlInternal } from "../../../accessControl/AccessControl.sol";
@@ -13,7 +13,7 @@ import { ERC721 as SoladyERC721 } from "lib/solady/src/tokens/ERC721.sol";
 /// @title ERC721Soulbound
 /// @author Michael Standen
 /// @notice Disables transfers of ERC721 tokens
-contract ERC721Soulbound is AccessControlInternal, IERC721Soulbound, IExtension {
+contract ERC721Soulbound is AccessControlInternal, IERC721Soulbound, IModule {
 
     error TransferFailed();
 
@@ -53,9 +53,9 @@ contract ERC721Soulbound is AccessControlInternal, IERC721Soulbound, IExtension 
         return ERC721SoulboundStorage.load().transferLocked;
     }
 
-    /// @inheritdoc IExtension
+    /// @inheritdoc IModule
     /// @param initData Transfer admin and transfer lock
-    function onAddExtension(
+    function onAttachModule(
         bytes calldata initData
     ) public virtual override {
         bool locked = true;
@@ -71,8 +71,8 @@ contract ERC721Soulbound is AccessControlInternal, IERC721Soulbound, IExtension 
         ERC721SoulboundStorage.load().transferLocked = locked;
     }
 
-    /// @inheritdoc IExtension
-    function extensionSupport() public pure virtual override returns (ExtensionSupport memory support) {
+    /// @inheritdoc IModule
+    function describeCapabilities() public pure virtual override returns (ModuleSupport memory support) {
         support.interfaces = new bytes4[](1);
         support.interfaces[0] = type(IERC721Soulbound).interfaceId;
         support.selectors = new bytes4[](3);
