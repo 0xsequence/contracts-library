@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-/// @title DefaultProxyStorage
+/// @title ModularProxyStorage
 /// @author Michael Standen
-/// @notice Storage for the default proxy module.
-library DefaultProxyStorage {
+/// @notice Storage for the modular proxy module.
+library ModularProxyStorage {
 
     /// @notice Extension data storage struct
     /// @param selectors The selectors supported by the extension
@@ -18,7 +18,7 @@ library DefaultProxyStorage {
     /// @param selectorToExtension Mapping from function selector to extension address
     /// @param interfaceSupported Mapping from interface id to whether it is supported
     /// @param extensionToData Mapping from extension address to extension data
-    /// @custom:storage-location erc7201:defaultProxy.data
+    /// @custom:storage-location erc7201:modularProxy.data
     struct Data {
         mapping(bytes4 => address) selectorToExtension;
         mapping(bytes4 => bool) interfaceSupported;
@@ -29,7 +29,7 @@ library DefaultProxyStorage {
         keccak256(abi.encode("eip1967.proxy.implementation")) & ~bytes32(uint256(0xff));
 
     bytes32 private constant STORAGE_SLOT =
-        keccak256(abi.encode(uint256(keccak256("defaultProxy.data")) - 1)) & ~bytes32(uint256(0xff));
+        keccak256(abi.encode(uint256(keccak256("modularProxy.data")) - 1)) & ~bytes32(uint256(0xff));
 
     /// @notice Get the default implementation storage from storage
     /// @return data The stored default implementation data

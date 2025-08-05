@@ -8,8 +8,8 @@ import { Test } from "forge-std/Test.sol";
 import { ERC721 as SoladyERC721 } from "lib/solady/src/tokens/ERC721.sol";
 import { LibString } from "lib/solady/src/utils/LibString.sol";
 import { AccessControl } from "src/modular/modules/accessControl/AccessControl.sol";
-import { DefaultProxy, IBase } from "src/modular/modules/defaultProxy/DefaultProxy.sol";
-import { DefaultProxyFactory, IDefaultProxyFactory } from "src/modular/modules/defaultProxy/DefaultProxyFactory.sol";
+import { IBase, ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
+import { IModularProxyFactory, ModularProxyFactory } from "src/modular/modules/modularProxy/ModularProxyFactory.sol";
 import { ERC721 } from "src/modular/modules/tokens/erc721/ERC721.sol";
 import { ERC721Burn } from "src/modular/modules/tokens/erc721/burn/ERC721Burn.sol";
 import { ERC721MintAccessControl } from "src/modular/modules/tokens/erc721/mint/ERC721MintAccessControl.sol";
@@ -20,23 +20,23 @@ contract ERC721Test is Test {
 
     function setUp() public {
         ERC721 erc721Impl = new ERC721();
-        DefaultProxyFactory factory = new DefaultProxyFactory();
-        DefaultProxy proxy = factory.deploy(0, address(erc721Impl), address(this));
+        ModularProxyFactory factory = new ModularProxyFactory();
+        ModularProxy proxy = factory.deploy(0, address(erc721Impl), address(this));
         erc721 = ERC721(address(proxy));
     }
 
     modifier withMint() {
         AccessControl accessControl = new AccessControl();
-        DefaultProxy(payable(address(erc721))).addExtension(accessControl, abi.encodePacked(address(this)));
+        ModularProxy(payable(address(erc721))).addExtension(accessControl, abi.encodePacked(address(this)));
         AccessControl(address(erc721)).grantRole(keccak256("MINTER_ROLE"), address(this));
         ERC721MintAccessControl mintAccessControl = new ERC721MintAccessControl();
-        DefaultProxy(payable(address(erc721))).addExtension(mintAccessControl, "");
+        ModularProxy(payable(address(erc721))).addExtension(mintAccessControl, "");
         _;
     }
 
     modifier withBurn() {
         ERC721Burn burn = new ERC721Burn();
-        DefaultProxy(payable(address(erc721))).addExtension(burn, "");
+        ModularProxy(payable(address(erc721))).addExtension(burn, "");
         _;
     }
 

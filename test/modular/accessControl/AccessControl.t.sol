@@ -6,17 +6,17 @@ pragma solidity ^0.8.19;
 import { DefaultImpl } from "../_mocks/DefaultImpl.sol";
 import { Test } from "forge-std/Test.sol";
 import { AccessControl, IAccessControl } from "src/modular/modules/accessControl/AccessControl.sol";
-import { DefaultProxy, IBase } from "src/modular/modules/defaultProxy/DefaultProxy.sol";
-import { DefaultProxyFactory, IDefaultProxyFactory } from "src/modular/modules/defaultProxy/DefaultProxyFactory.sol";
+import { IBase, ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
+import { IModularProxyFactory, ModularProxyFactory } from "src/modular/modules/modularProxy/ModularProxyFactory.sol";
 
 contract AccessControlTest is Test {
 
-    DefaultProxyFactory public factory;
+    ModularProxyFactory public factory;
     address public defaultImpl;
     AccessControl public accessControlImpl;
 
     function setUp() public {
-        factory = new DefaultProxyFactory();
+        factory = new ModularProxyFactory();
         defaultImpl = address(new DefaultImpl());
         accessControlImpl = new AccessControl();
     }
@@ -30,7 +30,7 @@ contract AccessControlTest is Test {
     ) public {
         vm.assume(defaultAdmin != owner);
 
-        DefaultProxy proxy = factory.deploy(nonce, defaultImpl, owner);
+        ModularProxy proxy = factory.deploy(nonce, defaultImpl, owner);
         bytes memory initData = abi.encodePacked(defaultAdmin);
 
         // On add extension
@@ -65,7 +65,7 @@ contract AccessControlTest is Test {
     }
 
     function test_accessControl_fail_notAdmin(uint256 nonce, address owner, bytes32 role, address account) public {
-        DefaultProxy proxy = factory.deploy(nonce, defaultImpl, owner);
+        ModularProxy proxy = factory.deploy(nonce, defaultImpl, owner);
 
         // Do not set an admin
         vm.prank(owner);

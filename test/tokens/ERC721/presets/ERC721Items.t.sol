@@ -4,12 +4,13 @@ pragma solidity ^0.8.19;
 import { TestHelper } from "../../../TestHelper.sol";
 
 import { AccessControl, IAccessControl } from "src/modular/modules/accessControl/AccessControl.sol";
-import { DefaultProxy } from "src/modular/modules/defaultProxy/DefaultProxy.sol";
-import { DefaultProxyFactory } from "src/modular/modules/defaultProxy/DefaultProxyFactory.sol";
+
 import {
     ISignalsImplicitModeControlled,
     SignalsImplicitModeControlled
 } from "src/modular/modules/implicitSignals/SignalsImplicitModeControlled.sol";
+import { ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
+import { ModularProxyFactory } from "src/modular/modules/modularProxy/ModularProxyFactory.sol";
 import { IOwnable } from "src/modular/modules/ownable/IOwnable.sol";
 import { ERC721 } from "src/modular/modules/tokens/erc721/ERC721.sol";
 import { ERC721ItemsExtension } from "src/modular/modules/tokens/erc721/items/ERC721ItemsExtension.sol";
@@ -42,8 +43,8 @@ contract ERC721ItemsTest is TestHelper, IERC721ItemsSignals {
         owner = makeAddr("owner");
 
         ERC721 erc721Impl = new ERC721();
-        DefaultProxyFactory factory = new DefaultProxyFactory();
-        DefaultProxy proxy = factory.deploy(0, address(erc721Impl), owner);
+        ModularProxyFactory factory = new ModularProxyFactory();
+        ModularProxy proxy = factory.deploy(0, address(erc721Impl), owner);
         address this_ = address(this);
         // Add each extension to match original ERC721Items functions
         vm.startPrank(owner);

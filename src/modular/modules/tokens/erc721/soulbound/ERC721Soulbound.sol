@@ -5,7 +5,7 @@ import { IExtension } from "../../../../interfaces/IExtension.sol";
 
 import { LibBytes } from "../../../../utils/LibBytes.sol";
 import { AccessControlInternal } from "../../../accessControl/AccessControl.sol";
-import { DefaultProxyStorage } from "../../../defaultProxy/DefaultProxyStorage.sol";
+import { ModularProxyStorage } from "../../../modularProxy/ModularProxyStorage.sol";
 import { ERC721SoulboundStorage } from "./ERC721SoulboundStorage.sol";
 import { IERC721Soulbound } from "./IERC721Soulbound.sol";
 import { ERC721 as SoladyERC721 } from "lib/solady/src/tokens/ERC721.sol";
@@ -34,7 +34,7 @@ contract ERC721Soulbound is AccessControlInternal, IERC721Soulbound, IExtension 
             revert TransfersLocked();
         }
         // Forward the call to the default implementation (ERC721 hopefully)
-        address defaultImpl = DefaultProxyStorage.loadDefaultImpl();
+        address defaultImpl = ModularProxyStorage.loadDefaultImpl();
         (bool success,) = defaultImpl.delegatecall(msg.data);
         if (!success) {
             revert TransferFailed();

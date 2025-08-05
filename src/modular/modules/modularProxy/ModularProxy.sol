@@ -2,16 +2,15 @@
 pragma solidity ^0.8.19;
 
 import { IBase, IExtension } from "../../interfaces/IBase.sol";
-import { DefaultProxyStorage } from "./DefaultProxyStorage.sol";
-
 import { IERC165 } from "../../interfaces/IERC165.sol";
 import { OwnableInternal } from "../../modules/ownable/OwnableInternal.sol";
+import { ModularProxyStorage } from "./ModularProxyStorage.sol";
 
-/// @title DefaultProxy
+/// @title ModularProxy
 /// @author Michael Standen
 /// @notice Proxy that delegates all calls to configured extensions or the default implementation
 /// @dev This contract supports ERC165 even though it does not inherit the interface here
-contract DefaultProxy is IBase, IERC165, OwnableInternal {
+contract ModularProxy is IBase, IERC165, OwnableInternal {
 
     /// @notice Error thrown when adding an extension fails
     error AddExtensionFailed(address extension);
@@ -20,14 +19,14 @@ contract DefaultProxy is IBase, IERC165, OwnableInternal {
     /// @param defaultImpl The default implementation of the proxy
     constructor(address defaultImpl, address owner) {
         _transferOwnership(owner);
-        DefaultProxyStorage.storeDefaultImpl(defaultImpl);
+        ModularProxyStorage.storeDefaultImpl(defaultImpl);
     }
 
     /// @inheritdoc IBase
     function addExtension(IExtension extension, bytes calldata initData) external override onlyOwner {
         address extensionAddress = address(extension);
 
-        DefaultProxyStorage.Data storage data = DefaultProxyStorage.load();
+        ModularProxyStorage.Data storage data = ModularProxyStorage.load();
 
         // Register all supported selectors and interface ids for this extension
         IExtension.ExtensionSupport memory support = extension.extensionSupport();
@@ -38,7 +37,7 @@ contract DefaultProxy is IBase, IERC165, OwnableInternal {
             data.interfaceSupported[support.interfaces[i]] = true;
         }
         data.extensionToData[extensionAddress] =
-            DefaultProxyStorage.ExtensionData({ selectors: support.selectors, interfaceIds: support.interfaces });
+            ModularProxyStorage.ExtensionData({ selectors: support.selectors, interfaceIds: support.interfaces });
 
         // solhint-disable avoid-low-level-calls
         (bool success,) =
@@ -54,7 +53,7 @@ contract DefaultProxy is IBase, IERC165, OwnableInternal {
     function removeExtension(
         IExtension extension
     ) external override onlyOwner {
-        DefaultProxyStorage.Data storage data = DefaultProxyStorage.load();
+        ModularProxyStorage.Data storage data = ModularProxyStorage.load();
         address extensionAddress = address(extension);
 
         // Remove all selectors for this extension
@@ -85,14 +84,14 @@ contract DefaultProxy is IBase, IERC165, OwnableInternal {
         }
 
         // Extension supported interfaces
-        DefaultProxyStorage.Data storage data = DefaultProxyStorage.load();
+        ModularProxyStorage.Data storage data = ModularProxyStorage.load();
         supported = data.interfaceSupported[interfaceId];
         if (supported) {
             return true;
         }
 
         // Default implementation supported interfaces
-        address defaultImpl = DefaultProxyStorage.loadDefaultImpl();
+        address defaultImpl = ModularProxyStorage.loadDefaultImpl();
         try IERC165(defaultImpl).supportsInterface(interfaceId) returns (bool defaultSupported) {
             return defaultSupported;
         } catch { }
@@ -118,10 +117,10 @@ contract DefaultProxy is IBase, IERC165, OwnableInternal {
     /// @dev This function is called when no other function matches the call
     // solhint-disable-next-line no-complex-fallback
     fallback() external payable {
-        DefaultProxyStorage.Data storage data = DefaultProxyStorage.load();
+        ModularProxyStorage.Data storage data = ModularProxyStorage.load();
         address implementation = data.selectorToExtension[msg.sig];
         if (implementation == address(0)) {
-            implementation = DefaultProxyStorage.loadDefaultImpl();
+            implementation = ModularProxyStorage.loadDefaultImpl();
         }
         _delegateCall(implementation);
     }

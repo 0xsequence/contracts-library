@@ -6,18 +6,18 @@ pragma solidity ^0.8.19;
 import { DefaultImpl } from "../_mocks/DefaultImpl.sol";
 import { Test } from "forge-std/Test.sol";
 import { IExtension } from "src/modular/interfaces/IExtension.sol";
-import { DefaultProxy, IBase } from "src/modular/modules/defaultProxy/DefaultProxy.sol";
-import { DefaultProxyFactory, IDefaultProxyFactory } from "src/modular/modules/defaultProxy/DefaultProxyFactory.sol";
+import { IBase, ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
+import { IModularProxyFactory, ModularProxyFactory } from "src/modular/modules/modularProxy/ModularProxyFactory.sol";
 import { IOwnable, Ownable } from "src/modular/modules/ownable/Ownable.sol";
 
-contract DefaultProxyTest is Test {
+contract ModularProxyTest is Test {
 
-    DefaultProxyFactory public factory;
+    ModularProxyFactory public factory;
     address public defaultImpl;
     Ownable public ownableImpl;
 
     function setUp() public {
-        factory = new DefaultProxyFactory();
+        factory = new ModularProxyFactory();
         defaultImpl = address(new DefaultImpl());
         ownableImpl = new Ownable();
     }
@@ -25,8 +25,8 @@ contract DefaultProxyTest is Test {
     function test_factory_determineAddress(uint256 nonce, address defaultImpl_, address owner) public {
         address expectedAddress = factory.determineAddress(nonce, defaultImpl_, owner);
         vm.expectEmit(true, true, true, true);
-        emit IDefaultProxyFactory.Deployed(expectedAddress);
-        DefaultProxy proxy = factory.deploy(nonce, defaultImpl_, owner);
+        emit IModularProxyFactory.Deployed(expectedAddress);
+        ModularProxy proxy = factory.deploy(nonce, defaultImpl_, owner);
         assertEq(address(proxy), expectedAddress);
     }
 
@@ -37,7 +37,7 @@ contract DefaultProxyTest is Test {
     }
 
     function test_proxy_addExtension(uint256 nonce, address owner, address newOwner) public {
-        DefaultProxy proxy = factory.deploy(nonce, defaultImpl, owner);
+        ModularProxy proxy = factory.deploy(nonce, defaultImpl, owner);
         vm.assume(owner != newOwner);
 
         vm.expectEmit(true, true, true, true);
@@ -70,7 +70,7 @@ contract DefaultProxyTest is Test {
     function test_proxy_addExtension_fail_notOwner(uint256 nonce, address owner, address notOwner) public {
         vm.assume(notOwner != owner);
 
-        DefaultProxy proxy = factory.deploy(nonce, defaultImpl, owner);
+        ModularProxy proxy = factory.deploy(nonce, defaultImpl, owner);
 
         vm.prank(notOwner);
         vm.expectRevert(IOwnable.CallerIsNotOwner.selector);
@@ -78,7 +78,7 @@ contract DefaultProxyTest is Test {
     }
 
     function test_proxy_removeExtension(uint256 nonce, address owner) public {
-        DefaultProxy proxy = factory.deploy(nonce, defaultImpl, owner);
+        ModularProxy proxy = factory.deploy(nonce, defaultImpl, owner);
 
         vm.prank(owner);
         proxy.addExtension(ownableImpl, "");

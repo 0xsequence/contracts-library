@@ -5,7 +5,7 @@ import { IERC165 } from "lib/openzeppelin-contracts/contracts/utils/introspectio
 
 /// @title DefaultImpl
 /// @author Michael Standen
-/// @notice Default implementation for the DefaultProxy
+/// @notice Default implementation for the ModularProxy
 contract DefaultImpl is IERC165 {
 
     function supportsInterface(

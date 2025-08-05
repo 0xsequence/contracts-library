@@ -2,12 +2,12 @@
 pragma solidity ^0.8.19;
 
 import { IExtension } from "../../../interfaces/IExtension.sol";
-import { DefaultProxyStorage } from "../DefaultProxyStorage.sol";
+import { ModularProxyStorage } from "../ModularProxyStorage.sol";
 
-/// @title IDefaultProxyIntrospection
+/// @title IModularProxyIntrospection
 /// @author Michael Standen
-/// @notice Introspection interface for the DefaultProxy module
-interface IDefaultProxyIntrospection is IExtension {
+/// @notice Introspection interface for the ModularProxy module
+interface IModularProxyIntrospection is IExtension {
 
     /// @notice Get the default implementation
     /// @return defaultImpl The default implementation
@@ -32,6 +32,6 @@ interface IDefaultProxyIntrospection is IExtension {
     /// @return data The extension data
     function extensionToData(
         address extension
-    ) external view returns (DefaultProxyStorage.ExtensionData memory data);
+    ) external view returns (ModularProxyStorage.ExtensionData memory data);
 
 }

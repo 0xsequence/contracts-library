@@ -9,8 +9,8 @@ import { ERC721 as SoladyERC721 } from "lib/solady/src/tokens/ERC721.sol";
 import { LibString } from "lib/solady/src/utils/LibString.sol";
 import { AccessControl } from "src/modular/modules/accessControl/AccessControl.sol";
 import { IAccessControl } from "src/modular/modules/accessControl/IAccessControl.sol";
-import { DefaultProxy, IBase } from "src/modular/modules/defaultProxy/DefaultProxy.sol";
-import { DefaultProxyFactory, IDefaultProxyFactory } from "src/modular/modules/defaultProxy/DefaultProxyFactory.sol";
+import { IBase, ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
+import { IModularProxyFactory, ModularProxyFactory } from "src/modular/modules/modularProxy/ModularProxyFactory.sol";
 import { ERC721 } from "src/modular/modules/tokens/erc721/ERC721.sol";
 import { ERC721Burn } from "src/modular/modules/tokens/erc721/burn/ERC721Burn.sol";
 import { ERC721MintAccessControl } from "src/modular/modules/tokens/erc721/mint/ERC721MintAccessControl.sol";
@@ -24,8 +24,8 @@ contract ERC2981ControlledTest is Test {
 
     function setUp() public {
         ERC2981Controlled erc2981ControlledImpl = new ERC2981Controlled();
-        DefaultProxyFactory factory = new DefaultProxyFactory();
-        DefaultProxy proxy = factory.deploy(0, address(erc2981ControlledImpl), address(this));
+        ModularProxyFactory factory = new ModularProxyFactory();
+        ModularProxy proxy = factory.deploy(0, address(erc2981ControlledImpl), address(this));
         erc2981Controlled = ERC2981Controlled(address(proxy));
     }
 
