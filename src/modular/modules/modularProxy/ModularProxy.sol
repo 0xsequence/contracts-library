@@ -9,7 +9,6 @@ import { ModularProxyStorage } from "./ModularProxyStorage.sol";
 /// @title ModularProxy
 /// @author Michael Standen
 /// @notice Proxy that delegates all calls to configured modules or the default implementation
-/// @dev This contract supports ERC165 even though it does not inherit the interface here
 contract ModularProxy is IModularBase, IERC165, OwnableInternal {
 
     /// @notice Error thrown when attaching a module fails
