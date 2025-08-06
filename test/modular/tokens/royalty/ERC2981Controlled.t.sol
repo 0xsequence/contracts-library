@@ -5,15 +5,9 @@ pragma solidity ^0.8.19;
 
 import { Test } from "forge-std/Test.sol";
 
-import { ERC721 as SoladyERC721 } from "lib/solady/src/tokens/ERC721.sol";
-import { LibString } from "lib/solady/src/utils/LibString.sol";
-import { AccessControl } from "src/modular/modules/accessControl/AccessControl.sol";
 import { IAccessControl } from "src/modular/modules/accessControl/IAccessControl.sol";
-import { IModularBase, ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
-import { IModularProxyFactory, ModularProxyFactory } from "src/modular/modules/modularProxy/ModularProxyFactory.sol";
-import { ERC721 } from "src/modular/modules/tokens/erc721/ERC721.sol";
-import { ERC721Burn } from "src/modular/modules/tokens/erc721/burn/ERC721Burn.sol";
-import { ERC721MintAccessControl } from "src/modular/modules/tokens/erc721/mint/ERC721MintAccessControl.sol";
+import { ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
+import { ModularProxyFactory } from "src/modular/modules/modularProxy/ModularProxyFactory.sol";
 import { ERC2981Controlled } from "src/modular/modules/tokens/royalty/ERC2981Controlled.sol";
 
 contract ERC2981ControlledTest is Test {

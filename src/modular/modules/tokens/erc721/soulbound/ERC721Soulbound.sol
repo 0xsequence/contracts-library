@@ -35,6 +35,7 @@ contract ERC721Soulbound is AccessControlInternal, IERC721Soulbound, IModule {
         }
         // Forward the call to the default implementation (ERC721 hopefully)
         address defaultImpl = ModularProxyStorage.loadDefaultImpl();
+        // solhint-disable-next-line avoid-low-level-calls
         (bool success,) = defaultImpl.delegatecall(msg.data);
         if (!success) {
             revert TransferFailed();

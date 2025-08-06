@@ -6,8 +6,8 @@ pragma solidity ^0.8.19;
 import { DefaultImpl } from "../_mocks/DefaultImpl.sol";
 import { Test } from "forge-std/Test.sol";
 import { AccessControl, IAccessControl } from "src/modular/modules/accessControl/AccessControl.sol";
-import { IModularBase, ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
-import { IModularProxyFactory, ModularProxyFactory } from "src/modular/modules/modularProxy/ModularProxyFactory.sol";
+import { ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
+import { ModularProxyFactory } from "src/modular/modules/modularProxy/ModularProxyFactory.sol";
 
 contract AccessControlTest is Test {
 

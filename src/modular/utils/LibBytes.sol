@@ -9,6 +9,7 @@ pragma solidity ^0.8.18;
 library LibBytes {
 
     function readBool(bytes calldata _data, uint256 _index) internal pure returns (bool a, uint256 newPointer) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let word := calldataload(add(_index, _data.offset))
             a := shr(248, word)
@@ -17,6 +18,7 @@ library LibBytes {
     }
 
     function readUint8(bytes calldata _data, uint256 _index) internal pure returns (uint8 a, uint256 newPointer) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let word := calldataload(add(_index, _data.offset))
             a := shr(248, word)
@@ -25,6 +27,7 @@ library LibBytes {
     }
 
     function readUint16(bytes calldata _data, uint256 _index) internal pure returns (uint16 a, uint256 newPointer) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let word := calldataload(add(_index, _data.offset))
             a := shr(240, word)
@@ -33,6 +36,7 @@ library LibBytes {
     }
 
     function readUint24(bytes calldata _data, uint256 _index) internal pure returns (uint24 a, uint256 newPointer) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let word := calldataload(add(_index, _data.offset))
             a := shr(232, word)
@@ -41,6 +45,7 @@ library LibBytes {
     }
 
     function readUint64(bytes calldata _data, uint256 _index) internal pure returns (uint64 a, uint256 newPointer) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let word := calldataload(add(_index, _data.offset))
             a := shr(192, word)
@@ -49,6 +54,7 @@ library LibBytes {
     }
 
     function readUint96(bytes calldata _data, uint256 _index) internal pure returns (uint96 a, uint256 newPointer) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let word := calldataload(add(_index, _data.offset))
             a := shr(160, word)
@@ -57,6 +63,7 @@ library LibBytes {
     }
 
     function readUint160(bytes calldata _data, uint256 _index) internal pure returns (uint160 a, uint256 newPointer) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let word := calldataload(add(_index, _data.offset))
             a := shr(96, word)
@@ -65,6 +72,7 @@ library LibBytes {
     }
 
     function readUint256(bytes calldata _data, uint256 _index) internal pure returns (uint256 a, uint256 newPointer) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             a := calldataload(add(_index, _data.offset))
             newPointer := add(_index, 32)
@@ -76,6 +84,7 @@ library LibBytes {
         uint256 _index,
         uint256 _length
     ) internal pure returns (uint256 a, uint256 newPointer) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let word := calldataload(add(_index, _data.offset))
             let shift := sub(256, mul(_length, 8))
@@ -85,6 +94,7 @@ library LibBytes {
     }
 
     function readBytes4(bytes calldata _data, uint256 _pointer) internal pure returns (bytes4 a, uint256 newPointer) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let word := calldataload(add(_pointer, _data.offset))
             a := and(word, 0xffffffff00000000000000000000000000000000000000000000000000000000)
@@ -96,6 +106,7 @@ library LibBytes {
         bytes calldata _data,
         uint256 _pointer
     ) internal pure returns (bytes32 a, uint256 newPointer) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             a := calldataload(add(_pointer, _data.offset))
             newPointer := add(_pointer, 32)
@@ -103,6 +114,7 @@ library LibBytes {
     }
 
     function readAddress(bytes calldata _data, uint256 _index) internal pure returns (address a, uint256 newPointer) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             let word := calldataload(add(_index, _data.offset))
             a := and(shr(96, word), 0xffffffffffffffffffffffffffffffffffffffff)
