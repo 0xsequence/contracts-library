@@ -37,13 +37,11 @@ contract Ownable is OwnableInternal, IOwnable, IModuleMetadata {
 
     /// @inheritdoc IModuleMetadata
     function getMetadata() external pure override returns (ModuleMetadata memory metadata) {
-        return ModuleMetadata({
-            name: "Ownable",
-            version: "1.0.0",
-            description: "Ownable module",
-            author: "Sequence",
-            url: "https://github.com/0xsequence/contracts-library.git"
-        });
+        metadata.name = "Ownable";
+        metadata.version = "1.0.0";
+        metadata.description = "Enable contract-level ownership";
+        metadata.author = "Sequence";
+        metadata.url = "https://github.com/0xsequence/contracts-library.git";
     }
 
     /// @inheritdoc IModule

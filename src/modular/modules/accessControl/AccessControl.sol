@@ -40,13 +40,11 @@ contract AccessControl is AccessControlInternal, IAccessControl, IModuleMetadata
 
     /// @inheritdoc IModuleMetadata
     function getMetadata() external pure override returns (ModuleMetadata memory metadata) {
-        return ModuleMetadata({
-            name: "AccessControl",
-            version: "1.0.0",
-            description: "AccessControl module",
-            author: "Sequence",
-            url: "https://github.com/0xsequence/contracts-library.git"
-        });
+        metadata.name = "AccessControl";
+        metadata.version = "1.0.0";
+        metadata.description = "Enable access controls";
+        metadata.author = "Sequence";
+        metadata.url = "https://github.com/0xsequence/contracts-library.git";
     }
 
     /// @inheritdoc IModule

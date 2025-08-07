@@ -45,13 +45,11 @@ contract SignalsImplicitMode is ISignalsImplicitMode, IModuleMetadata {
 
     /// @inheritdoc IModuleMetadata
     function getMetadata() public pure virtual override returns (ModuleMetadata memory metadata) {
-        return ModuleMetadata({
-            name: "SignalsImplicitMode",
-            version: "1.0.0",
-            description: "Implicit mode validation by project",
-            author: "Sequence",
-            url: "https://github.com/0xsequence/contracts-library.git"
-        });
+        metadata.name = "SignalsImplicitMode";
+        metadata.version = "1.0.0";
+        metadata.description = "Implicit mode validation by project";
+        metadata.author = "Sequence";
+        metadata.url = "https://github.com/0xsequence/contracts-library.git";
     }
 
     /// @inheritdoc IModule

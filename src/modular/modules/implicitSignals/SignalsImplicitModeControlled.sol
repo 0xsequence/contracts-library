@@ -47,13 +47,11 @@ contract SignalsImplicitModeControlled is AccessControlInternal, SignalsImplicit
 
     /// @inheritdoc SignalsImplicitMode
     function getMetadata() public pure override returns (ModuleMetadata memory metadata) {
-        return ModuleMetadata({
-            name: "SignalsImplicitModeControlled",
-            version: "1.0.0",
-            description: "Implicit mode validation by project with admin controls",
-            author: "Sequence",
-            url: "https://github.com/0xsequence/contracts-library.git"
-        });
+        metadata.name = "SignalsImplicitModeControlled";
+        metadata.version = "1.0.0";
+        metadata.description = "Implicit mode validation by project with admin controls";
+        metadata.author = "Sequence";
+        metadata.url = "https://github.com/0xsequence/contracts-library.git";
     }
 
     /// @inheritdoc SignalsImplicitMode
