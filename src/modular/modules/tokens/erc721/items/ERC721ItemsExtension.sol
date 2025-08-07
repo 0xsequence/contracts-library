@@ -2,9 +2,10 @@
 pragma solidity ^0.8.19;
 
 import { IERC721Items, IERC721ItemsFunctions } from "../../../../../tokens/ERC721/presets/items/IERC721Items.sol";
+
+import { ERC721Storage } from "../../../../bases/erc721/ERC721Storage.sol";
 import { IModule } from "../../../../interfaces/IModule.sol";
 import { ModuleSupportUtils } from "../../../../utils/ModuleSupportUtils.sol";
-import { ERC721Storage } from "../ERC721Storage.sol";
 import { ERC721Burn } from "../burn/ERC721Burn.sol";
 import { ERC721MintAccessControl } from "../mint/ERC721MintAccessControl.sol";
 

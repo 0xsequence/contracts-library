@@ -5,6 +5,7 @@ import { TestHelper } from "../../../TestHelper.sol";
 
 import { AccessControl, IAccessControl } from "src/modular/modules/accessControl/AccessControl.sol";
 
+import { ERC721 } from "src/modular/bases/erc721/ERC721.sol";
 import {
     ISignalsImplicitModeControlled,
     SignalsImplicitModeControlled
@@ -12,7 +13,6 @@ import {
 import { ModularProxy } from "src/modular/modules/modularProxy/ModularProxy.sol";
 import { ModularProxyFactory } from "src/modular/modules/modularProxy/ModularProxyFactory.sol";
 import { IOwnable } from "src/modular/modules/ownable/IOwnable.sol";
-import { ERC721 } from "src/modular/modules/tokens/erc721/ERC721.sol";
 import { ERC721ItemsExtension } from "src/modular/modules/tokens/erc721/items/ERC721ItemsExtension.sol";
 import { ERC2981Controlled } from "src/modular/modules/tokens/royalty/ERC2981Controlled.sol";
 import { ERC721Items } from "src/tokens/ERC721/presets/items/ERC721Items.sol";

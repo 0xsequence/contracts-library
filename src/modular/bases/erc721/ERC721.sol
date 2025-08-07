@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
-import { OwnableInternal } from "../../ownable/OwnableInternal.sol";
+import { OwnableInternal } from "../../modules/ownable/OwnableInternal.sol";
 import { ERC721Storage } from "./ERC721Storage.sol";
 import { ERC721 as SoladyERC721 } from "lib/solady/src/tokens/ERC721.sol";
 import { LibString } from "lib/solady/src/utils/LibString.sol";

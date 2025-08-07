@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.19;
 
+import { ERC721Storage } from "../../../../bases/erc721/ERC721Storage.sol";
 import { IModule } from "../../../../interfaces/IModule.sol";
-
 import { LibBytes } from "../../../../utils/LibBytes.sol";
 import { AccessControlInternal } from "../../../accessControl/AccessControlInternal.sol";
-import { ERC721Storage } from "../ERC721Storage.sol";
 import { ERC721MintAccessControlStorage } from "./ERC721MintAccessControlStorage.sol";
 import { IERC721MintAccessControl } from "./IERC721MintAccessControl.sol";
 
