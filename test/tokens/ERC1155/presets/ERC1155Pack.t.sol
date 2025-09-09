@@ -143,6 +143,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         checkSelectorCollision(0xed4c2ac7); // setImplicitModeProjectId(bytes32)
         checkSelectorCollision(0x0bb310de); // setImplicitModeValidator(address)
         checkSelectorCollision(0x50336a03); // setPacksContent(bytes32,uint256,uint256)
+        checkSelectorCollision(0x3d7403a3); // setPackOpeningStartTime(uint256,uint256)
         checkSelectorCollision(0x5944c753); // setTokenRoyalty(uint256,address,uint96)
         checkSelectorCollision(0x35403023); // supply(uint256)
         checkSelectorCollision(0x01ffc9a7); // supportsInterface(bytes4)
@@ -443,6 +444,115 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
 
         vm.expectRevert(IERC1155Pack.NoCommit.selector);
         pack.refundPack(user, 0);
+    }
+
+    function testSetPackOpeningStartTime() public {
+        uint256 startTime = block.timestamp + 1 hours;
+        uint256 packId = 0;
+
+        vm.expectEmit(true, false, false, true);
+        emit IERC1155Pack.PackOpeningStartTimeSet(packId, startTime);
+
+        vm.prank(owner);
+        pack.setPackOpeningStartTime(packId, startTime);
+
+        assertEq(pack.packOpeningStartTime(packId), startTime);
+    }
+
+    function testCommitBeforeStartTime(
+        address user
+    ) public {
+        assumeSafeAddress(user);
+        uint256 startTime = block.timestamp + 1 hours;
+        uint256 packId = 0;
+
+        vm.prank(owner);
+        pack.setPackOpeningStartTime(packId, startTime);
+
+        vm.prank(owner);
+        pack.mint(user, packId, 1, "pack");
+
+        vm.prank(user);
+        vm.expectRevert(IERC1155Pack.PackNotYetAvailable.selector);
+        pack.commit(packId);
+    }
+
+    function testRevealBeforeStartTime(
+        address user
+    ) public {
+        assumeSafeAddress(user);
+        uint256 packId = 0;
+
+        // First commit without time restriction
+        vm.prank(owner);
+        pack.mint(user, packId, 1, "pack");
+
+        vm.prank(user);
+        pack.commit(packId);
+
+        vm.roll(block.number + 3);
+
+        // Theoretically we shouldn't end up in this situation, but test for completeness
+        // Now set the start time after the commit but before reveal
+        uint256 startTime = block.timestamp + 1 hours;
+        vm.prank(owner);
+        pack.setPackOpeningStartTime(packId, startTime);
+
+        uint256 revealIdx = pack.getRevealIdx(user, packId);
+        (, bytes32[] memory proof) = TestHelper.getMerklePartsPacks(packsContent, revealIdx);
+        IERC1155Pack.PackContent memory packContent = packsContent[revealIdx];
+
+        vm.expectRevert(IERC1155Pack.PackNotYetAvailable.selector);
+        pack.reveal(user, packContent, proof, packId);
+    }
+
+    function testCommitAndRevealAfterStartTime(
+        address user
+    ) public {
+        assumeSafeAddress(user);
+        uint256 packId = 0;
+        uint256 startTime = block.timestamp + 1 hours;
+
+        vm.prank(owner);
+        pack.setPackOpeningStartTime(packId, startTime);
+
+        vm.prank(owner);
+        pack.mint(user, packId, 1, "pack");
+
+        // Try to commit before start time
+        vm.prank(user);
+        vm.expectRevert(IERC1155Pack.PackNotYetAvailable.selector);
+        pack.commit(packId);
+
+        // Warp to after start time
+        vm.warp(startTime + 1);
+
+        // Now commit should succeed
+        vm.prank(user);
+        pack.commit(packId);
+
+        vm.roll(block.number + 3);
+
+        // Reveal should also succeed
+        uint256 revealIdx = pack.getRevealIdx(user, packId);
+        (, bytes32[] memory proof) = TestHelper.getMerklePartsPacks(packsContent, revealIdx);
+        IERC1155Pack.PackContent memory packContent = packsContent[revealIdx];
+
+        pack.reveal(user, packContent, proof, packId);
+
+        // Verify tokens were received
+        for (uint256 i = 0; i < packContent.tokenAddresses.length; i++) {
+            for (uint256 j = 0; j < packContent.tokenIds[i].length; j++) {
+                if (packContent.isERC721[i]) {
+                    assertEq(IERC721(packContent.tokenAddresses[i]).ownerOf(packContent.tokenIds[i][j]), user);
+                } else {
+                    assertEq(
+                        IERC1155(packContent.tokenAddresses[i]).balanceOf(user, packContent.tokenIds[i][j]),
+                        packContent.amounts[i][j]
+                    );
+                }
+            }
+        }
     }
 
     // Common functions

@@ -15,6 +15,7 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
     mapping(uint256 => bytes32) public merkleRoot;
     mapping(uint256 => uint256) public supply;
     mapping(uint256 => uint256) public remainingSupply;
+    mapping(uint256 => uint256) public packOpeningStartTime;
 
     mapping(uint256 => mapping(address => uint256)) internal _commitments;
     mapping(uint256 => mapping(uint256 => uint256)) internal _availableIndices;
@@ -53,12 +54,25 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
     }
 
     /// @inheritdoc IERC1155Pack
+    function setPackOpeningStartTime(uint256 packId, uint256 startTime) external onlyRole(PACK_ADMIN_ROLE) {
+        packOpeningStartTime[packId] = startTime;
+        emit PackOpeningStartTimeSet(packId, startTime);
+    }
+
+    /// @inheritdoc IERC1155Pack
     function commit(
         uint256 packId
     ) external {
         if (_commitments[packId][msg.sender] != 0) {
             revert PendingReveal();
         }
+        
+        // Check if the pack opening start time has passed or is not set (0)
+        uint256 startTime = packOpeningStartTime[packId];
+        if (startTime != 0 && block.timestamp < startTime) {
+            revert PackNotYetAvailable();
+        }
+        
         _burn(msg.sender, packId, 1);
         uint256 revealAfterBlock = block.number + 1;
         _commitments[packId][msg.sender] = revealAfterBlock;
@@ -73,6 +87,12 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
         bytes32[] calldata proof,
         uint256 packId
     ) external {
+        // Check if the pack opening start time has passed or is not set (0)
+        uint256 startTime = packOpeningStartTime[packId];
+        if (startTime != 0 && block.timestamp < startTime) {
+            revert PackNotYetAvailable();
+        }
+        
         (uint256 randomIndex, uint256 revealIdx) = _getRevealIdx(user, packId);
 
         bytes32 leaf = keccak256(abi.encode(revealIdx, packContent));

@@ -35,11 +35,19 @@ interface IERC1155Pack {
      */
     error AllPacksOpened();
 
+    /**
+     * Pack is not yet available for opening.
+     */
+    error PackNotYetAvailable();
+
     /// @notice Emitted when a user make a commitment
     event Commit(address indexed user, uint256 packId);
 
     /// @notice Emitted when a reveal is successful
     event Reveal(address user, uint256 packId);
+
+    /// @notice Emitted when a pack opening start time is set
+    event PackOpeningStartTimeSet(uint256 indexed packId, uint256 startTime);
 
     /**
      * Set all possible pack contents.
@@ -87,5 +95,12 @@ interface IERC1155Pack {
      * @notice this function mints a pack for the user when his commit is expired.
      */
     function refundPack(address user, uint256 packId) external;
+
+    /**
+     * Set the start time for when a pack can be opened.
+     * @param packId tokenId of pack.
+     * @param startTime timestamp after which the pack can be opened (0 means no restriction).
+     */
+    function setPackOpeningStartTime(uint256 packId, uint256 startTime) external;
 
 }
