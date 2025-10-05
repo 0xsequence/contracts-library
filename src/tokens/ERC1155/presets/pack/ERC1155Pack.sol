@@ -58,8 +58,7 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
             revert PendingReveal();
         }
         _burn(msg.sender, packId, 1);
-        uint256 revealAfterBlock = block.number + 1;
-        _commitments[packId][msg.sender] = revealAfterBlock;
+        _commitments[packId][msg.sender] = block.number + 1;
 
         emit Commit(msg.sender, packId);
     }
@@ -84,15 +83,21 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
         // Point this index to the last index's value
         _availableIndices[packId][randomIndex] = _getIndexOrDefault(remainingSupply[packId], packId);
 
-        for (uint256 i = 0; i < packContent.tokenAddresses.length; i++) {
+        for (uint256 i; i < packContent.tokenAddresses.length;) {
+            address tokenAddr = packContent.tokenAddresses[i];
+            uint256[] memory tokenIds = packContent.tokenIds[i];
             if (packContent.isERC721[i]) {
-                for (uint256 j = 0; j < packContent.tokenIds[i].length; j++) {
-                    IERC721ItemsFunctions(packContent.tokenAddresses[i]).mint(user, packContent.tokenIds[i][j]);
+                for (uint256 j; j < tokenIds.length;) {
+                    IERC721ItemsFunctions(tokenAddr).mint(user, tokenIds[j]);
+                    unchecked {
+                        ++j;
+                    }
                 }
             } else {
-                IERC1155ItemsFunctions(packContent.tokenAddresses[i]).batchMint(
-                    user, packContent.tokenIds[i], packContent.amounts[i], ""
-                );
+                IERC1155ItemsFunctions(tokenAddr).batchMint(user, tokenIds, packContent.amounts[i], "");
+            }
+            unchecked {
+                ++i;
             }
         }
 
@@ -145,7 +150,7 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
     function supportsInterface(
         bytes4 interfaceId
     ) public view override returns (bool) {
-        return type(IERC1155Pack).interfaceId == interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IERC1155Pack).interfaceId || super.supportsInterface(interfaceId);
     }
 
 }
