@@ -18,12 +18,9 @@ abstract contract ERC20BaseToken is ERC20, SignalsImplicitModeControlled {
     string internal _tokenSymbol;
     uint8 private _tokenDecimals;
 
-    address private immutable _initializer;
     bool private _initialized;
 
-    constructor() ERC20("", "") {
-        _initializer = msg.sender;
-    }
+    constructor() ERC20("", "") { }
 
     /**
      * Initialize contract.
@@ -43,7 +40,7 @@ abstract contract ERC20BaseToken is ERC20, SignalsImplicitModeControlled {
         address implicitModeValidator,
         bytes32 implicitModeProjectId
     ) public virtual {
-        if (msg.sender != _initializer || _initialized) {
+        if (_initialized) {
             revert InvalidInitialization();
         }
 

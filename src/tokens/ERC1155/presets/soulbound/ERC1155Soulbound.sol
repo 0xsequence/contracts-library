@@ -15,8 +15,6 @@ contract ERC1155Soulbound is ERC1155Items, IERC1155Soulbound {
 
     bool internal _transferLocked;
 
-    constructor() ERC1155Items() { }
-
     /// @inheritdoc ERC1155Items
     function initialize(
         address owner,

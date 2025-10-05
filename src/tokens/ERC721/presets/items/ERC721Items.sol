@@ -11,18 +11,8 @@ contract ERC721Items is ERC721BaseToken, IERC721Items {
 
     bytes32 internal constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    address private immutable _initializer;
-    bool private _initialized;
-
     uint256 private _nextSequentialId;
     uint256 private _totalSupply;
-
-    /**
-     * Deploy contract.
-     */
-    constructor() ERC721BaseToken() {
-        _initializer = msg.sender;
-    }
 
     /**
      * Initialize contract.
@@ -48,18 +38,12 @@ contract ERC721Items is ERC721BaseToken, IERC721Items {
         address implicitModeValidator,
         bytes32 implicitModeProjectId
     ) public virtual {
-        if (msg.sender != _initializer || _initialized) {
-            revert InvalidInitialization();
-        }
-
         ERC721BaseToken._initialize(
             owner, tokenName, tokenSymbol, tokenBaseURI, tokenContractURI, implicitModeValidator, implicitModeProjectId
         );
         _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
 
         _grantRole(MINTER_ROLE, owner);
-
-        _initialized = true;
     }
 
     //

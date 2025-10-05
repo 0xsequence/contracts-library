@@ -13,8 +13,6 @@ contract ERC721Soulbound is ERC721Items, IERC721Soulbound {
 
     bool internal _transferLocked;
 
-    constructor() ERC721Items() { }
-
     /// @inheritdoc ERC721Items
     function initialize(
         address owner,

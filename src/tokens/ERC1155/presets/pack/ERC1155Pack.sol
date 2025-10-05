@@ -19,8 +19,6 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
     mapping(uint256 => mapping(address => uint256)) internal _commitments;
     mapping(uint256 => mapping(uint256 => uint256)) internal _availableIndices;
 
-    constructor() ERC1155Items() { }
-
     /// @inheritdoc ERC1155Items
     function initialize(
         address owner,
