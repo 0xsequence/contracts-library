@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import { TestHelper } from "test/TestHelper.sol";
+import { ERC1155Recipient } from "test/_mocks/ERC1155Recipient.sol";
 
 import { ERC1155Items } from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
 import { ERC1155Holder } from "src/tokens/ERC1155/utility/holder/ERC1155Holder.sol";
@@ -10,52 +11,6 @@ import { IERC1155Receiver } from "openzeppelin-contracts/contracts/token/ERC1155
 import { IERC165 } from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 
 import { ERC1155 } from "solady/tokens/ERC1155.sol";
-
-contract ERC1155Recipient is IERC1155Receiver {
-
-    error ExpectedRevert();
-
-    bool public willRevert;
-
-    function setWillRevert(
-        bool _willRevert
-    ) public {
-        willRevert = _willRevert;
-    }
-
-    function onERC1155Received(
-        address,
-        address,
-        uint256,
-        uint256,
-        bytes memory
-    ) public virtual override returns (bytes4) {
-        if (willRevert) {
-            revert ExpectedRevert();
-        }
-        return this.onERC1155Received.selector;
-    }
-
-    function onERC1155BatchReceived(
-        address,
-        address,
-        uint256[] memory,
-        uint256[] memory,
-        bytes memory
-    ) public virtual override returns (bytes4) {
-        if (willRevert) {
-            revert ExpectedRevert();
-        }
-        return this.onERC1155BatchReceived.selector;
-    }
-
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual override returns (bool) {
-        return interfaceId == type(IERC1155Receiver).interfaceId || interfaceId == type(IERC165).interfaceId;
-    }
-
-}
 
 contract ERC1155HolderTest is TestHelper {
 
