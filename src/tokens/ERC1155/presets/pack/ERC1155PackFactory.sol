@@ -13,11 +13,10 @@ contract ERC1155PackFactory is IERC1155PackFactory, SequenceProxyFactory {
     /**
      * Creates an ERC-1155 Pack Factory.
      * @param factoryOwner The owner of the ERC-1155 Pack Factory
+     * @param holderFallback The address of the ERC1155Holder fallback
      */
-    constructor(
-        address factoryOwner
-    ) {
-        ERC1155Pack impl = new ERC1155Pack();
+    constructor(address factoryOwner, address holderFallback) {
+        ERC1155Pack impl = new ERC1155Pack(holderFallback);
         SequenceProxyFactory._initialize(address(impl), factoryOwner);
     }
 

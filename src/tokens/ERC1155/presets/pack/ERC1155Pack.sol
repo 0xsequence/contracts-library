@@ -12,12 +12,20 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
 
     bytes32 internal constant PACK_ADMIN_ROLE = keccak256("PACK_ADMIN_ROLE");
 
+    address public immutable erc1155Holder;
+
     mapping(uint256 => bytes32) public merkleRoot;
     mapping(uint256 => uint256) public supply;
     mapping(uint256 => uint256) public remainingSupply;
 
     mapping(uint256 => mapping(address => uint256)) internal _commitments;
     mapping(uint256 => mapping(uint256 => uint256)) internal _availableIndices;
+
+    constructor(
+        address _erc1155Holder
+    ) {
+        erc1155Holder = _erc1155Holder;
+    }
 
     /// @inheritdoc ERC1155Items
     function initialize(
@@ -94,7 +102,10 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
                     }
                 }
             } else {
-                IERC1155ItemsFunctions(tokenAddr).batchMint(user, tokenIds, packContent.amounts[i], "");
+                // Send via the holder fallback if available
+                address to = erc1155Holder == address(0) ? user : erc1155Holder;
+                bytes memory packedData = abi.encode(user);
+                IERC1155ItemsFunctions(tokenAddr).batchMint(to, tokenIds, packContent.amounts[i], packedData);
             }
             unchecked {
                 ++i;

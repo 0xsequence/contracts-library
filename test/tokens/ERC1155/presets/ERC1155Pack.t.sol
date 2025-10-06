@@ -10,6 +10,7 @@ import { IERC1155ItemsFunctions, IERC1155ItemsSignals } from "src/tokens/ERC1155
 import { ERC1155Pack } from "src/tokens/ERC1155/presets/pack/ERC1155Pack.sol";
 import { ERC1155PackFactory } from "src/tokens/ERC1155/presets/pack/ERC1155PackFactory.sol";
 import { IERC1155Pack } from "src/tokens/ERC1155/presets/pack/IERC1155Pack.sol";
+import { ERC1155Holder } from "src/tokens/ERC1155/utility/holder/ERC1155Holder.sol";
 import { ERC721Items } from "src/tokens/ERC721/presets/items/ERC721Items.sol";
 
 import { IERC1155 } from "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
@@ -21,6 +22,10 @@ import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsIm
 import { ERC1155 } from "solady/tokens/ERC1155.sol";
 
 contract ERC1155PackHack is ERC1155Pack {
+
+    constructor(
+        address _erc1155Holder
+    ) ERC1155Pack(_erc1155Holder) { }
 
     function setAllExceptOneClaimed(
         uint256 _idx
@@ -42,6 +47,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
     ERC1155Items private token2;
     ERC721Items private token721;
     PackReentryMock private reentryAttacker;
+    ERC1155Holder private holder;
 
     address private proxyOwner;
     address private owner;
@@ -66,7 +72,8 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
             address(this), "test721", "test721", "ipfs://", "ipfs://", address(this), 0, address(0), bytes32(0)
         );
 
-        ERC1155PackFactory factory = new ERC1155PackFactory(address(this));
+        holder = new ERC1155Holder();
+        ERC1155PackFactory factory = new ERC1155PackFactory(address(this), address(holder));
 
         _preparePacksContent();
         (bytes32 root,) = TestHelper.getMerklePartsPacks(packsContent, 0);
@@ -175,13 +182,15 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
     }
 
     function testFactoryDetermineAddress(
+        address holderFallback,
+        address factoryOwner,
         TestFactoryDetermineAddressParams memory params
     ) public {
         vm.assume(params.proxyOwner != address(0));
         vm.assume(params.tokenOwner != address(0));
         vm.assume(params.royaltyReceiver != address(0));
         params.royaltyFeeNumerator = uint96(bound(params.royaltyFeeNumerator, 0, 10_000));
-        ERC1155PackFactory factory = new ERC1155PackFactory(address(this));
+        ERC1155PackFactory factory = new ERC1155PackFactory(factoryOwner, holderFallback);
         address deployedAddr = factory.deploy(
             params.proxyOwner,
             params.tokenOwner,
@@ -323,7 +332,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         packsContent = new IERC1155Pack.PackContent[](size);
         (bytes32 root,) = TestHelper.getMerklePartsPacks(packsContent, 0);
 
-        ERC1155PackHack packHack = new ERC1155PackHack();
+        ERC1155PackHack packHack = new ERC1155PackHack(address(holder));
         packHack.initialize(owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0));
 
         vm.prank(owner);
@@ -425,8 +434,18 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
 
         reentryAttacker.setPackAndProof(proof, packContent);
 
-        vm.expectRevert(IERC1155Pack.NoCommit.selector);
+        uint256[] memory tokenIds = new uint256[](1);
+        uint256[] memory amounts = new uint256[](1);
+        tokenIds[0] = 4;
+        amounts[0] = 20;
+        vm.expectEmit(true, true, true, true);
+        emit ERC1155Holder.ClaimAddedBatch(address(reentryAttacker), address(token), tokenIds, amounts);
         pack.reveal(address(reentryAttacker), packContent, proof, 0);
+
+        // Error caught and tokens stored in holder
+        vm.assertEq(IERC1155(address(token)).balanceOf(address(reentryAttacker), 4), 0);
+        vm.assertEq(IERC1155(address(token)).balanceOf(address(holder), 4), 20);
+        vm.assertEq(holder.claims(address(reentryAttacker), address(token), 4), 20);
     }
 
     function testCantRefundAfterReveal(
