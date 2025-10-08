@@ -61,14 +61,8 @@ contract ERC1155Holder is IERC1155Receiver {
     ) public virtual override returns (bytes4) {
         address claimant = _decodeClaimant(claimData);
         address tokenAddress = msg.sender;
-        // Attempt to forward the tokens to the claimant
-        uint256 gasLimit = gasleft() / 2;
-        try IERC1155(tokenAddress).safeTransferFrom{ gas: gasLimit }(address(this), claimant, tokenId, amount, "") { }
-        catch {
-            // Make them claimable
-            claims[claimant][tokenAddress][tokenId] += amount;
-            emit ClaimAdded(claimant, tokenAddress, tokenId, amount);
-        }
+        claims[claimant][tokenAddress][tokenId] += amount;
+        emit ClaimAdded(claimant, tokenAddress, tokenId, amount);
         return this.onERC1155Received.selector;
     }
 
@@ -83,17 +77,10 @@ contract ERC1155Holder is IERC1155Receiver {
     ) public virtual override returns (bytes4) {
         address claimant = _decodeClaimant(claimData);
         address tokenAddress = msg.sender;
-        // Attempt to forward the tokens to the claimant
-        uint256 gasLimit = gasleft() / 2;
-        try IERC1155(tokenAddress).safeBatchTransferFrom{ gas: gasLimit }(
-            address(this), claimant, tokenIds, amounts, ""
-        ) { } catch {
-            // Make them claimable
-            for (uint256 i = 0; i < tokenIds.length; i++) {
-                claims[claimant][tokenAddress][tokenIds[i]] += amounts[i];
-            }
-            emit ClaimAddedBatch(claimant, tokenAddress, tokenIds, amounts);
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            claims[claimant][tokenAddress][tokenIds[i]] += amounts[i];
         }
+        emit ClaimAddedBatch(claimant, tokenAddress, tokenIds, amounts);
         return this.onERC1155BatchReceived.selector;
     }
 

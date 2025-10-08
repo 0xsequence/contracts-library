@@ -103,7 +103,10 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
                 }
             } else {
                 // Send via the holder fallback if available
-                address to = erc1155Holder == address(0) ? user : erc1155Holder;
+                address to = user;
+                if (erc1155Holder != address(0) && msg.sender != user) {
+                    to = erc1155Holder;
+                }
                 bytes memory packedData = abi.encode(user);
                 IERC1155ItemsFunctions(tokenAddr).batchMint(to, tokenIds, packContent.amounts[i], packedData);
             }

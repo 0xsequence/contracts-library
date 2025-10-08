@@ -57,15 +57,17 @@ contract ERC1155HolderTest is TestHelper {
         _recipient.onERC1155BatchReceived(operator, from, tokenIds, amounts, "");
     }
 
-    function testTransferForwardsToClaimant(
+    function testTransferAddsClaimForClaimant(
         address sender,
         address claimant,
         uint256 tokenId,
         uint256 amount,
         bool tightPacked
-    ) public {
-        assumeUnusedAddress(claimant);
+    ) public returns (address, address, uint256, uint256) {
         assumeUnusedAddress(sender);
+        if (claimant != address(_recipient)) {
+            assumeUnusedAddress(claimant);
+        }
         amount = bound(amount, 1, 1000);
 
         // Mint tokens to sender first
@@ -73,26 +75,32 @@ contract ERC1155HolderTest is TestHelper {
 
         // Transfer tokens to holder with claimant data
         bytes memory claimData = tightPacked ? abi.encodePacked(claimant) : abi.encode(claimant);
+        vm.expectEmit(true, true, true, true);
+        emit ClaimAdded(claimant, address(_token), tokenId, amount);
         vm.prank(sender);
         _token.safeTransferFrom(address(sender), address(_holder), tokenId, amount, claimData);
 
-        // Verify tokens transferred and holder holds nothing
-        assertEq(_token.balanceOf(claimant, tokenId), amount);
-        assertEq(_token.balanceOf(address(_holder), tokenId), 0);
+        // Verify holder holds the tokens
+        assertEq(_token.balanceOf(claimant, tokenId), 0);
+        assertEq(_token.balanceOf(address(_holder), tokenId), amount);
 
-        // Verify claim is still empty
-        assertEq(_holder.claims(claimant, address(_token), tokenId), 0);
+        // Verify claim was added
+        assertEq(_holder.claims(claimant, address(_token), tokenId), amount);
+
+        return (sender, claimant, tokenId, amount);
     }
 
-    function testTransferForwardsToClaimantBatch(
+    function testTransferAddsClaimForClaimantBatch(
         address sender,
         address claimant,
         uint256[] memory tokenIds,
         uint256[] memory amounts,
         bool tightPacked
-    ) public {
+    ) public returns (address, address, uint256[] memory, uint256[] memory) {
         assumeUnusedAddress(sender);
-        assumeUnusedAddress(claimant);
+        if (claimant != address(_recipient)) {
+            assumeUnusedAddress(claimant);
+        }
         vm.assume(tokenIds.length > 0);
         uint256 tokenIdsLength = tokenIds.length > 10 ? 10 : tokenIds.length;
         vm.assume(amounts.length >= tokenIdsLength);
@@ -110,113 +118,53 @@ contract ERC1155HolderTest is TestHelper {
         }
 
         bytes memory claimData = tightPacked ? abi.encodePacked(claimant) : abi.encode(claimant);
+        vm.expectEmit(true, true, true, true);
+        emit ClaimAddedBatch(claimant, address(_token), tokenIds, amounts);
         vm.prank(sender);
         _token.safeBatchTransferFrom(address(sender), address(_holder), tokenIds, amounts, claimData);
 
-        // Verify tokens transferred
+        // Verify holder holds the tokens
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            assertEq(_token.balanceOf(claimant, tokenIds[i]), amounts[i]);
-            assertEq(_token.balanceOf(address(_holder), tokenIds[i]), 0);
-            // Verify claim is still empty
-            assertEq(_holder.claims(claimant, address(_token), tokenIds[i]), 0);
+            assertEq(_token.balanceOf(claimant, tokenIds[i]), 0);
+            assertEq(_token.balanceOf(address(_holder), tokenIds[i]), amounts[i]);
+            // Verify claim was added
+            assertEq(_holder.claims(claimant, address(_token), tokenIds[i]), amounts[i]);
         }
+
+        return (sender, claimant, tokenIds, amounts);
     }
 
-    function testGasBomb(
+    function testClaimSingleTokenToEOA(
+        address sender,
+        address claimant,
+        uint256 tokenId,
+        uint256 amount,
+        bool tightPacked
+    ) public {
+        (sender, claimant, tokenId, amount) =
+            testTransferAddsClaimForClaimant(sender, claimant, tokenId, amount, tightPacked);
+
+        // Execute claim
+        vm.expectEmit(true, true, true, true);
+        emit Claimed(claimant, address(_token), tokenId, amount);
+        _holder.claim(claimant, address(_token), tokenId);
+
+        // Verify tokens transferred
+        assertEq(_token.balanceOf(claimant, tokenId), amount);
+        assertEq(_token.balanceOf(address(_holder), tokenId), 0);
+
+        // Verify claim cleared
+        assertEq(_holder.claims(claimant, address(_token), tokenId), 0);
+    }
+
+    function testClaimSingleTokenToRecipient(
         address sender,
         uint256 tokenId,
         uint256 amount,
-        bool tightPacked,
-        uint256 gasLimit,
-        uint256 gasGuzzle
+        bool tightPacked
     ) public {
-        assumeUnusedAddress(sender);
-        amount = bound(amount, 1, 1000);
-        gasLimit = bound(gasLimit, 100_000, 10_000_000);
-        gasGuzzle = bound(gasGuzzle, gasLimit / 2 + 1, gasLimit * 2);
-
-        // Mint tokens to sender first
-        _token.mint(address(sender), tokenId, amount, "");
-
-        // Recipient will guzzle gas
-        _recipient.setGasUsage(gasGuzzle);
-
-        // Transfer tokens to holder with claimant data
-        bytes memory claimData = tightPacked ? abi.encodePacked(_recipient) : abi.encode(_recipient);
-        vm.expectEmit(true, true, true, true);
-        emit ClaimAdded(address(_recipient), address(_token), tokenId, amount);
-        vm.prank(sender);
-        _token.safeTransferFrom{ gas: gasLimit }(address(sender), address(_holder), tokenId, amount, claimData);
-
-        // Validate claim available
-        assertEq(_holder.claims(address(_recipient), address(_token), tokenId), amount);
-    }
-
-    function testGasBombBatch(
-        address sender,
-        uint256[] memory tokenIds,
-        uint256[] memory amounts,
-        bool tightPacked,
-        uint256 gasLimit,
-        uint256 gasGuzzle
-    ) public {
-        assumeUnusedAddress(sender);
-        vm.assume(tokenIds.length > 0);
-        uint256 tokenIdsLength = tokenIds.length > 10 ? 10 : tokenIds.length;
-        vm.assume(amounts.length >= tokenIdsLength);
-        assembly {
-            // Fix array lengths
-            mstore(tokenIds, tokenIdsLength)
-            mstore(amounts, tokenIdsLength)
-        }
-        assumeNoDuplicates(tokenIds);
-        gasLimit = bound(gasLimit, 100_000, 10_000_000);
-        gasGuzzle = bound(gasGuzzle, gasLimit / 2 + 1, gasLimit * 2);
-
-        // Mint tokens to sender first
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            amounts[i] = bound(amounts[i], 1, 1000);
-            _token.mint(address(sender), tokenIds[i], amounts[i], "");
-        }
-
-        // Recipient will guzzle gas
-        _recipient.setGasUsage(gasGuzzle);
-
-        // Transfer tokens to holder with claimant data
-        bytes memory claimData = tightPacked ? abi.encodePacked(_recipient) : abi.encode(_recipient);
-        vm.expectEmit(true, true, true, true);
-        emit ClaimAddedBatch(address(_recipient), address(_token), tokenIds, amounts);
-        vm.prank(sender);
-        _token.safeBatchTransferFrom{ gas: gasLimit }(address(sender), address(_holder), tokenIds, amounts, claimData);
-
-        // Validate claim available
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            assertEq(_holder.claims(address(_recipient), address(_token), tokenIds[i]), amounts[i]);
-        }
-    }
-
-    function testClaimSingleToken(address sender, uint256 tokenId, uint256 amount, bool tightPacked) public {
-        assumeUnusedAddress(sender);
-        amount = bound(amount, 1, 1000);
-
-        // Mint tokens to sender first
-        _token.mint(address(sender), tokenId, amount, "");
-
-        // Recipient will revert
-        _recipient.setWillRevert(true);
-
-        // Transfer tokens to holder with claimant data
-        bytes memory claimData = tightPacked ? abi.encodePacked(_recipient) : abi.encode(_recipient);
-        vm.expectEmit(true, true, true, true);
-        emit ClaimAdded(address(_recipient), address(_token), tokenId, amount);
-        vm.prank(sender);
-        _token.safeTransferFrom(address(sender), address(_holder), tokenId, amount, claimData);
-
-        // Validate claim available
-        assertEq(_holder.claims(address(_recipient), address(_token), tokenId), amount);
-
-        // Recipient will accept
-        _recipient.setWillRevert(false);
+        (sender,, tokenId, amount) =
+            testTransferAddsClaimForClaimant(sender, address(_recipient), tokenId, amount, tightPacked);
 
         // Execute claim
         vm.expectEmit(true, true, true, true);
@@ -231,46 +179,38 @@ contract ERC1155HolderTest is TestHelper {
         assertEq(_holder.claims(address(_recipient), address(_token), tokenId), 0);
     }
 
-    function testClaimBatchTokens(
+    function testClaimBatchTokensToEOA(
+        address sender,
+        address claimant,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts,
+        bool tightPacked
+    ) public {
+        (sender, claimant, tokenIds, amounts) =
+            testTransferAddsClaimForClaimantBatch(sender, claimant, tokenIds, amounts, tightPacked);
+
+        // Test claim batch event
+        vm.expectEmit(true, true, true, true);
+        emit ClaimedBatch(claimant, address(_token), tokenIds, amounts);
+        _holder.claimBatch(claimant, address(_token), tokenIds);
+
+        // Verify tokens transferred
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            assertEq(_token.balanceOf(claimant, tokenIds[i]), amounts[i]);
+            assertEq(_token.balanceOf(address(_holder), tokenIds[i]), 0);
+            // Verify claim cleared
+            assertEq(_holder.claims(claimant, address(_token), tokenIds[i]), 0);
+        }
+    }
+
+    function testClaimBatchTokensToRecipient(
         address sender,
         uint256[] memory tokenIds,
         uint256[] memory amounts,
         bool tightPacked
     ) public {
-        assumeUnusedAddress(sender);
-        vm.assume(tokenIds.length > 0);
-        uint256 tokenIdsLength = tokenIds.length > 10 ? 10 : tokenIds.length;
-        vm.assume(amounts.length >= tokenIdsLength);
-        assembly {
-            // Fix array lengths
-            mstore(tokenIds, tokenIdsLength)
-            mstore(amounts, tokenIdsLength)
-        }
-        assumeNoDuplicates(tokenIds);
-
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            amounts[i] = bound(amounts[i], 1, 1000);
-            // Mint tokens to sender first
-            _token.mint(address(sender), tokenIds[i], amounts[i], "");
-        }
-
-        // Recipient will revert
-        _recipient.setWillRevert(true);
-
-        // Transfer tokens to holder with claimant data
-        bytes memory claimData = tightPacked ? abi.encodePacked(_recipient) : abi.encode(_recipient);
-        vm.expectEmit(true, true, true, true);
-        emit ClaimAddedBatch(address(_recipient), address(_token), tokenIds, amounts);
-        vm.prank(sender);
-        _token.safeBatchTransferFrom(address(sender), address(_holder), tokenIds, amounts, claimData);
-
-        // Validate claims available
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            assertEq(_holder.claims(address(_recipient), address(_token), tokenIds[i]), amounts[i]);
-        }
-
-        // Recipient will accept
-        _recipient.setWillRevert(false);
+        (sender,, tokenIds, amounts) =
+            testTransferAddsClaimForClaimantBatch(sender, address(_recipient), tokenIds, amounts, tightPacked);
 
         // Test claim batch event
         vm.expectEmit(true, true, true, true);
