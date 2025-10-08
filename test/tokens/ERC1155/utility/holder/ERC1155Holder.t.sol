@@ -44,6 +44,19 @@ contract ERC1155HolderTest is TestHelper {
         assertTrue(_holder.supportsInterface(type(IERC1155Receiver).interfaceId));
     }
 
+    function testRecipientGasUsage(address operator, address from, uint256 tokenId, uint256 amount) public {
+        _recipient.onERC1155Received(operator, from, tokenId, amount, "");
+    }
+
+    function testRecipientGasUsageBatch(
+        address operator,
+        address from,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts
+    ) public {
+        _recipient.onERC1155BatchReceived(operator, from, tokenIds, amounts, "");
+    }
+
     function testTransferForwardsToClaimant(
         address sender,
         address claimant,
@@ -106,6 +119,79 @@ contract ERC1155HolderTest is TestHelper {
             assertEq(_token.balanceOf(address(_holder), tokenIds[i]), 0);
             // Verify claim is still empty
             assertEq(_holder.claims(claimant, address(_token), tokenIds[i]), 0);
+        }
+    }
+
+    function testGasBomb(
+        address sender,
+        uint256 tokenId,
+        uint256 amount,
+        bool tightPacked,
+        uint256 gasLimit,
+        uint256 gasGuzzle
+    ) public {
+        assumeUnusedAddress(sender);
+        amount = bound(amount, 1, 1000);
+        gasLimit = bound(gasLimit, 100_000, 10_000_000);
+        gasGuzzle = bound(gasGuzzle, gasLimit / 2 + 1, gasLimit * 2);
+
+        // Mint tokens to sender first
+        _token.mint(address(sender), tokenId, amount, "");
+
+        // Recipient will guzzle gas
+        _recipient.setGasUsage(gasGuzzle);
+
+        // Transfer tokens to holder with claimant data
+        bytes memory claimData = tightPacked ? abi.encodePacked(_recipient) : abi.encode(_recipient);
+        vm.expectEmit(true, true, true, true);
+        emit ClaimAdded(address(_recipient), address(_token), tokenId, amount);
+        vm.prank(sender);
+        _token.safeTransferFrom{ gas: gasLimit }(address(sender), address(_holder), tokenId, amount, claimData);
+
+        // Validate claim available
+        assertEq(_holder.claims(address(_recipient), address(_token), tokenId), amount);
+    }
+
+    function testGasBombBatch(
+        address sender,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts,
+        bool tightPacked,
+        uint256 gasLimit,
+        uint256 gasGuzzle
+    ) public {
+        assumeUnusedAddress(sender);
+        vm.assume(tokenIds.length > 0);
+        uint256 tokenIdsLength = tokenIds.length > 10 ? 10 : tokenIds.length;
+        vm.assume(amounts.length >= tokenIdsLength);
+        assembly {
+            // Fix array lengths
+            mstore(tokenIds, tokenIdsLength)
+            mstore(amounts, tokenIdsLength)
+        }
+        assumeNoDuplicates(tokenIds);
+        gasLimit = bound(gasLimit, 100_000, 10_000_000);
+        gasGuzzle = bound(gasGuzzle, gasLimit / 2 + 1, gasLimit * 2);
+
+        // Mint tokens to sender first
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            amounts[i] = bound(amounts[i], 1, 1000);
+            _token.mint(address(sender), tokenIds[i], amounts[i], "");
+        }
+
+        // Recipient will guzzle gas
+        _recipient.setGasUsage(gasGuzzle);
+
+        // Transfer tokens to holder with claimant data
+        bytes memory claimData = tightPacked ? abi.encodePacked(_recipient) : abi.encode(_recipient);
+        vm.expectEmit(true, true, true, true);
+        emit ClaimAddedBatch(address(_recipient), address(_token), tokenIds, amounts);
+        vm.prank(sender);
+        _token.safeBatchTransferFrom{ gas: gasLimit }(address(sender), address(_holder), tokenIds, amounts, claimData);
+
+        // Validate claim available
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            assertEq(_holder.claims(address(_recipient), address(_token), tokenIds[i]), amounts[i]);
         }
     }
 

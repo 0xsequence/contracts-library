@@ -8,11 +8,18 @@ contract ERC1155Recipient is IERC1155Receiver {
     error ExpectedRevert();
 
     bool public willRevert;
+    uint256 public gasUsage; // Roughly how much gas to use in the spin loop
 
     function setWillRevert(
         bool _willRevert
     ) public {
         willRevert = _willRevert;
+    }
+
+    function setGasUsage(
+        uint256 _gasUsage
+    ) public {
+        gasUsage = _gasUsage;
     }
 
     function onERC1155Received(
@@ -22,8 +29,14 @@ contract ERC1155Recipient is IERC1155Receiver {
         uint256,
         bytes memory
     ) public virtual override returns (bytes4) {
+        uint256 gasStart = gasleft();
         if (willRevert) {
             revert ExpectedRevert();
+        }
+        while (gasStart - gasleft() < gasUsage) {
+            // Spin
+            // solhint-disable-next-line no-unused-vars
+            uint256 a = uint256(0) / uint256(0);
         }
         return this.onERC1155Received.selector;
     }
@@ -35,8 +48,14 @@ contract ERC1155Recipient is IERC1155Receiver {
         uint256[] memory,
         bytes memory
     ) public virtual override returns (bytes4) {
+        uint256 gasStart = gasleft();
         if (willRevert) {
             revert ExpectedRevert();
+        }
+        while (gasStart - gasleft() < gasUsage) {
+            // Spin
+            // solhint-disable-next-line no-unused-vars
+            uint256 a = uint256(0) / uint256(0);
         }
         return this.onERC1155BatchReceived.selector;
     }
