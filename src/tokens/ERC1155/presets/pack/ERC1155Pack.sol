@@ -18,7 +18,7 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
     mapping(uint256 => uint256) public supply;
     mapping(uint256 => uint256) public remainingSupply;
 
-    mapping(uint256 => mapping(address => uint256)) internal _commitments;
+    mapping(address => mapping(uint256 => uint256)) internal _commitments;
     mapping(uint256 => mapping(uint256 => uint256)) internal _availableIndices;
 
     constructor(
@@ -62,11 +62,11 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
     function commit(
         uint256 packId
     ) external {
-        if (_commitments[packId][msg.sender] != 0) {
+        if (_commitments[msg.sender][packId] != 0) {
             revert PendingReveal();
         }
         _burn(msg.sender, packId, 1);
-        _commitments[packId][msg.sender] = block.number + 1;
+        _commitments[msg.sender][packId] = block.number + 1;
 
         emit Commit(msg.sender, packId);
     }
@@ -85,7 +85,7 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
             revert InvalidProof();
         }
 
-        delete _commitments[packId][user];
+        delete _commitments[user][packId];
         remainingSupply[packId]--;
 
         // Point this index to the last index's value
@@ -120,14 +120,14 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
 
     /// @inheritdoc IERC1155Pack
     function refundPack(address user, uint256 packId) external {
-        uint256 commitment = _commitments[packId][user];
+        uint256 commitment = _commitments[user][packId];
         if (commitment == 0) {
             revert NoCommit();
         }
         if (uint256(blockhash(commitment)) != 0 || block.number <= commitment) {
             revert PendingReveal();
         }
-        delete _commitments[packId][user];
+        delete _commitments[user][packId];
         _mint(user, packId, 1, "");
     }
 
@@ -142,7 +142,7 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
             revert AllPacksOpened();
         }
 
-        uint256 commitment = _commitments[packId][user];
+        uint256 commitment = _commitments[user][packId];
         if (commitment == 0) {
             revert NoCommit();
         }
