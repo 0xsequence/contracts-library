@@ -106,7 +106,7 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC2981Controlled, SignalsI
      * @param amount Amount of tokens to burn
      */
     function burn(uint256 tokenId, uint256 amount) public virtual {
-        _burn(msg.sender, tokenId, amount);
+        super._burn(msg.sender, tokenId, amount);
     }
 
     /**
