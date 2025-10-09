@@ -20,10 +20,7 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC2981Controlled, SignalsI
     string public baseURI;
     string public contractURI;
 
-    /**
-     * Deploy contract.
-     */
-    constructor() { }
+    bool private _initialized;
 
     /**
      * Initialize the contract.
@@ -43,6 +40,10 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC2981Controlled, SignalsI
         address implicitModeValidator,
         bytes32 implicitModeProjectId
     ) internal {
+        if (_initialized) {
+            revert InvalidInitialization();
+        }
+
         name = tokenName;
         baseURI = tokenBaseURI;
         contractURI = tokenContractURI;
@@ -52,6 +53,8 @@ abstract contract ERC1155BaseToken is ERC1155Supply, ERC2981Controlled, SignalsI
         _grantRole(METADATA_ADMIN_ROLE, owner);
 
         _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
+
+        _initialized = true;
     }
 
     //

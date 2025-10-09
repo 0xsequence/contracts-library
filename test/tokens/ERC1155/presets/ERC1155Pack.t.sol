@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import { TestHelper } from "../../../TestHelper.sol";
+import { ERC1155Recipient } from "../../../_mocks/ERC1155Recipient.sol";
 import { PackReentryMock } from "../../../_mocks/PackReentryMock.sol";
 
 import { ERC1155Items } from "src/tokens/ERC1155/presets/items/ERC1155Items.sol";
@@ -10,6 +11,7 @@ import { IERC1155ItemsFunctions, IERC1155ItemsSignals } from "src/tokens/ERC1155
 import { ERC1155Pack } from "src/tokens/ERC1155/presets/pack/ERC1155Pack.sol";
 import { ERC1155PackFactory } from "src/tokens/ERC1155/presets/pack/ERC1155PackFactory.sol";
 import { IERC1155Pack } from "src/tokens/ERC1155/presets/pack/IERC1155Pack.sol";
+import { ERC1155Holder } from "src/tokens/ERC1155/utility/holder/ERC1155Holder.sol";
 import { ERC721Items } from "src/tokens/ERC721/presets/items/ERC721Items.sol";
 
 import { IERC1155 } from "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
@@ -21,6 +23,10 @@ import { ISignalsImplicitMode } from "signals-implicit-mode/src/helper/SignalsIm
 import { ERC1155 } from "solady/tokens/ERC1155.sol";
 
 contract ERC1155PackHack is ERC1155Pack {
+
+    constructor(
+        address _erc1155Holder
+    ) ERC1155Pack(_erc1155Holder) { }
 
     function setAllExceptOneClaimed(
         uint256 _idx
@@ -42,6 +48,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
     ERC1155Items private token2;
     ERC721Items private token721;
     PackReentryMock private reentryAttacker;
+    ERC1155Holder private holder;
 
     address private proxyOwner;
     address private owner;
@@ -66,7 +73,8 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
             address(this), "test721", "test721", "ipfs://", "ipfs://", address(this), 0, address(0), bytes32(0)
         );
 
-        ERC1155PackFactory factory = new ERC1155PackFactory(address(this));
+        holder = new ERC1155Holder();
+        ERC1155PackFactory factory = new ERC1155PackFactory(address(this), address(holder));
 
         _preparePacksContent();
         (bytes32 root,) = TestHelper.getMerklePartsPacks(packsContent, 0);
@@ -175,13 +183,15 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
     }
 
     function testFactoryDetermineAddress(
+        address holderFallback,
+        address factoryOwner,
         TestFactoryDetermineAddressParams memory params
     ) public {
         vm.assume(params.proxyOwner != address(0));
         vm.assume(params.tokenOwner != address(0));
         vm.assume(params.royaltyReceiver != address(0));
         params.royaltyFeeNumerator = uint96(bound(params.royaltyFeeNumerator, 0, 10_000));
-        ERC1155PackFactory factory = new ERC1155PackFactory(address(this));
+        ERC1155PackFactory factory = new ERC1155PackFactory(factoryOwner, holderFallback);
         address deployedAddr = factory.deploy(
             params.proxyOwner,
             params.tokenOwner,
@@ -288,7 +298,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         vm.assertLt(_getRevealIdx(user), pack.supply(0));
     }
 
-    function testRevealSuccess(
+    function testRevealSuccessToUser(
         address user
     ) public {
         assumeSafeAddress(user);
@@ -298,6 +308,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
 
         IERC1155Pack.PackContent memory packContent = packsContent[revealIdx];
 
+        vm.prank(user);
         pack.reveal(user, packContent, proof, 0);
 
         for (uint256 i = 0; i < packContent.tokenAddresses.length; i++) {
@@ -314,6 +325,60 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         }
     }
 
+    function testRevealSuccessToHolder(address user, address sender) public {
+        assumeSafeAddress(user);
+        vm.assume(sender != user);
+        uint256 revealIdx = _getRevealIdx(user);
+
+        (, bytes32[] memory proof) = TestHelper.getMerklePartsPacks(packsContent, revealIdx);
+
+        IERC1155Pack.PackContent memory packContent = packsContent[revealIdx];
+
+        vm.prank(sender);
+        pack.reveal(user, packContent, proof, 0);
+
+        for (uint256 i = 0; i < packContent.tokenAddresses.length; i++) {
+            for (uint256 j = 0; j < packContent.tokenIds[i].length; j++) {
+                if (packContent.isERC721[i]) {
+                    // To user
+                    vm.assertEq(IERC721(packContent.tokenAddresses[i]).ownerOf(packContent.tokenIds[i][j]), user);
+                } else {
+                    // To holder with claim
+                    vm.assertEq(
+                        IERC1155(packContent.tokenAddresses[i]).balanceOf(address(holder), packContent.tokenIds[i][j]),
+                        packContent.amounts[i][j]
+                    );
+                    vm.assertEq(
+                        holder.claims(user, packContent.tokenAddresses[i], packContent.tokenIds[i][j]),
+                        packContent.amounts[i][j]
+                    );
+                }
+            }
+        }
+
+        // After reveal, sender can claim tokens on behalf of user.
+        // In pactice, this will be batched with revertOnError: false
+        for (uint256 i = 0; i < packContent.tokenAddresses.length; i++) {
+            if (!packContent.isERC721[i]) {
+                vm.prank(sender);
+                holder.claimBatch(user, packContent.tokenAddresses[i], packContent.tokenIds[i]);
+            }
+        }
+
+        for (uint256 i = 0; i < packContent.tokenAddresses.length; i++) {
+            if (!packContent.isERC721[i]) {
+                for (uint256 j = 0; j < packContent.tokenIds[i].length; j++) {
+                    // User now holds tokens
+                    vm.assertEq(
+                        IERC1155(packContent.tokenAddresses[i]).balanceOf(user, packContent.tokenIds[i][j]),
+                        packContent.amounts[i][j]
+                    );
+                    vm.assertEq(holder.claims(user, packContent.tokenAddresses[i], packContent.tokenIds[i][j]), 0);
+                }
+            }
+        }
+    }
+
     function testFinalRevealSuccess(address user, uint256 size, uint256 unclaimedIdx) public {
         assumeSafeAddress(user);
         size = bound(size, 2, 1000); //FIXME 10000
@@ -323,7 +388,7 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         packsContent = new IERC1155Pack.PackContent[](size);
         (bytes32 root,) = TestHelper.getMerklePartsPacks(packsContent, 0);
 
-        ERC1155PackHack packHack = new ERC1155PackHack();
+        ERC1155PackHack packHack = new ERC1155PackHack(address(holder));
         packHack.initialize(owner, "name", "baseURI", "contractURI", address(this), 0, address(0), bytes32(0));
 
         vm.prank(owner);
@@ -349,7 +414,12 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
         IERC1155Pack.PackContent memory packContent = packsContent[unclaimedIdx];
         pack.reveal(user, packContent, proof, 0);
 
-        vm.assertEq(token.balanceOf(user, 1), 0);
+        // Validate amounts sent
+        for (uint256 i = 0; i < packContent.tokenAddresses.length; i++) {
+            for (uint256 j = 0; j < packContent.tokenIds[i].length; j++) {
+                vm.assertEq(token.balanceOf(user, packContent.tokenIds[i][j]), packContent.amounts[i][j]);
+            }
+        }
     }
 
     function testRevealInvalidPackContent(
@@ -425,8 +495,41 @@ contract ERC1155PackTest is TestHelper, IERC1155ItemsSignals {
 
         reentryAttacker.setPackAndProof(proof, packContent);
 
-        vm.expectRevert(IERC1155Pack.NoCommit.selector);
+        for (uint256 i = 0; i < packContent.tokenAddresses.length; i++) {
+            if (packContent.isERC721[i]) {
+                continue;
+            }
+            uint256[] memory tokenIds = packContent.tokenIds[i];
+            uint256[] memory amounts = packContent.amounts[i];
+            vm.expectEmit(true, true, true, true);
+            emit ERC1155Holder.ClaimAddedBatch(
+                address(reentryAttacker), address(packContent.tokenAddresses[i]), tokenIds, amounts
+            );
+        }
+        vm.expectEmit(true, true, true, true);
+        emit IERC1155Pack.Reveal(address(reentryAttacker), 0);
         pack.reveal(address(reentryAttacker), packContent, proof, 0);
+
+        // Error caught and tokens stored in holder
+        for (uint256 i = 0; i < packContent.tokenAddresses.length; i++) {
+            if (packContent.isERC721[i]) {
+                continue;
+            }
+            uint256[] memory tokenIds = packContent.tokenIds[i];
+            uint256[] memory amounts = packContent.amounts[i];
+            for (uint256 j = 0; j < tokenIds.length; j++) {
+                vm.assertEq(
+                    IERC1155(address(packContent.tokenAddresses[i])).balanceOf(address(reentryAttacker), tokenIds[j]), 0
+                );
+                vm.assertEq(
+                    IERC1155(address(packContent.tokenAddresses[i])).balanceOf(address(holder), tokenIds[j]), amounts[j]
+                );
+                vm.assertEq(
+                    holder.claims(address(reentryAttacker), address(packContent.tokenAddresses[i]), tokenIds[j]),
+                    amounts[j]
+                );
+            }
+        }
     }
 
     function testCantRefundAfterReveal(

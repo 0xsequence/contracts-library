@@ -12,14 +12,20 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
 
     bytes32 internal constant PACK_ADMIN_ROLE = keccak256("PACK_ADMIN_ROLE");
 
+    address public immutable erc1155Holder;
+
     mapping(uint256 => bytes32) public merkleRoot;
     mapping(uint256 => uint256) public supply;
     mapping(uint256 => uint256) public remainingSupply;
 
-    mapping(uint256 => mapping(address => uint256)) internal _commitments;
+    mapping(address => mapping(uint256 => uint256)) internal _commitments;
     mapping(uint256 => mapping(uint256 => uint256)) internal _availableIndices;
 
-    constructor() ERC1155Items() { }
+    constructor(
+        address _erc1155Holder
+    ) {
+        erc1155Holder = _erc1155Holder;
+    }
 
     /// @inheritdoc ERC1155Items
     function initialize(
@@ -56,12 +62,11 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
     function commit(
         uint256 packId
     ) external {
-        if (_commitments[packId][msg.sender] != 0) {
+        if (_commitments[msg.sender][packId] != 0) {
             revert PendingReveal();
         }
         _burn(msg.sender, packId, 1);
-        uint256 revealAfterBlock = block.number + 1;
-        _commitments[packId][msg.sender] = revealAfterBlock;
+        _commitments[msg.sender][packId] = block.number + 1;
 
         emit Commit(msg.sender, packId);
     }
@@ -80,21 +85,33 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
             revert InvalidProof();
         }
 
-        delete _commitments[packId][user];
+        delete _commitments[user][packId];
         remainingSupply[packId]--;
 
         // Point this index to the last index's value
         _availableIndices[packId][randomIndex] = _getIndexOrDefault(remainingSupply[packId], packId);
 
-        for (uint256 i = 0; i < packContent.tokenAddresses.length; i++) {
+        for (uint256 i; i < packContent.tokenAddresses.length;) {
+            address tokenAddr = packContent.tokenAddresses[i];
+            uint256[] memory tokenIds = packContent.tokenIds[i];
             if (packContent.isERC721[i]) {
-                for (uint256 j = 0; j < packContent.tokenIds[i].length; j++) {
-                    IERC721ItemsFunctions(packContent.tokenAddresses[i]).mint(user, packContent.tokenIds[i][j]);
+                for (uint256 j; j < tokenIds.length;) {
+                    IERC721ItemsFunctions(tokenAddr).mint(user, tokenIds[j]);
+                    unchecked {
+                        ++j;
+                    }
                 }
             } else {
-                IERC1155ItemsFunctions(packContent.tokenAddresses[i]).batchMint(
-                    user, packContent.tokenIds[i], packContent.amounts[i], ""
-                );
+                // Send via the holder fallback if available
+                address to = user;
+                if (erc1155Holder != address(0) && msg.sender != user) {
+                    to = erc1155Holder;
+                }
+                bytes memory packedData = abi.encode(user);
+                IERC1155ItemsFunctions(tokenAddr).batchMint(to, tokenIds, packContent.amounts[i], packedData);
+            }
+            unchecked {
+                ++i;
             }
         }
 
@@ -103,14 +120,14 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
 
     /// @inheritdoc IERC1155Pack
     function refundPack(address user, uint256 packId) external {
-        uint256 commitment = _commitments[packId][user];
+        uint256 commitment = _commitments[user][packId];
         if (commitment == 0) {
             revert NoCommit();
         }
         if (uint256(blockhash(commitment)) != 0 || block.number <= commitment) {
             revert PendingReveal();
         }
-        delete _commitments[packId][user];
+        delete _commitments[user][packId];
         _mint(user, packId, 1, "");
     }
 
@@ -125,7 +142,7 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
             revert AllPacksOpened();
         }
 
-        uint256 commitment = _commitments[packId][user];
+        uint256 commitment = _commitments[user][packId];
         if (commitment == 0) {
             revert NoCommit();
         }
@@ -147,7 +164,7 @@ contract ERC1155Pack is ERC1155Items, IERC1155Pack {
     function supportsInterface(
         bytes4 interfaceId
     ) public view override returns (bool) {
-        return type(IERC1155Pack).interfaceId == interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IERC1155Pack).interfaceId || super.supportsInterface(interfaceId);
     }
 
 }

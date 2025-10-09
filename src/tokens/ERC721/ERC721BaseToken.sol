@@ -21,6 +21,8 @@ abstract contract ERC721BaseToken is ERC721, ERC2981Controlled, SignalsImplicitM
     string private _tokenSymbol;
     string private _contractURI;
 
+    bool private _initialized;
+
     /**
      * Initialize contract.
      * @param owner The owner of the contract
@@ -41,6 +43,10 @@ abstract contract ERC721BaseToken is ERC721, ERC2981Controlled, SignalsImplicitM
         address implicitModeValidator,
         bytes32 implicitModeProjectId
     ) internal {
+        if (_initialized) {
+            revert InvalidInitialization();
+        }
+
         _tokenName = tokenName;
         _tokenSymbol = tokenSymbol;
         _tokenBaseURI = tokenBaseURI;
@@ -51,6 +57,8 @@ abstract contract ERC721BaseToken is ERC721, ERC2981Controlled, SignalsImplicitM
         _grantRole(ROYALTY_ADMIN_ROLE, owner);
 
         _initializeImplicitMode(owner, implicitModeValidator, implicitModeProjectId);
+
+        _initialized = true;
     }
 
     //

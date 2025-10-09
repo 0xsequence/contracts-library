@@ -11,13 +11,6 @@ contract ERC1155Items is ERC1155BaseToken, IERC1155Items {
 
     bytes32 internal constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    address private immutable initializer;
-    bool private initialized;
-
-    constructor() {
-        initializer = msg.sender;
-    }
-
     /**
      * Initialize the contract.
      * @param owner Owner address
@@ -40,18 +33,12 @@ contract ERC1155Items is ERC1155BaseToken, IERC1155Items {
         address implicitModeValidator,
         bytes32 implicitModeProjectId
     ) public virtual {
-        if (msg.sender != initializer || initialized) {
-            revert InvalidInitialization();
-        }
-
         ERC1155BaseToken._initialize(
             owner, tokenName, tokenBaseURI, tokenContractURI, implicitModeValidator, implicitModeProjectId
         );
         _setDefaultRoyalty(royaltyReceiver, royaltyFeeNumerator);
 
         _grantRole(MINTER_ROLE, owner);
-
-        initialized = true;
     }
 
     //

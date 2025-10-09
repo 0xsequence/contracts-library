@@ -3,12 +3,15 @@ pragma solidity ^0.8.18;
 
 import { PaymentCombiner } from "../src/payments/PaymentCombiner.sol";
 import { PaymentsFactory } from "../src/payments/PaymentsFactory.sol";
-import { ERC1155ItemsFactory } from "../src/tokens/ERC1155/presets/items/ERC1155ItemsFactory.sol";
 
+import { ERC1155ItemsFactory } from "../src/tokens/ERC1155/presets/items/ERC1155ItemsFactory.sol";
 import { ERC1155PackFactory } from "../src/tokens/ERC1155/presets/pack/ERC1155PackFactory.sol";
 import { ERC1155SoulboundFactory } from "../src/tokens/ERC1155/presets/soulbound/ERC1155SoulboundFactory.sol";
+import { ERC1155Holder } from "../src/tokens/ERC1155/utility/holder/ERC1155Holder.sol";
 import { ERC1155SaleFactory } from "../src/tokens/ERC1155/utility/sale/ERC1155SaleFactory.sol";
+
 import { ERC20ItemsFactory } from "../src/tokens/ERC20/presets/items/ERC20ItemsFactory.sol";
+
 import { ERC721ItemsFactory } from "../src/tokens/ERC721/presets/items/ERC721ItemsFactory.sol";
 import { ERC721SoulboundFactory } from "../src/tokens/ERC721/presets/soulbound/ERC721SoulboundFactory.sol";
 import { ERC721SaleFactory } from "../src/tokens/ERC721/utility/sale/ERC721SaleFactory.sol";
@@ -67,9 +70,11 @@ contract Deploy is SingletonDeployer {
             salt,
             pk
         );
+        address holder =
+            _deployIfNotAlready("ERC1155Holder", abi.encodePacked(type(ERC1155Holder).creationCode), salt, pk);
         _deployIfNotAlready(
             "ERC1155PackFactory",
-            abi.encodePacked(type(ERC1155PackFactory).creationCode, abi.encode(factoryOwner)),
+            abi.encodePacked(type(ERC1155PackFactory).creationCode, abi.encode(factoryOwner, holder)),
             salt,
             pk
         );

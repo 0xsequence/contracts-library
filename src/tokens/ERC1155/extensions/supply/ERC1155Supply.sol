@@ -45,9 +45,14 @@ abstract contract ERC1155Supply is ERC1155, IERC1155Supply {
 
         uint256 nMint = _ids.length;
         uint256 totalAmount = 0;
-        for (uint256 i = 0; i < nMint; i++) {
-            totalAmount += _amounts[i];
-            tokenSupply[_ids[i]] += _amounts[i];
+        for (uint256 i; i < nMint;) {
+            uint256 amount = _amounts[i];
+            totalAmount += amount;
+            tokenSupply[_ids[i]] += amount;
+            unchecked {
+                // Already checked in super._batchMint
+                ++i;
+            }
         }
         totalSupply += totalAmount;
     }
@@ -76,9 +81,14 @@ abstract contract ERC1155Supply is ERC1155, IERC1155Supply {
 
         uint256 nBurn = _ids.length;
         uint256 totalAmount = 0;
-        for (uint256 i = 0; i < nBurn; i++) {
-            tokenSupply[_ids[i]] -= _amounts[i];
-            totalAmount += _amounts[i];
+        for (uint256 i; i < nBurn;) {
+            uint256 amount = _amounts[i];
+            tokenSupply[_ids[i]] -= amount;
+            totalAmount += amount;
+            unchecked {
+                // Already checked in super._batchBurn
+                ++i;
+            }
         }
         totalSupply -= totalAmount;
     }
