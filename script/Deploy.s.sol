@@ -3,6 +3,7 @@ pragma solidity ^0.8.18;
 
 import { PaymentCombiner } from "../src/payments/PaymentCombiner.sol";
 import { PaymentsFactory } from "../src/payments/PaymentsFactory.sol";
+import { WithdrawOnlyToFactory } from "../src/payments/WithdrawOnlyToFactory.sol";
 
 import { ERC1155ItemsFactory } from "../src/tokens/ERC1155/presets/items/ERC1155ItemsFactory.sol";
 import { ERC1155PackFactory } from "../src/tokens/ERC1155/presets/pack/ERC1155PackFactory.sol";
@@ -82,6 +83,9 @@ contract Deploy is SingletonDeployer {
             "PaymentsFactory", abi.encodePacked(type(PaymentsFactory).creationCode, abi.encode(factoryOwner)), salt, pk
         );
         _deployIfNotAlready("PaymentCombiner", abi.encodePacked(type(PaymentCombiner).creationCode), salt, pk);
+        _deployIfNotAlready(
+            "WithdrawOnlyToFactory", abi.encodePacked(type(WithdrawOnlyToFactory).creationCode), salt, pk
+        );
         address clawbackMetadata =
             _deployIfNotAlready("ClawbackMetadata", abi.encodePacked(type(ClawbackMetadata).creationCode), salt, pk);
         _deployIfNotAlready(
