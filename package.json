@@ -10,7 +10,7 @@
   "source": "src/index.ts",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
-  "author": "Horizon Blockchain Games",
+  "author": "Sequence Platforms ULC",
   "license": "Apache-2.0",
   "scripts": {
     "build": "forge build --force",
